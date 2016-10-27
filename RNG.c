@@ -1,5 +1,6 @@
 #include <RNG.h>
 #include <stdlib.h>
+#include <math.h>
 
 int naturalUniform(int n)
 {
