@@ -1,7 +1,8 @@
 #ifndef RNG_H
 #define RNG_H
 
-int naturalUniformDist();
-float realUniformDist(float from,float to);
+int naturalUniform(int n);
+float realUniform(float a,float b,int token);
+float Gaussian01(void);
 
 #endif
