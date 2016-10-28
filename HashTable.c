@@ -1,19 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <HashTable.h>
+#include "HashTable.h"
 
-typedef struct ChainList{
+typedef struct ChainNode{
 	void* data;
-	Chain* next;
-} Chain;
+	struct ChainNode* next;
+} ChainNode;
+
+typedef struct ChainHead{
+	ChainNode* start;
+	ChainNode* end;
+	int size;
+} ChainHead;
 
 struct HashTable_type{
-	Chain* table;
+	ChainHead* table;
 	int size;
 	unsigned int (*hash)(void* x);
 };
 
-HashTable createHashTable(int size,unsigned int(*hashFunction)(void* x)){
+HashTable hash_create(int size,unsigned int(*hashFunction)(void* x)){
 	HashTable ht = malloc(sizeof(struct HashTable_type));
 	if(ht == NULL){
 		perror("Failed to allocate memory for new Hash Table");
@@ -21,7 +27,7 @@ HashTable createHashTable(int size,unsigned int(*hashFunction)(void* x)){
 	}
 
 	ht->size = size;
-	ht->table = malloc(size*sizeof(Chain));
+	ht->table = malloc(size*sizeof(ChainHead));
 	if(ht->table == NULL){
 		perror("Failed to allocate memory for buckets while creating new Hash Table");
 		free(ht);
@@ -30,8 +36,9 @@ HashTable createHashTable(int size,unsigned int(*hashFunction)(void* x)){
 
 	int i;
 	for(i=0;i<size;i++){
-		ht->table[i].data = NULL;
-		ht->table[i].next = NULL;
+		ht->table[i].start = NULL;
+		ht->table[i].end = NULL;
+		ht->table[i].size = 0;
 	}
 
 	ht->hash = hashFunction;
@@ -39,49 +46,61 @@ HashTable createHashTable(int size,unsigned int(*hashFunction)(void* x)){
 	return ht;
 }
 
-void destroyHashTable(HashTable ht){
+void hash_destroy(HashTable ht){
 	int i;
 	for(i=0;i<ht->size;i++){
-		Chain* current=&(ht->table[i]);
-		Chain* temp = current;
-		while(current != NULL){
-			current = current->next;
+		ChainNode* temp = ht->table[i].start;
+		while(temp != NULL){
+			ht->table[i].start = temp->next;
 			free(temp);
-			temp = current;
+			temp = ht->table[i].start;
 		}
 	}
 
-	free(table);
+	free(ht->table);
+	free(ht);
 }
 
-int insert(HashTable ht,void* data){
-	unsigned int pot = ht->hash(data);
+int hash_insert(HashTable ht,void* data){
+	unsigned int i = ht->hash(data);
 
-	if(ht->table[pot].data == NULL){
-		ht->table[pot].data = data;
-		return 0;
+	if(ht->table[i].size == 0){
+		ht->table[i].start = malloc(sizeof(ChainNode));
+		if(ht->table[i].start == NULL){
+			perror("Failed to create node for new element on Hash Table");
+			return -1;
+		}
+
+		ht->table[i].end = ht->table[i].start;
+	}
+	else{
+		ht->table[i].end->next = malloc(sizeof(ChainNode));
+		if(ht->table[i].end->next == NULL){
+			perror("Failed to create node for new element on Hash Table");
+			return -2;
+		}
+
+		ht->table[i].end = ht->table[i].end->next;
 	}
 
-	Chain* next = ht->table[pot].next;
-	while(next != NULL) next = next->next;
 
-	next = malloc(sizeof(Chain));
-	if(next == NULL){
-		perror("Failed to allocate memory for new Hash Table element");
-		return -1;
-	}
-
-	next->data = data;
-	next->next = NULL;
-
+	ht->table[i].end->next = NULL;
+	ht->table[i].end->data = data;
+	ht->table[i].size++;
 	return 0;
 }
 
-void* getNext(HashTable ht,void* q){
-	static Chain* current = NULL;
+void* hash_getNext(HashTable ht,void* q){
+	static ChainNode* current = NULL;
 
-	if(current == NULL) current = &(ht->table[ht->hash(q)]);
+	if(current == NULL){
+		unsigned int pot = ht->hash(q);
+		current = ht->table[pot].start;
+	}
 	else current = current->next;
 
-	return current->data;
+	if(current != NULL) fprintf(stderr,"current->data = %p\n",current->data);
+
+	if(current ==  NULL) return NULL;
+	else return current->data;
 }
