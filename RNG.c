@@ -4,20 +4,13 @@
 
 int naturalUniform(int n)
 {
-    if(n<=-1)
+    if(n<=0)
 	{
 		return (int)(-(1.0/2.0)*RAND_MAX+rand());
 	}
 	else
 	{
-		if(!n)
-		{
-			return rand();
-		}
-		else
-		{
-		    return (rand()%n);
-		}
+	    return (rand()%n);
 	}
 }
 
