@@ -9,7 +9,7 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,s=0,j,token=0;
+    int i=1,k=4,L=5,error,s=0,j,token=0;
 	char *d=NULL,*q=NULL,*o=NULL,bits[65];
 	FILE *dataset,*query,*output;
 	HashDescriptor *g;
@@ -140,8 +140,8 @@ int main(int argc,char* argv[])
 		    return 1;
 	    }
 	    fscanf(dataset,"%64s",bits);
-	    i=strcmp(bits,"@metric_space");
-		if(i)
+		error=strcmp(bits,"@metric_space");
+		if(error)
 	    {
 		    printf("Error: Incorrect dataset file.\n");
 		    printf("Enter path name of dataset file and press [Enter]: ");
@@ -177,7 +177,7 @@ int main(int argc,char* argv[])
 				    printf("Error: Incorrect dataset file.\n");
 		            printf("Enter path name of dataset file and press [Enter]: ");
 					gets(d);
-		            i=1;
+					error=1;
 				}
 			}
 	        else
@@ -245,7 +245,7 @@ int main(int argc,char* argv[])
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
 							gets(d);
-				        	i=1;
+							error=1;
 				        }
 		            }
 		            else
@@ -266,6 +266,6 @@ int main(int argc,char* argv[])
 			}
 		}
 	}
-	while(i);
+	while(error);
 	return 0;
 }
