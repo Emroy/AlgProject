@@ -2,23 +2,23 @@
 #include <stdlib.h>
 #include <math.h>
 
-int naturalUniform(int n)
+int integerUniform(int n) /* Συνάρτηση δημιουργίας ψευδοτυχαίων ακεραίων με ομοιόμορφη κατανομή. */
 {
     if(n<=0)
 	{
-		return (int)(-(1.0/2.0)*RAND_MAX+rand());
+		return (int)(-(1.0/2.0)*RAND_MAX+rand()); /* Δημιουργία ψευδοτυχαίων ακεραίων στο διάστημα [-(1.0/2.0)*RAND_MAX,(1.0/2.0)*RAND_MAX]. */
 	}
 	else
 	{
-	    return (rand()%n);
+	    return (rand()%n); /* Δημιουργία ψευδοτυχαίων φυσικών στο διάστημα [0,n-1]. */
 	}
 }
 
-float realUniform(float a,float b,int token)
+float realUniform(float a,float b,int token) /* Συνάρτηση δημιουργίας ψευδοτυχαίων πραγματικών με ομοιόμορφη κατανομή στο διάστημα με άκρα τα a,b. */
 {
 	float r;
 	
-	if(!token)
+	if(!token) /* Δημιουργία ψευδοτυχαίων πραγματικών στο διάστημα (α,b). */
 	{
 		do
 		{
@@ -29,7 +29,7 @@ float realUniform(float a,float b,int token)
 	}
 	else
 	{
-		if(token==1)
+		if(token==1) /* Δημιουργία ψευδοτυχαίων πραγματικών στο διάστημα (α,b]. */
 		{
 		    do
 		    {
@@ -40,13 +40,13 @@ float realUniform(float a,float b,int token)
 		}
 		else
 		{
-		    if(token==2)
+		    if(token==2) /* Δημιουργία ψευδοτυχαίων πραγματικών στο διάστημα [α,b). */
 		    {
 		    	return (a+(rand()/(RAND_MAX+1.0))*(b-a));
 		    }
 		    else
 		    {
-		    	if(token==3)
+		    	if(token==3) /* Δημιουργία ψευδοτυχαίων πραγματικών στο διάστημα [α,b]. */
 		    	{
 		    		return (a+(rand()/(RAND_MAX+1.0))*(b-a+1));
 		    	}
@@ -55,7 +55,7 @@ float realUniform(float a,float b,int token)
 	}
 }
 
-float Gaussian01(void)
+float Gaussian01(void) /* Συνάρτηση δημιουργίας ψευδοτυχαίων πραγματικών με κανονική κατανομή στο διάστημα (0,1). */
 {
 	float x1,x2,s;
 	
