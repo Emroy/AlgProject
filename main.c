@@ -194,7 +194,7 @@ int main(int argc,char* argv[])
 						i=0;
 						do
 						{
-						    fscanf(dataset,"%c",&x[i]);
+						    x[i]=getc(dataset);
 						    if(x[i]==' ')
 						    {
 						    	break;
