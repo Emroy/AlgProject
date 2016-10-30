@@ -9,9 +9,10 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,s;
+    int i=1,k=4,L=5,s=0,j,k;
 	char *d=NULL,*q=NULL,*o=NULL,bits[65];
 	FILE *dataset,*query,*output;
+	HashDescriptor *g;
 	long long int x;
 	
 	while(i<=argc-1)
@@ -187,8 +188,38 @@ int main(int argc,char* argv[])
 					{
 						fscanf(dataset,"%*s");
 						fscanf(dataset,"%64s",bits);
-						s=strlen(bits);
+						if(!s)
+						{
+						    s=strlen(bits);
+						    if((g=mallloc(L*sizeof(HashDescriptor)))==NULL)
+						    {
+							    printf("Error: Failed to allocate memory.\n");
+			                    printf("Press [Enter] to terminate the program.\n");
+			                    getc(stdin);
+			                    return 1;
+		                    }
+						    for(i=0;i<=L-1;i++)
+						    {
+						    	do
+						    	{
+								    g[i]=hamming_hash_create(k,s);
+							        for(j=0;j<=i-1;j++)
+							        {
+							        	k=hamming_is_equal(g[i],g[j]);
+							        	if(k)
+							        	{
+							        		break;
+							        	}
+							        }
+							    }
+							    while(k);
+							}
+						}
 						x=strtoll(bits,NULL,2);
+						for(i=0;i<=L-1;i++)
+						{
+						    hash_apply(g[i],&x);
+						}
 					}
 		        }
 		        else
