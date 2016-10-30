@@ -9,7 +9,7 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,s=0,j,k=0;
+    int i=1,k=4,L=5,s=0,j,token=0;
 	char *d=NULL,*q=NULL,*o=NULL,bits[65];
 	FILE *dataset,*query,*output;
 	HashDescriptor *g;
@@ -205,14 +205,14 @@ int main(int argc,char* argv[])
 								    g[i]=hamming_hash_create(k,s);
 							        for(j=0;j<=i-1;j++)
 							        {
-							        	k=hamming_is_equal(g[i],g[j]);
-							        	if(k)
+									    token=hamming_is_equal(g[i],g[j]);
+							        	if(token)
 							        	{
 							        		break;
 							        	}
 							        }
 							    }
-							    while(k);
+							    while(token);
 							}
 						}
 						x=strtoll(bits,NULL,2);
