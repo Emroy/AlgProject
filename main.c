@@ -5,7 +5,7 @@
 int main(int argc,char* argv[]) 
 {
     int i=1,k=4,L=5;
-	char *d=NULL,*q=NULL,*o=NULL,check[20];
+	char *d=NULL,*q=NULL,*o=NULL,check[20],x[64];
 	FILE *dataset,*query,*output;
 	
 	while(i<=argc-1) /* Read command line arguements */
@@ -117,7 +117,7 @@ int main(int argc,char* argv[])
 			getc(stdin);
 			return 1;
 		}
-		printf("Enter path name of dataset file and press [Enter]:");
+		printf("Enter path name of dataset file and press [Enter]: ");
 		fgets(d,100,stdin);
 		while(getc(stdin)!='\n')
 		{
@@ -133,7 +133,7 @@ int main(int argc,char* argv[])
 			getc(stdin);
 			return 1;
 		}
-		printf("Enter path name of query file and press [Enter]:");
+		printf("Enter path name of query file and press [Enter]: ");
 		fgets(q,100,stdin);
 		while(getc(stdin)!='\n')
 		{
@@ -149,7 +149,7 @@ int main(int argc,char* argv[])
 			getc(stdin);
 			return 1;
 		}
-		printf("Enter path name of output file and press [Enter]:");
+		printf("Enter path name of output file and press [Enter]: ");
 		fgets(o,100,stdin);
 		while(getc(stdin)!='\n')
 		{
@@ -165,12 +165,12 @@ int main(int argc,char* argv[])
 		    getc(stdin);
 		    return 1;
 	    }
-	    fscanf(data,"%s",check);
+	    fscanf(dataset,"%s",check);
 	    i=strcmp(check,"@metric_space");
 		if(i)
 	    {
 		    printf("Error: Incorrect dataset file.\n");
-		    printf("Enter path name of dataset file and press [Enter]:");
+		    printf("Enter path name of dataset file and press [Enter]: ");
 		    fgets(d,100,stdin);
 		    while(getc(stdin)!='\n')
 		    {
@@ -179,7 +179,7 @@ int main(int argc,char* argv[])
 		}
 		else
 		{
-		    fscanf(data,"%s",check);
+		    fscanf(dataset,"%s",check);
 	        if(!strcmp(check,"vector"))
 	        {
 	    	
@@ -188,7 +188,21 @@ int main(int argc,char* argv[])
 	        {
 			    if(!strcmp(check,"hamming"))
 				{
-		    	
+					while(!feof(dataset))
+					{
+						fscanf(dataset,"%*s");
+						i=0;
+						do
+						{
+						    fscanf(dataset,"%c",&x[i]);
+						    if(x[i]==' ')
+						    {
+						    	break;
+						    }
+						    i++;
+						}
+						while(i<=63);
+					}
 		        }
 		        else
 		        {
@@ -205,7 +219,7 @@ int main(int argc,char* argv[])
 				        else
 				        {
 						    printf("Error: Incorrect dataset file.\n");
-		                    printf("Enter path name of dataset file and press [Enter]:");
+		                    printf("Enter path name of dataset file and press [Enter]: ");
 		                    fgets(d,100,stdin);
 		                    while(getc(stdin)!='\n')
 		                    {
