@@ -11,6 +11,7 @@ int hamming_is_equal(HashDescriptor a,HashDescriptor b);
 /*if HashDescritor function a is the same as HashDescriptor function b returns 1 else returns 0*/
 
 unsigned int hash_apply(HashDescriptor hd,void* x);
+/*Aplly function described by HashDescriptor on element x and return the ouput*/
 
 void hamming_hash_destroy(HashDescriptor hd);
 /*Destory a HashDescriptor and make hd NULL*/

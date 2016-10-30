@@ -19,7 +19,7 @@ struct HashTable_type{
 	HashDescriptor hash;
 };
 
-HashTable hash_create(int size,HashDescriptor hd){
+HashTable hashTable_create(int size,HashDescriptor hd){
 	HashTable ht = malloc(sizeof(struct HashTable_type));
 	if(ht == NULL){
 		perror("Failed to allocate memory for new Hash Table");
@@ -46,7 +46,7 @@ HashTable hash_create(int size,HashDescriptor hd){
 	return ht;
 }
 
-void hash_destroy(HashTable ht){
+void hashTable_destroy(HashTable ht){
 	int i;
 	for(i=0;i<ht->size;i++){
 		ChainNode* temp = ht->table[i].start;
@@ -61,7 +61,7 @@ void hash_destroy(HashTable ht){
 	free(ht);
 }
 
-int hash_insert(HashTable ht,void* data){
+int hashTable_insert(HashTable ht,void* data){
 	unsigned int i = hash_apply(ht->hash,data);
 
 	if(ht->table[i].size == 0){
@@ -90,7 +90,7 @@ int hash_insert(HashTable ht,void* data){
 	return 0;
 }
 
-void* hash_getNext(HashTable ht,void* q){
+void* hashTable_getNext(HashTable ht,void* q){
 	static ChainNode* current = NULL;
 
 	if(current == NULL){

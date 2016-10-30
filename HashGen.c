@@ -67,4 +67,3 @@ unsigned int hash_apply(HashDescriptor hd,void* x){
 
 	return retVal >> 1;
 }
-
