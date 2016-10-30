@@ -9,7 +9,7 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,s=0,j,k;
+    int i=1,k=4,L=5,s=0,j,k=0;
 	char *d=NULL,*q=NULL,*o=NULL,bits[65];
 	FILE *dataset,*query,*output;
 	HashDescriptor *g;
