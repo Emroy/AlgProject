@@ -16,10 +16,10 @@ typedef struct ChainHead{
 struct HashTable_type{
 	ChainHead* table;
 	int size;
-	unsigned int (*hash)(void* x);
+	HashDescriptor hash;
 };
 
-HashTable hash_create(int size,unsigned int(*hashFunction)(void* x)){
+HashTable hash_create(int size,HashDescriptor hd){
 	HashTable ht = malloc(sizeof(struct HashTable_type));
 	if(ht == NULL){
 		perror("Failed to allocate memory for new Hash Table");
@@ -41,7 +41,7 @@ HashTable hash_create(int size,unsigned int(*hashFunction)(void* x)){
 		ht->table[i].size = 0;
 	}
 
-	ht->hash = hashFunction;
+	ht->hash = hd;
 
 	return ht;
 }
@@ -62,7 +62,7 @@ void hash_destroy(HashTable ht){
 }
 
 int hash_insert(HashTable ht,void* data){
-	unsigned int i = ht->hash(data);
+	unsigned int i = hash_apply(ht->hash,data);
 
 	if(ht->table[i].size == 0){
 		ht->table[i].start = malloc(sizeof(ChainNode));
@@ -94,7 +94,7 @@ void* hash_getNext(HashTable ht,void* q){
 	static ChainNode* current = NULL;
 
 	if(current == NULL){
-		unsigned int pot = ht->hash(q);
+		unsigned int pot = hash_apply(ht->hash,q);
 		current = ht->table[pot].start;
 	}
 	else current = current->next;

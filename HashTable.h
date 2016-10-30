@@ -1,9 +1,10 @@
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
+#include "HashGen.h"
 
 typedef struct HashTable_type *HashTable;
 
-HashTable hash_create(int size,unsigned int (*hashFunction)(void* x));
+HashTable hash_create(int size,HashDescriptor hd);
 /*Returns a new Hash Table with empty buckets or NULL on failure.
   CAUTION: It is the caller's responsibility to make the hash function
   able to accept the type of data that will be stored inside the table.*/
