@@ -1,28 +1,26 @@
+/* амаптунг коцислийоу циа акцояихлийа пяобкглата
+   еяцасиа 1
+   кекециаммгс иыаммгс: 1115201200090
+   поукидгс мийокаос: 1115200000111 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5;
-	char *d=NULL,*q=NULL,*o=NULL,check[20],bits[65];
+    int i=1,k=4,L=5,s;
+	char *d=NULL,*q=NULL,*o=NULL,bits[65];
 	FILE *dataset,*query,*output;
 	long long int x;
 	
-	while(i<=argc-1) /* Read command line arguements */
+	while(i<=argc-1)
 	{
 		if(!strcmp(argv[i],"-d"))
 		{
 			if(argv[i+1]!=NULL)
 			{
-			    if((d=malloc((strlen(argv[i+1])+1)*sizeof(char)))==NULL)
-			    {
-				    printf("Error: Can not allocate memory.\n");
-				    printf("Press [Enter] to terminate the program.\n");
-				    getc(stdin);
-				    return 1;
-			    }
-			    strcpy(d,argv[i+1]);
+			    d=argv[i+1];
 			    i+=2;
 			}
 			else
@@ -36,14 +34,7 @@ int main(int argc,char* argv[])
 			{
 			    if(argv[i+1]!=NULL)
 			    {
-			        if((q=malloc((strlen(argv[i+1])+1)*sizeof(char)))==NULL)
-			        {
-				        printf("Error: Can not allocate memory.\n");
-				        printf("Press [Enter] to terminate the program.\n");
-				        getc(stdin);
-				        return 1;
-			        }
-			        strcpy(q,argv[i+1]);
+				    q=argv[i+1];
 			        i+=2;
 			    }
 			    else
@@ -85,14 +76,7 @@ int main(int argc,char* argv[])
 						{
 						    if(argv[i+1]!=NULL)
 			                {
-			                    if((o=malloc((strlen(argv[i+1])+1)*sizeof(char)))==NULL)
-			                    {
-				                    printf("Error: Can not allocate memory.\n");
-				                    printf("Press [Enter] to terminate the program.\n");
-				                    getc(stdin);
-				                    return 1;
-			                    }
-			                    strcpy(o,argv[i+1]);
+							    o=argv[i+1];
 			                    i+=2;
 			                }
 			                else
@@ -113,98 +97,129 @@ int main(int argc,char* argv[])
 	{
 	    if((d=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Can not allocate memory.\n");
+		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
 			getc(stdin);
 			return 1;
 		}
 		printf("Enter path name of dataset file and press [Enter]: ");
-		fgets(d,100,stdin);
-		while(getc(stdin)!='\n')
-		{
-			;
-		}
+		gets(d);
 	}
 	if(q==NULL)
 	{
 	    if((q=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Can not allocate memory.\n");
+		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
 			getc(stdin);
 			return 1;
 		}
 		printf("Enter path name of query file and press [Enter]: ");
-		fgets(q,100,stdin);
-		while(getc(stdin)!='\n')
-		{
-			;
-		}
+		gets(q);
 	}
 	if(o==NULL)
 	{
 	    if((o=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Can not allocate memory.\n");
+		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
 			getc(stdin);
 			return 1;
 		}
 		printf("Enter path name of output file and press [Enter]: ");
-		fgets(o,100,stdin);
-		while(getc(stdin)!='\n')
-		{
-			;
-		}
+		gets(o);
 	}
 	do
 	{
 	    if((dataset=fopen(d,"r"))==NULL)
 	    {
-		    printf("Error: Dataset file can not be opened.\n");
+		    printf("Error: Failed to open dataset file.\n");
 		    printf("Press [Enter] to terminate the program.\n");
 		    getc(stdin);
 		    return 1;
 	    }
-	    fscanf(dataset,"%s",check);
-	    i=strcmp(check,"@metric_space");
+	    fscanf(dataset,"%64s",bits);
+	    i=strcmp(bits,"@metric_space");
 		if(i)
 	    {
 		    printf("Error: Incorrect dataset file.\n");
 		    printf("Enter path name of dataset file and press [Enter]: ");
-		    fgets(d,100,stdin);
-		    while(getc(stdin)!='\n')
-		    {
-			    ;
-		    }
+			gets(d);
 		}
 		else
 		{
-		    fscanf(dataset,"%s",check);
-	        if(!strcmp(check,"vector"))
+		    fscanf(dataset,"%64s",bits);
+	        if(!strcmp(bits,"vector"))
 	        {
-	    	
-	        }
+	        	fscanf(dataset,"%64s",bits);
+	        	if(!strcmp(bits,"@metric"))
+	        	{
+				    fscanf(dataset,"%64s",bits);
+				    if(!strcmp(bits,"manhattan"))
+					{
+						;
+					}
+					else
+					{
+					    if(!strcmp(bits,"cosine"))
+					    {
+						    ;	
+					    }
+					    else
+					    {
+					    	;
+					    }
+					}
+				}
+				else
+				{
+				    printf("Error: Incorrect dataset file.\n");
+		            printf("Enter path name of dataset file and press [Enter]: ");
+					gets(d);
+		            i=1;
+				}
+			}
 	        else
 	        {
-			    if(!strcmp(check,"hamming"))
+			    if(!strcmp(bits,"hamming"))
 				{
 					while(!feof(dataset))
 					{
 						fscanf(dataset,"%*s");
-						fscanf(dataset,"%s",bits);
-						x=strtoll (bits,NULL,2);
+						fscanf(dataset,"%64s",bits);
+						s=strlen(bits);
+						x=strtoll(bits,NULL,2);
 					}
 		        }
 		        else
 		        {
-			        if(!strcmp(check,"matrix"))
+			        if(!strcmp(bits,"matrix"))
 		            {
-		    	
+					    fscanf(dataset,"%64s",bits);
+						if(!strcmp(bits,"@items"))
+						{
+							do
+							{
+							    fscanf(dataset,"%64s",bits);
+							}
+							while(strcmp(bits,"0"));
+							do
+							{
+							    fscanf(dataset,"%64s",bits);
+							}
+							while(!strcmp(bits,"0"));
+						}
+						else
+				        {
+						    printf("Error: Incorrect dataset file.\n");
+		                    printf("Enter path name of dataset file and press [Enter]: ");
+							gets(d);
+				        	i=1;
+				        }
 		            }
 		            else
 		            {
-				        if(!strcmp(check,"function"))
+				        if(!strcmp(bits,"function"))
 				        {
 				        	;
 				        }
@@ -212,11 +227,7 @@ int main(int argc,char* argv[])
 				        {
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-		                    fgets(d,100,stdin);
-		                    while(getc(stdin)!='\n')
-		                    {
-			                    ;
-		                    }
+							gets(d);
 				        	i=1;
 				        }
 				    }
