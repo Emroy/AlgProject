@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "HashGen.h"
 #include "RNG.h"
 
@@ -37,7 +38,7 @@ int hamming_is_equal(HashDescriptor a,HashDescriptor b){
 	if(a->hamming.size != b->hamming.size) return 0;
 
 	int i;
-	for(i=0;i<size;i++)
+	for(i=0;i<a->hamming.size;i++)
 		if(a->hamming.g[i] != b->hamming.g[i]) return 0;
 
 	return 1;
@@ -59,7 +60,7 @@ unsigned int hash_apply(HashDescriptor hd,void* x){
 	long long int temp=1;
 	for(i=0;i<hd->hamming.size;i++){
 		temp = temp << hd->hamming.g[i];
-		retVal += (temp & *x) != 0;
+		retVal += (temp & *data) != 0;
 		retVal << 1;
 		temp = 1;
 	}

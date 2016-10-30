@@ -2,7 +2,7 @@
 #define HASH_GEN_H
 #include <stdint.h>
 
-typedef struct HashDesc *HashDescriptor
+typedef struct HashDesc *HashDescriptor;
 
 HashDescriptor hamming_hash_create(int d,int k);
 /*Creates a function g as described by theory, return NULL on failure*/
