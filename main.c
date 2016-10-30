@@ -5,8 +5,9 @@
 int main(int argc,char* argv[]) 
 {
     int i=1,k=4,L=5;
-	char *d=NULL,*q=NULL,*o=NULL,check[20],x[64];
+	char *d=NULL,*q=NULL,*o=NULL,check[20],bits[65];
 	FILE *dataset,*query,*output;
+	long long int x;
 	
 	while(i<=argc-1) /* Read command line arguements */
 	{
@@ -191,17 +192,8 @@ int main(int argc,char* argv[])
 					while(!feof(dataset))
 					{
 						fscanf(dataset,"%*s");
-						i=0;
-						do
-						{
-						    x[i]=getc(dataset);
-						    if(x[i]==' ')
-						    {
-						    	break;
-						    }
-						    i++;
-						}
-						while(i<=63);
+						fscanf(dataset,"%s",bits);
+						x=strtoll (bits,NULL,2);
 					}
 		        }
 		        else
