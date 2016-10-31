@@ -29,6 +29,9 @@ struct EuData{
 /*-----------------------------*/
 
 typedef struct CosineDesc{
+	float** r;
+	int k;
+	int d;
 } CosineDescriptor;
 
 /*-----------------------------*/
@@ -97,6 +100,15 @@ int hash_apply(HashDescriptor hd,void* x){
 	}
 	else if(hd->cosine != NULL){
 	/*Cosine case*/
+		double* data = x;
+		int h,j;
+		for(i=0;i<hd->cosine->k;i++){
+			h=0;
+			for(j=0;j<hd->cosine->d;j++) h+=data[j]*hd->cosine->r[i][j];
+			if(h>=0) retVal+=1;
+			retVal << 1;
+		}
+		return retVal >> 1;
 	}
 	else if(hd->matrix != NULL){
 	/*Matrix case*/
@@ -227,4 +239,68 @@ void euclidean_hash_destroy(HashDescriptor hd){
 	free(hd->euclidean);
 	free(hd);
 	hd=NULL;
+}
+
+/*----------------------COSINE-----------------------------*/
+HashDescriptor cosine_hash_create(int d,int k){
+	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new cosine HashDescriptor");
+		return NULL;
+	}
+
+	retVal->hamming = NULL;
+	retVal->euclidean = NULL;
+	retVal->matrix = NULL;
+	retVal->cosine = malloc(sizeof(CosineDescriptor));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new cosine HashDescriptor");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->cosine->k = k;
+	retVal->cosine->d = d;
+	retVal->cosine->r = malloc(sizeof(float*)*k);
+	if(retVal->cosine->r == NULL){
+		perror("Failed to allocate memory for random vector r while creating new cosine HashDescriptor");
+		free(retVal->cosine);
+		free(retVal);
+		return NULL;
+	}
+
+	int i,j;
+	for(i=0;i<k;i++){
+		retVal->cosine->r[i] = malloc(sizeof(float)*d);
+		if(retVal->cosine->r[i] == NULL){
+			perror("Failed to allocate memory for random vector r while creating new cosine HashDescriptor");
+			for(j=i-1;j>=0;j--) free(retVal->cosine->r[j]);
+			free(retVal->cosine->r);
+			free(retVal->cosine);
+			free(retVal);
+			return NULL;
+		}
+
+		for(j=0;j<d;j++) retVal->cosine->r[i][j] = Gaussian01();
+	}
+
+	return retVal;
+}
+
+void cosine_hash_destroy(HashDescriptor hd){
+	int i;
+	for(int i=0;i<0;i++) free(hd->cosine->r[i]);
+	free(hd->cosine->r);
+	free(hd->cosine);
+	free(hd);
+	hd=NULL;
+}
+
+/*--------------------------MATRIX-----------------------*/
+HashDescriptor matrix_hash_create(){
+
+}
+
+void matrix_hash_destroy(HashDescriptor hd){
+
 }

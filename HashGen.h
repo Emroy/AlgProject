@@ -9,12 +9,12 @@ typedef struct EuData *EuclideanData;
 
 EuclideanData euclidean_data_create(double* p);
 
-/*FOR ALL METRICS*/
+/*--------------GENERAL----------------------*/
 int hash_apply(HashDescriptor hd,void* x);
 /*Aplly function described by HashDescriptor on element x and return the ouput*/
 
 
-/*FOR HAMMING METRIC*/
+/*--------------HAMMING----------------------*/
 HashDescriptor hamming_hash_create(int d,int k);
 /*Creates a hamming function g as described by theory, return NULL on failure*/
 
@@ -25,7 +25,7 @@ void hamming_hash_destroy(HashDescriptor hd);
 /*Destory a hamming HashDescriptor and make it NULL*/
 
 
-/*FOR EUCLIDEAN METRIC*/
+/*--------------EUCLIDEAN-------------------*/
 HashDescriptor euclidean_hash_create(int d,int k,int n);
 /*Creates an euclidean function g as described by theory, NULL on failure
   n: number of total elements in query. Used to determine TableSize. See theory for more info*/
@@ -34,10 +34,17 @@ void euclidean_hash_destroy(HashDescriptor hd);
 /*Destroy an euclidean HashDescriptor and make it NULL*/
 
 
-/*FOR COSINE METRIC*/
+/*---------------COSINE--------------------*/
 HashDescriptor cosine_hash_create();
 /*Creates a cosine function g as described by theory, NULL on failure*/
 
 void cosine_hash_destroy(HashDescriptor hd);
 /*Destroy a cosine HashDescriptor and make it NULL*/
+
+/*---------------MATRIX-------------------*/
+HashDescriptor matrix_hash_create();
+/*Creates a matrix function g as described by theory, NULL on failure*/
+
+void matrix_hash_destroy(HashDescriptor hd);
+/*Destroy a matrix HashDescriptor and make it NULL*/
 #endif
