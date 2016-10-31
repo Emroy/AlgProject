@@ -14,16 +14,54 @@ typedef struct EuclideanDesc{
 	float** v;
 	int k;
 	int d;
+	int n;
 } EuclideanDescriptor;
 
 typedef struct CosineDesc{
 } CosineDescriptor;
 
+typedef struct MatrixDesc{
+} MatrixDescriptor;
+
 struct HashDesc{
 	HammingDescriptor* hamming;
 	EuclideanDescriptor* euclidean;
 	CosineDescriptor* cosine;
+	MatrixDescriptor* matrix;
 };
+
+int hash_apply(HashDescriptor hd,void* x){
+	unsigned int retVal = 0;
+	int i;
+
+	if(hd->hamming != NULL){
+	/*Hamming case*/
+		long long int* data = x;
+		long long int temp=1;
+		for(i=0;i<hd->hamming->size;i++){
+			temp = temp << hd->hamming->g[i];
+			retVal += (temp & *data) != 0;
+			retVal << 1;
+			temp = 1;
+		}
+
+		return retVal >> 1;
+	}
+	else if(hd->euclidean != NULL){
+	/*Euclidean case*/
+		
+	}
+	else if(hd->cosine != NULL){
+	/*Cosine case*/
+	}
+	else if(hd->matrix != NULL){
+	/*Matrix case*/
+	}
+	else{
+		fprintf(stderr,"Invalid HashDescriptor given on hash_apply");
+		return -1;
+	}
+}
 
 HashDescriptor hamming_hash_create(int k,int d){
 	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
@@ -47,6 +85,7 @@ HashDescriptor hamming_hash_create(int k,int d){
 
 	retVal->euclidean = NULL;
 	retVal->cosine = NULL;
+	retVal->matrix = NULL;
 
 	int i;
 	for(i=0;i<k;i++) retVal->hamming->g[i] = (uint8_t)integerUniform(d);
@@ -72,36 +111,7 @@ void hamming_destroy(HashDescriptor hd){
 	hd = NULL;
 }
 
-int hash_apply(HashDescriptor hd,void* x){
-	unsigned int retVal = 0;
-	int i;
-
-	if(hd->hamming != NULL){
-	/*Hamming case*/
-		long long int* data = x;
-		long long int temp=1;
-		for(i=0;i<hd->hamming->size;i++){
-			temp = temp << hd->hamming->g[i];
-			retVal += (temp & *data) != 0;
-			retVal << 1;
-			temp = 1;
-		}
-
-		return retVal >> 1;
-	}
-	else if(hd->euclidean != NULL){
-	/*Euclidean case*/
-	}
-	else if(hd->cosine != NULL){
-	/*Cosine case*/
-	}
-	else{
-		fprintf(stderr,"Invalid HashDescriptor given on hash_apply");
-		return -1;
-	}
-}
-
-HashDescriptor euclidean_hash_create(int d,int k){
+HashDescriptor euclidean_hash_create(int d,int k,int n){
 	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
 	if(retVal == NULL){
 		perror("Failed to allocate memory for new Euclidean HashDescriptor");
@@ -150,8 +160,10 @@ HashDescriptor euclidean_hash_create(int d,int k){
 
 	retVal->hamming = NULL;
 	retVal->cosine = NULL;
+	retVal->matrix = NULL;
 
 	for(i=0;i<k;i++) retVal->euclidean->t[i] = realUniform(0,W,2);
+	retVal->euclidean->n = n;
 
 	return retVal;
 }

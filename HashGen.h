@@ -4,6 +4,10 @@
 
 typedef struct HashDesc *HashDescriptor;
 
+typedef struct EuclideanData{
+	int id;
+} EuclideanData;
+
 /*FOR ALL METRICS*/
 int hash_apply(HashDescriptor hd,void* x);
 /*Aplly function described by HashDescriptor on element x and return the ouput*/
@@ -21,8 +25,9 @@ void hamming_hash_destroy(HashDescriptor hd);
 
 
 /*FOR EUCLIDEAN METRIC*/
-HashDescriptor euclidean_hash_create(int d,int k);
-/*Creates an euclidean function g as described by theory, NULL on failure*/
+HashDescriptor euclidean_hash_create(int d,int k,int n);
+/*Creates an euclidean function g as described by theory, NULL on failure
+  n: number of total elements in query. Used to determine TableSize. See theory for more info*/
 
 void euclidean_hash_destroy(HashDescriptor hd);
 /*Destroy an euclidean HashDescriptor and make it NULL*/
