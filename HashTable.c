@@ -62,13 +62,14 @@ void hashTable_destroy(HashTable ht){
 }
 
 int hashTable_insert(HashTable ht,void* data){
-	unsigned int i = hash_apply(ht->hash,data);
+	int i = hash_apply(ht->hash,data);
+	if(i<0) return -1;
 
 	if(ht->table[i].size == 0){
 		ht->table[i].start = malloc(sizeof(ChainNode));
 		if(ht->table[i].start == NULL){
 			perror("Failed to create node for new element on Hash Table");
-			return -1;
+			return -2;
 		}
 
 		ht->table[i].end = ht->table[i].start;
@@ -77,7 +78,7 @@ int hashTable_insert(HashTable ht,void* data){
 		ht->table[i].end->next = malloc(sizeof(ChainNode));
 		if(ht->table[i].end->next == NULL){
 			perror("Failed to create node for new element on Hash Table");
-			return -2;
+			return -3;
 		}
 
 		ht->table[i].end = ht->table[i].end->next;
@@ -94,7 +95,8 @@ void* hashTable_getNext(HashTable ht,void* q){
 	static ChainNode* current = NULL;
 
 	if(current == NULL){
-		unsigned int pot = hash_apply(ht->hash,q);
+		int pot = hash_apply(ht->hash,q);
+		if(pot < 0) return NULL;
 		current = ht->table[pot].start;
 	}
 	else current = current->next;
