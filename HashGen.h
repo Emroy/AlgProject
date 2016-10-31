@@ -1,12 +1,13 @@
 #ifndef HASH_GEN_H
 #define HASH_GEN_H
 #include <stdint.h>
+#define HASH_SIZE_DIV 2
 
 typedef struct HashDesc *HashDescriptor;
 
-typedef struct EuclideanData{
-	int id;
-} EuclideanData;
+typedef struct EuData *EuclideanData;
+
+EuclideanData euclidean_data_create(double* p);
 
 /*FOR ALL METRICS*/
 int hash_apply(HashDescriptor hd,void* x);
