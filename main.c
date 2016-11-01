@@ -301,19 +301,16 @@ int main(int argc,char* argv[])
 					    fscanf(dataset,"%64s",bits);
 						if(!strcmp(bits,"@items"))
 						{
-							do
-							{
-							    fscanf(dataset,"%*64s");
-							    n++;
-							}
-							while((line=getc(dataset))!='\n');
+						    fscanf(dataset,"%*s");
 							while(!feof(dataset))
 				            {
 							    do
 							    {
 							        fscanf(dataset,"%lld",x);
+							        line=getc(dataset);
 							    }
-							    while((line=getc(dataset))!='\n');
+							    while((line!='\n')&&(line!=EOF));
+							    n++;
 							}
 						}
 						else
