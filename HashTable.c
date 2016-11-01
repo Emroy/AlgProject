@@ -65,6 +65,9 @@ int hashTable_insert(HashTable ht,void* data){
 	int i = hash_apply(ht->hash,data);
 	if(i<0) return -1;
 
+	fprintf(stderr, "hashSize: %d\n",ht->size);
+	fprintf(stderr, "i: %d\n",i);
+
 	if(ht->table[i].size == 0){
 		ht->table[i].start = malloc(sizeof(ChainNode));
 		if(ht->table[i].start == NULL){

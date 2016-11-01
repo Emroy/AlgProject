@@ -10,6 +10,8 @@ typedef struct EuData *EuclideanData;
 typedef struct MatrData* MatrixData;
 
 EuclideanData euclidean_data_create(HashDescriptor hd,double* p);
+int euclidean_data_getID(EuclideanData ed);
+double* euclidean_data_getVector(EuclideanData ed);
 
 /*--------------GENERAL----------------------*/
 int hash_apply(HashDescriptor hd,void* x);
@@ -39,7 +41,7 @@ void euclidean_hash_destroy(HashDescriptor hd);
 
 
 /*---------------COSINE--------------------*/
-HashDescriptor cosine_hash_create();
+HashDescriptor cosine_hash_create(int d,int k);
 /*Creates a cosine function g as described by theory, NULL on failure*/
 
 int cosine_is_equal(HashDescriptor a,HashDescriptor b);

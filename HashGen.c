@@ -54,6 +54,14 @@ struct HashDesc{
 	MatrixDescriptor* matrix;
 };
 
+int euclidean_data_getID(EuclideanData ed){
+	return ed->id;
+}
+
+double* euclidean_data_getVector(EuclideanData ed){
+	return ed->data;
+}
+
 /*--------------DATA CREATORS---------------*/
 
 EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
@@ -92,10 +100,12 @@ int hash_apply(HashDescriptor hd,void* x){
 		long long int temp=1;
 		for(i=0;i<hd->hamming->size;i++){
 			temp = temp << hd->hamming->g[i];
-			retVal += (temp & *data) != 0;
+			if((temp & *data) != 0) retVal++;
 			retVal << 1;
 			temp = 1;
 		}
+
+		fprintf(stderr,"hd->hamming->size: %d\n",hd->hamming->size);
 
 		return retVal >> 1;
 	}
@@ -139,7 +149,7 @@ int hash_apply(HashDescriptor hd,void* x){
 
 /*------------------HAMMING----------------------------*/
 
-HashDescriptor hamming_hash_create(int k,int d){
+HashDescriptor hamming_hash_create(int d,int k){
 	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
 	if(retVal == NULL){
 		perror("Failed to allocate memory for new Hamming HashDescriptor");

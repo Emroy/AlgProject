@@ -9,12 +9,13 @@
 #include <time.h>
 #include "HashGen.h"
 #include "HashTable.h"
+#define BUFFER_SIZE 512
 
 int main(int argc,char* argv[]) 
 {
     int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk;
 	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
-	FILE *dataset,*query,*output;
+	FILE *dataset,*queryFile,*outputFile;
 	double *p;
 	HashDescriptor *g;
 	HashTable *H;
@@ -258,6 +259,95 @@ int main(int argc,char* argv[])
 					            hashTable_insert(H[i],euclidean_data_create(g[i],p));
 					        }
 					    }
+
+					    queryFile = fopen(qPath,"r");
+						if(queryFile == NULL){
+							perror("Failed to open query file");
+							return -2;
+						}
+
+						outputFile = fopen(oPath,"w");
+						if(outputFile == NULL){
+							perror("Failed to open/create output file");
+							return -3;
+						}
+
+						char buffer[BUFFER_SIZE];
+
+						fgets(buffer,BUFFER_SIZE,queryFile);
+						unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+						double* q = malloc(sizeof(double)*d);
+						if(q == NULL){
+							perror("Failed to allocate memory for query vector");
+							return -4;
+						}
+
+						while(fgets(buffer,BUFFER_SIZE,queryFile)){
+							char* item_name=strtok(buffer," \t\n");
+							for(i=0;i<d;i++) q[i] = atof(strtok(NULL," \t\n"));
+							
+							fputs("Query: ",outputFile);
+							fputs(item_name,outputFile);
+							fputc('\n',outputFile);
+							fputs("R-near neighbors:\n",outputFile);
+
+							/*calculate and time lsh*/
+							clock_t begin = clock();
+							EuclideanData p_eu,q_eu;
+							double* b;
+							double db=-1.0,temp;
+							int i,j=0;
+							for(i=0;i<L;i++){
+								q_eu = euclidean_data_create(g[i],q);
+								while(p_eu=hashTable_getNext(H[i],q_eu)){
+									if(j > 3*L) break;
+									if(euclidean_data_getID(q_eu)!=euclidean_data_getID(p_eu)){
+										j++;
+										continue;
+									}
+									temp = euclidean(q,euclidean_data_getVector(p_eu),d);
+									if(temp < radius){
+										int iter;
+										for(iter=0;iter<d;iter++) fprintf(outputFile,"%f ",q[iter]);
+										fputc('\n',outputFile);
+									}
+									if(temp < db || db < 0.0){
+										b = q;
+										db = temp;
+									}
+									j++;
+								}
+							}
+							clock_t end = clock();
+							double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*calculate and time true nearest*/
+							begin = clock();
+							double* true_nearest;
+							double true_dist = -1.0;
+							for(i=0;i<n;i++){
+								temp = euclidean(p[i],q,d);
+								if(temp < true_dist || true_dist < 0.0){
+									true_nearest = p[i];
+									true_dist = temp;
+								}
+							}
+							end = clock();
+							double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*output search data*/
+							fputs("Nearest neighbor: ",outputFile);
+							/*output nearest neighbor*/
+							fputc('\n',outputFile);
+							fputs("distanceLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",db);
+							fputs("distanceTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_dist);
+							fputs("tLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",lsh_time);
+							fputs("tTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_time);
+						}
 				    }
 				    else
 				    {
@@ -272,7 +362,7 @@ int main(int argc,char* argv[])
 						    {
 							    do
 							    {
-								    if((g[i]=cosine_hash_create(d,k,n))==NULL)
+								    if((g[i]=cosine_hash_create(d,k))==NULL)
 								    {
 									    printf("Error: Function failure.\n");
 									    printf("Press [Enter] to terminate the program.\n");
@@ -323,6 +413,90 @@ int main(int argc,char* argv[])
 					                hashTable_insert(H[i],p);
 					            }
 					        }
+
+					        queryFile = fopen(qPath,"r");
+							if(queryFile == NULL){
+								perror("Failed to open query file");
+								return -2;
+							}
+
+							outputFile = fopen(oPath,"w");
+							if(outputFile == NULL){
+								perror("Failed to open/create output file");
+								return -3;
+							}
+
+							char buffer[BUFFER_SIZE];
+
+							fgets(buffer,BUFFER_SIZE,queryFile);
+							unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+							double* q = malloc(sizeof(double)*d);
+							if(q == NULL){
+								perror("Failed to allocate memory for query vector");
+								return -4;
+							}
+
+							while(fgets(buffer,BUFFER_SIZE,queryFile)){
+								char* item_name=strtok(buffer," \t\n");
+								for(i=0;i<d;i++) q[i] = atof(strtok(NULL," \t\n"));
+								
+								fputs("Query: ",outputFile);
+								fputs(item_name,outputFile);
+								fputc('\n',outputFile);
+								fputs("R-near neighbors:\n",outputFile);
+
+								/*calculate and time lsh*/
+								clock_t begin = clock();
+								double* p_current;
+								double* b;
+								double db=-1.0,temp;
+								int i,j=0;
+								for(i=0;i<L;i++){
+									while(p_current=hashTable_getNext(H[i],q)){
+										if(j > 3*L) break;
+										temp = cosine(p_current,q,d);
+										if(temp < radius){
+											int iter;
+											for(iter=0;iter<d;iter++) fprintf(outputFile,"%f ",q[iter]);
+											fputc('\n',outputFile);
+										}
+										if(temp < db || db < 0.0){
+											b = q;
+											db = temp;
+										}
+										j++;
+									}
+								}
+								clock_t end = clock();
+								double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*calculate and time true nearest*/
+								begin = clock();
+								double* true_nearest;
+								double true_dist = -1.0;
+								for(i=0;i<n;i++){
+									temp = cosine(p[i],q,d);
+									if(temp < true_dist || true_dist < 0.0){
+										true_nearest = p[i];
+										true_dist = temp;
+									}
+								}
+								end = clock();
+								double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*output search data*/
+								fputs("Nearest neighbor: ",outputFile);
+								/*output nearest neighbor*/
+								fputc('\n',outputFile);
+								fputs("distanceLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",db);
+								fputs("distanceTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_dist);
+								fputs("tLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",lsh_time);
+								fputs("tTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_time);
+							}
 				        }
 				    }
 				}
@@ -468,6 +642,89 @@ int main(int argc,char* argv[])
 					        hashTable_insert(H[i],&x);
 					    }
 					}
+
+					queryFile = fopen(qPath,"r");
+					if(queryFile == NULL){
+						perror("Failed to open query file");
+						return -2;
+					}
+
+					outputFile = fopen(oPath,"w");
+					if(outputFile == NULL){
+						perror("Failed to open/create output file");
+						return -3;
+					}
+
+					char buffer[BUFFER_SIZE];
+
+					fgets(buffer,BUFFER_SIZE,queryFile);
+					unsigned short hamming_radius = atoi(strtok(buffer,"Radius: \t\n"));
+					long long int q;
+
+					while(fgets(buffer,BUFFER_SIZE,queryFile)){
+						char* item_name=strtok(buffer," \t\n");
+						q = strtoll(strtok(NULL," \t\n"),NULL,2);
+						
+						fputs("Query: ",outputFile);
+						fputs(item_name,outputFile);
+						fputc('\n',outputFile);
+						fputs("R-near neighbors:\n",outputFile);
+
+						/*calculate and time lsh*/
+						clock_t begin = clock();
+						long long int* p;
+						long long int b;
+						int i,j=0,db=-1,temp;
+						for(i=0;i<L;i++){
+							while(p=hashTable_getNext(H[i],&q)){
+								if(j > 3*L) break;
+								temp = hamming(*p,q);
+								if(temp < hamming_radius){
+									long long int temp2 = *p;
+									while(temp2){
+										if(temp2 & 1) fputc('1',outputFile);
+										else fputc('0',outputFile);
+										temp2 >>= 1;
+									}
+									fputc('\n',outputFile);
+								}
+								if(temp < db || db == -1){
+									b = *p;
+									db = temp;
+								}
+								j++;
+							}
+						}
+						clock_t end = clock();
+						double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+						/*calculate and time true nearest*/
+						begin = clock();
+						long long int true_nearest;
+						int true_dist = -1;
+						for(i=0;i<n;i++){
+							temp = hamming(x[i],q);
+							if(temp < true_dist || true_dist == -1){
+								true_nearest = x[i];
+								true_dist = temp;
+							}
+						}
+						end = clock();
+						double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+						/*output search data*/
+						fputs("Nearest neighbor: ",outputFile);
+						/*output nearest neighbor*/
+						fputc('\n',outputFile);
+						fputs("distanceLSH: ",outputFile);
+						fprintf(outputFile,"%d\n",db);
+						fputs("distanceTrue: ",outputFile);
+						fprintf(outputFile,"%d\n",true_dist);
+						fputs("tLSH: ",outputFile);
+						fprintf(outputFile,"%f\n",lsh_time);
+						fputs("tTrue: ",outputFile);
+						fprintf(outputFile,"%f\n",true_time);
+					}
 		        }
 		        else
 		        {
@@ -577,6 +834,89 @@ int main(int argc,char* argv[])
 							        hashTable_insert(H[i],&b[j]);
 							    }
 					        }
+
+					        queryFile = fopen(qPath,"r");
+							if(queryFile == NULL){
+								perror("Failed to open query file");
+								return -2;
+							}
+
+							outputFile = fopen(oPath,"w");
+							if(outputFile == NULL){
+								perror("Failed to open/create output file");
+								return -3;
+							}
+
+							char buffer[BUFFER_SIZE];
+
+							fgets(buffer,BUFFER_SIZE,queryFile);
+							unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+							unsigned int* q = malloc(sizeof(double)*n);
+							if(q == NULL){
+								perror("Failed to allocate memory for query vector");
+								return -4;
+							}
+
+							while(fgets(buffer,BUFFER_SIZE,queryFile)){
+								char* item_name=strtok(buffer," \t\n");
+								for(i=0;i<d;i++) q[i] = (unsigned int)(atoi(strtok(NULL," \t\n")));
+								
+								fputs("Query: ",outputFile);
+								fputs(item_name,outputFile);
+								fputc('\n',outputFile);
+								fputs("R-near neighbors:\n",outputFile);
+
+								/*calculate and time lsh*/
+								clock_t begin = clock();
+								unsigned int* current;
+								unsigned int temp,b,db;
+								int i,j=0;
+								for(i=0;i<L;i++){
+									while(current=hashTable_getNext(H[i],q)){
+										if(j > 3*L) break;
+										temp = q[*current];
+										if(temp < radius){
+											int iter;
+											for(iter=0;iter<d;iter++) fprintf(outputFile,"%u ",a[iter][*current]);
+											fputc('\n',outputFile);
+										}
+										if(temp < db || db < 0.0){
+											b = *current;
+											db = temp;
+										}
+										j++;
+									}
+								}
+								clock_t end = clock();
+								double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*calculate and time true nearest*/
+								begin = clock();
+								unsigned int* true_nearest;
+								unsigned int true_dist = -1;
+								for(i=0;i<n;i++){
+									temp = q[i];
+									if(temp < true_dist || true_dist < 0){
+										true_nearest = a[i];
+										true_dist = temp;
+									}
+								}
+								end = clock();
+								double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*output search data*/
+								fputs("Nearest neighbor: ",outputFile);
+								for(i=0;i<n;i++) fprintf(outputFile,"%u ",true_nearest[i]);
+								fputc('\n',outputFile);
+								fputs("distanceLSH: ",outputFile);
+								fprintf(outputFile,"%u\n",db);
+								fputs("distanceTrue: ",outputFile);
+								fprintf(outputFile,"%u\n",true_dist);
+								fputs("tLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",lsh_time);
+								fputs("tTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_time);
+							}
 					    }
 						else
 				        {
