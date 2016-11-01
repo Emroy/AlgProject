@@ -16,6 +16,7 @@ int main(int argc,char* argv[])
 	HashDescriptor *g;
 	long long int x;
 	fpos_t pos;
+	unsigned int **a;
 	
 	while(i<=argc-1)
 	{
@@ -214,9 +215,10 @@ int main(int argc,char* argv[])
 					do
 					{
 					    fscanf(dataset,"%*lf");
+					    line=getc(dataset);
 					    d++;
 					}
-					while((line=getc(dataset))!='\n');
+					while((line!='\n')&&(line!=EOF));
 					while(!feof(dataset))
 					{
 					    if((line=getc(dataset))=='\n')
@@ -302,15 +304,22 @@ int main(int argc,char* argv[])
 						if(!strcmp(bits,"@items"))
 						{
 						    fscanf(dataset,"%*s");
+						    if(fgetpos(dataset,&pos))
+					        {
+						        printf("Error: Function failure.\n");
+		                        printf("Press [Enter] to terminate the program.\n");
+		                        getc(stdin);
+		                        return 1;
+				            }
 							while(!feof(dataset))
 				            {
 							    do
 							    {
-							        fscanf(dataset,"%lld",x);
+							        fscanf(dataset,"%u",x);
 							        line=getc(dataset);
+							        n++;
 							    }
 							    while((line!='\n')&&(line!=EOF));
-							    n++;
 							}
 						}
 						else
