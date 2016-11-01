@@ -163,7 +163,7 @@ int main(int argc,char* argv[])
 	    {
 		    printf("Error: Incorrect dataset file.\n");
 		    printf("Enter path name of dataset file and press [Enter]: ");
-			fgets(dPath,100,stdio);
+			fgets(dPath,100,stdin);
 		}
 		else
 		{
@@ -433,7 +433,7 @@ int main(int argc,char* argv[])
 					        {
 						        do
 						        {
-							        if((g[i]=hamming_hash_create(d,k,n))==NULL)
+							        if((g[i]=hamming_hash_create(d,k))==NULL)
 							        {
 								        printf("Error: Function failure.\n");
 								        printf("Press [Enter] to terminate the program.\n");
