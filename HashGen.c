@@ -170,7 +170,6 @@ HashDescriptor hamming_hash_create(int k,int d){
 }
 
 int hamming_is_equal(HashDescriptor a,HashDescriptor b){
-	/*check if a and b are Hamming HashDescriptors*/
 	if(a->hamming->size != b->hamming->size) return 0;
 
 	int i;
@@ -249,6 +248,17 @@ HashDescriptor euclidean_hash_create(int d,int k,int n){
 	return retVal;
 }
 
+int euclidean_is_equal(HashDescriptor a,HashDescriptor b){
+	int i,j;
+	for(i=0;i<a->euclidean->k;i++){
+		if(a->euclidean->t[i] != b->euclidean->t[i]) return 0;
+		if(a->euclidean->r[i] != b->euclidean->r[i]) return 0;
+		for(j=0;j<a->euclidean->d;j++)
+			if(a->euclidean->v[i][j] != b->euclidean->v[i][j]) return 0;
+	}
+	return 1;
+}
+
 void euclidean_hash_destroy(HashDescriptor hd){
 	int i;
 	for(i=0;i<hd->euclidean->k;i++) free(hd->euclidean->v[i]);
@@ -303,6 +313,14 @@ HashDescriptor cosine_hash_create(int d,int k){
 	}
 
 	return retVal;
+}
+
+int cosine_is_equal(HashDescriptor a,HashDescriptor b){
+	int i,j;
+	for(i=0;i<a->cosine->k;i++)
+		for(j=0;j<a->cosine->d;j++)
+			if(a->cosine->r[i][j] != b->cosine->r[i][j]) return 0;
+	return 1;
 }
 
 void cosine_hash_destroy(HashDescriptor hd){
@@ -389,6 +407,13 @@ HashDescriptor matrix_hash_create(int k,unsigned int** distMatr,int n){
 	}
 
 	return retVal;
+}
+
+int matrix_is_equal(HashDescriptor a, HashDescriptor b){
+	int i;
+	for(i=0;i<a->matrix->k;i++)
+		if(a->matrix->t1[i] != b->matrix->t1[i]) return 0;
+	return 1;
 }
 
 void matrix_hash_destroy(HashDescriptor hd){

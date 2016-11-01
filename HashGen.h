@@ -32,6 +32,8 @@ HashDescriptor euclidean_hash_create(int d,int k,int n);
 /*Creates an euclidean function g as described by theory, NULL on failure
   n: number of total elements in query. Used to determine TableSize. See theory for more info*/
 
+int euclidean_is_equal(HashDescriptor a,HashDescriptor b);
+
 void euclidean_hash_destroy(HashDescriptor hd);
 /*Destroy an euclidean HashDescriptor and make it NULL*/
 
@@ -40,12 +42,16 @@ void euclidean_hash_destroy(HashDescriptor hd);
 HashDescriptor cosine_hash_create();
 /*Creates a cosine function g as described by theory, NULL on failure*/
 
+int cosine_is_equal(HashDescriptor a,HashDescriptor b);
+
 void cosine_hash_destroy(HashDescriptor hd);
 /*Destroy a cosine HashDescriptor and make it NULL*/
 
 /*---------------MATRIX-------------------*/
 HashDescriptor matrix_hash_create(int k,unsigned int** distanceMatrix,int n);
 /*Creates a matrix function g as described by theory, NULL on failure*/
+
+int matrix_is_equal(HashDescriptor a,HashDescriptor b);
 
 void matrix_hash_destroy(HashDescriptor hd);
 /*Destroy a matrix HashDescriptor and make it NULL*/
