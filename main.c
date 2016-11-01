@@ -1,7 +1,7 @@
-/* амаптунг коцислийоу циа акцояихлийа пяобкглата
-   еяцасиа 1
-   кекециаммгс иыаммгс: 1115201200090
-   поукидгс мийокаос: 1115200000111 */
+/* SOFTWARE DEVELOPMENT FOR ALGORITHMIC PROBLEMS
+   ASSIGNMENT 1
+   LELEGIANNIS IOANNIS: 1115201200090
+   POULIDIS NIKOLAOS: 1115200000111 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,11 +9,13 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,error,s=0,j,token=0;
-	char *d=NULL,*q=NULL,*o=NULL,bits[65];
+    int i=1,k=4,L=5,error,token=0,d=0,n=1,j;
+	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
 	FILE *dataset,*query,*output;
+	double *p;
 	HashDescriptor *g;
 	long long int x;
+	fpos_t pos;
 	
 	while(i<=argc-1)
 	{
@@ -21,7 +23,7 @@ int main(int argc,char* argv[])
 		{
 			if(argv[i+1]!=NULL)
 			{
-			    d=argv[i+1];
+			    dPath=argv[i+1];
 			    i+=2;
 			}
 			else
@@ -35,7 +37,7 @@ int main(int argc,char* argv[])
 			{
 			    if(argv[i+1]!=NULL)
 			    {
-				    q=argv[i+1];
+				    qPath=argv[i+1];
 			        i+=2;
 			    }
 			    else
@@ -77,7 +79,7 @@ int main(int argc,char* argv[])
 						{
 						    if(argv[i+1]!=NULL)
 			                {
-							    o=argv[i+1];
+							    oPath=argv[i+1];
 			                    i+=2;
 			                }
 			                else
@@ -94,9 +96,9 @@ int main(int argc,char* argv[])
 			}
 		}
 	}
-	if(d==NULL)
+	if(dPath==NULL)
 	{
-	    if((d=malloc(100*sizeof(char)))==NULL)
+	    if((dPath=malloc(100*sizeof(char)))==NULL)
 		{
 		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
@@ -104,11 +106,11 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of dataset file and press [Enter]: ");
-		gets(d);
+		gets(dPath);
 	}
-	if(q==NULL)
+	if(qPath==NULL)
 	{
-	    if((q=malloc(100*sizeof(char)))==NULL)
+	    if((qPath=malloc(100*sizeof(char)))==NULL)
 		{
 		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
@@ -116,11 +118,11 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of query file and press [Enter]: ");
-		gets(q);
+		gets(qPath);
 	}
-	if(o==NULL)
+	if(oPath==NULL)
 	{
-	    if((o=malloc(100*sizeof(char)))==NULL)
+	    if((oPath=malloc(100*sizeof(char)))==NULL)
 		{
 		    printf("Error: Failed to allocate memory.\n");
 			printf("Press [Enter] to terminate the program.\n");
@@ -128,11 +130,11 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of output file and press [Enter]: ");
-		gets(o);
+		gets(oPath);
 	}
 	do
 	{
-	    if((dataset=fopen(d,"r"))==NULL)
+	    if((dataset=fopen(dPath,"r"))==NULL)
 	    {
 		    printf("Error: Failed to open dataset file.\n");
 		    printf("Press [Enter] to terminate the program.\n");
@@ -145,52 +147,91 @@ int main(int argc,char* argv[])
 	    {
 		    printf("Error: Incorrect dataset file.\n");
 		    printf("Enter path name of dataset file and press [Enter]: ");
-			gets(d);
+			gets(dPath);
 		}
 		else
 		{
 		    fscanf(dataset,"%64s",bits);
 	        if(!strcmp(bits,"vector"))
 	        {
-	        	fscanf(dataset,"%64s",bits);
+			    fscanf(dataset,"%64s",bits);
 	        	if(!strcmp(bits,"@metric"))
 	        	{
 				    fscanf(dataset,"%64s",bits);
-				    if(!strcmp(bits,"manhattan"))
+				    token=strcmp(bits,"euclidean")||strcmp(bits,"manhattan")||strcmp(bits,"cosine");
+					if(fgetpos(dataset,&pos))
 					{
-						;
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
+				    if(token)
+				    {
+						fscanf(dataset,"%*s");
 					}
-					else
+					do
 					{
-					    if(!strcmp(bits,"cosine"))
+					    fscanf(dataset,"%*lf");
+					    d++;
+					}
+					while((line=getc(dataset))!='\n');
+					while(!feof(dataset))
+					{
+					    if((line=getc(dataset))=='\n')
+						{
+							n++;
+						}
+					}
+					if(fgetpos(dataset,&pos))
+					{
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
+				    if((p=malloc(d*sizeof(double)))==NULL)
+		            {
+		                printf("Error: Failed to allocate memory.\n");
+			            printf("Press [Enter] to terminate the program.\n");
+			            getc(stdin);
+			            return 1;
+		            }
+		            if(token)
+				    {
+						fscanf(dataset,"%*s");
+					}
+					for(i=0;i<=d-1;i++)
+					{
+					    fscanf(dataset,"%lf",&p[i]);
+					}
+					while(!feof(dataset))
+					{
+						fscanf(dataset,"%*s");
+						for(i=0;i<=d-1;i++)
 					    {
-						    ;	
-					    }
-					    else
-					    {
-					    	;
+					        fscanf(dataset,"%lf",&p[i]);
 					    }
 					}
 				}
-				else
-				{
+			    else
+			    {
+				    error=1;
 				    printf("Error: Incorrect dataset file.\n");
 		            printf("Enter path name of dataset file and press [Enter]: ");
-					gets(d);
-					error=1;
-				}
-			}
+				    gets(dPath);
+			    }
+		    }
 	        else
 	        {
 			    if(!strcmp(bits,"hamming"))
 				{
-					while(!feof(dataset))
-					{
-						fscanf(dataset,"%*s");
+				    {
+					    fscanf(dataset,"%*s");
 						fscanf(dataset,"%64s",bits);
-						if(!s)
+						if(!d)
 						{
-						    s=strlen(bits);
+						    d=strlen(bits);
 						    if((g=mallloc(L*sizeof(HashDescriptor)))==NULL)
 						    {
 							    printf("Error: Failed to allocate memory.\n");
@@ -202,7 +243,7 @@ int main(int argc,char* argv[])
 						    {
 						    	do
 						    	{
-								    g[i]=hamming_hash_create(k,s);
+								    g[i]=hamming_hash_create(k,d);
 							        for(j=0;j<=i-1;j++)
 							        {
 									    token=hamming_is_equal(g[i],g[j]);
@@ -218,7 +259,7 @@ int main(int argc,char* argv[])
 						x=strtoll(bits,NULL,2);
 						for(i=0;i<=L-1;i++)
 						{
-						    hash_apply(g[i],&x);
+							
 						}
 					}
 		        }
@@ -242,10 +283,10 @@ int main(int argc,char* argv[])
 						}
 						else
 				        {
+						    error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							gets(d);
-							error=1;
+							gets(dPath);
 				        }
 		            }
 		            else
@@ -256,10 +297,10 @@ int main(int argc,char* argv[])
 				        }
 				        else
 				        {
+				        	error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							gets(d);
-				        	i=1;
+							gets(dPath);
 				        }
 				    }
 				}
