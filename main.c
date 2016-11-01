@@ -9,6 +9,7 @@
 #include <time.h>
 #include "HashGen.h"
 #include "HashTable.h"
+#include "distances.h"
 #define BUFFER_SIZE 512
 
 int main(int argc,char* argv[]) 
