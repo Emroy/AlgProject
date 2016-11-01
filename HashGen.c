@@ -37,6 +37,12 @@ typedef struct CosineDesc{
 /*-----------------------------*/
 
 typedef struct MatrixDesc{
+	unsigned int** distanceMatrix;
+	int n;
+	int* x1;
+	int* x2;
+	double* t1; /*mesos apo h gia ola ta shmeia*/
+	int k;
 } MatrixDescriptor;
 
 /*-----------------------------*/
@@ -48,7 +54,7 @@ struct HashDesc{
 	MatrixDescriptor* matrix;
 };
 
-/*-----------------------------*/
+/*--------------DATA CREATORS---------------*/
 
 EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
 	if(hd->euclidean == NULL) fprintf(stderr, "invalid HashDescriptor given on euclidean_data_create\n");
@@ -96,7 +102,7 @@ int hash_apply(HashDescriptor hd,void* x){
 	else if(hd->euclidean != NULL){
 	/*Euclidean case*/
 		EuclideanData data = x;
-		return data->id % hd->n/HASH_SIZE_DIV;
+		return data->id % hd->euclidean->n/HASH_SIZE_DIV;
 	}
 	else if(hd->cosine != NULL){
 	/*Cosine case*/
@@ -112,6 +118,18 @@ int hash_apply(HashDescriptor hd,void* x){
 	}
 	else if(hd->matrix != NULL){
 	/*Matrix case*/
+		unsigned int data = *(unsigned int*)x;
+		int i;
+		for(i=0;i<hd->matrix->k;i++){
+			unsigned long int temp = hd->matrix->distanceMatrix[data][hd->matrix->x1[i]];
+			temp = temp*temp;
+			temp += hd->matrix->distanceMatrix[data][hd->matrix->x2[i]]*hd->matrix->distanceMatrix[data][hd->matrix->x2[i]];
+			temp -= hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]]*hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]];
+			double h = (double)temp/(2*hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]]);
+			if(h >= hd->matrix->t1[i]) retVal+=1;
+			retVal << 1;
+		}
+		return retVal >> 1;
 	}
 	else{
 		fprintf(stderr,"Invalid HashDescriptor given on hash_apply\n");
@@ -297,10 +315,87 @@ void cosine_hash_destroy(HashDescriptor hd){
 }
 
 /*--------------------------MATRIX-----------------------*/
-HashDescriptor matrix_hash_create(){
+HashDescriptor matrix_hash_create(int k,unsigned int** distMatr,int n){
+	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new matrix HashDescriptor");
+		return NULL;
+	}
 
+	retVal->hamming = NULL;
+	retVal->euclidean = NULL;
+	retVal->cosine = NULL;
+
+	retVal->matrix = malloc(sizeof(MatrixDescriptor));
+	if(retVal->matrix == NULL){
+		perror("Failed to allocate memory for new matrix HashDescriptor");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->matrix->n = n;
+	retVal->matrix->k = k;
+
+	retVal->matrix->x1 = malloc(sizeof(int)*k);
+	if(retVal->matrix->x1 == NULL){
+		perror("Failed to allocate memory for random values x1 for matrix HashDescriptor");
+		free(retVal->matrix);
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->matrix->x2 = malloc(sizeof(int)*k);
+	if(retVal->matrix->x2 == NULL){
+		perror("Failed to allocate memory for random values x2 for matrix HashDescriptor");
+		free(retVal->matrix->x1);
+		free(retVal->matrix);
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->matrix->t1 = malloc(sizeof(double)*k);
+	if(retVal->matrix->t1 == NULL){
+		perror("Failed to allocate memory for median values t1 for matrix HashDescriptor");
+		free(retVal->matrix->x1);
+		free(retVal->matrix->x2);
+		free(retVal->matrix);
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->matrix->distanceMatrix = distMatr;
+
+	int i;
+	for(i=0;i<k;i++){
+		retVal->matrix->x1[i] = integerUniform(n);
+		do{
+			retVal->matrix->x2[i] = integerUniform(n);
+		}while(retVal->matrix->x1[i] == retVal->matrix->x2[i]);
+	}
+
+	int j;
+	double temp,x1x2_dist,hsum;
+	for(i=0;i<k;i++){
+		x1x2_dist = (double)(distMatr[retVal->matrix->x1[i]][retVal->matrix->x2[i]]);
+		hsum = 0.0;
+		for(j=0;j<n;j++){
+			temp = (double)(distMatr[j][retVal->matrix->x1[i]])*(double)(distMatr[j][retVal->matrix->x1[i]]);
+			temp += (double)(distMatr[j][retVal->matrix->x2[i]])*(double)(distMatr[j][retVal->matrix->x2[i]]);
+			temp -= x1x2_dist*x1x2_dist;
+			temp = temp / 2*x1x2_dist;
+			hsum += temp;
+		}
+		retVal->matrix->t1[i] = hsum / n;
+	}
+
+	return retVal;
 }
 
 void matrix_hash_destroy(HashDescriptor hd){
-
+	free(hd->matrix->x1);
+	free(hd->matrix->x2);
+	free(hd->matrix->t1);
+	free(hd->matrix);
+	free(hd);
+	hd=NULL;
 }

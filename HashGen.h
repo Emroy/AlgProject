@@ -9,7 +9,7 @@ typedef struct EuData *EuclideanData;
 
 typedef struct MatrData* MatrixData;
 
-EuclideanData euclidean_data_create(double* p);
+EuclideanData euclidean_data_create(HashDescriptor hd,double* p);
 
 /*--------------GENERAL----------------------*/
 int hash_apply(HashDescriptor hd,void* x);
