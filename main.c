@@ -9,7 +9,7 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,error,token=0,d=0,n=1,j;
+    int i=1,k=4,L=5,error,token=0,d=0,n=0,j;
 	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
 	FILE *dataset,*query,*output;
 	double *p;
@@ -231,7 +231,7 @@ int main(int argc,char* argv[])
 		                getc(stdin);
 		                return 1;
 				    }
-					if((p=malloc(d*sizeof(double)))==NULL)
+				    if((p=malloc(d*sizeof(double)))==NULL)
 		            {
 		                printf("Error: Failed to allocate memory.\n");
 			            printf("Press [Enter] to terminate the program.\n");
@@ -249,13 +249,14 @@ int main(int argc,char* argv[])
 					    {
 					        fscanf(dataset,"%lf",&p[i]);
 					    }
-					}	
+					}
 			    }
 		    }
 	        else
 	        {
 			    if(!strcmp(bits,"hamming"))
 				{
+				    while(!feof(dataset))
 				    {
 					    fscanf(dataset,"%*s");
 						fscanf(dataset,"%64s",bits);
@@ -303,13 +304,22 @@ int main(int argc,char* argv[])
 							do
 							{
 							    fscanf(dataset,"%64s",bits);
+							    n++;
 							}
-							while(strcmp(bits,"0"));
-							do
-							{
-							    fscanf(dataset,"%64s",bits);
+							while((line=getc(dataset))!='\n');
+							while(!feof(dataset))
+				            {
+							    do
+							    {
+								    fscanf(dataset,"%ld",x);
+							    }
+							    while(x!=0);
+							    do
+							    {
+							        fscanf(dataset,"%ld",x);
+							    }
+							    while((line=getc(dataset))!='\n');
 							}
-							while(!strcmp(bits,"0"));
 						}
 						else
 				        {
