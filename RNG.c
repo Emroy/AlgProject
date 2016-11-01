@@ -3,7 +3,7 @@
    LELEGIANNIS IOANNIS: 1115201200090
    POULIDIS NIKOLAOS: 1115200000111 */
 
-#include <RNG.h>
+#include "RNG.h"
 #include <stdlib.h>
 #include <math.h>
 
