@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "HashGen.h"
 
 int main(int argc,char* argv[]) 
 {
@@ -15,6 +14,7 @@ int main(int argc,char* argv[])
 	FILE *dataset,*query,*output;
 	double *p;
 	HashDescriptor *g;
+	HashTable *H;
 	long long int x;
 	fpos_t pos;
 	unsigned int **a;
@@ -108,7 +108,7 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of dataset file and press [Enter]: ");
-		fgets(dPath,100,stdio);
+		fgets(dPath,100,stdin);
 	}
 	if(qPath==NULL)
 	{
@@ -120,7 +120,7 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of query file and press [Enter]: ");
-		fgets(qPath,100,stdio);
+		fgets(qPath,100,stdin);
 	}
 	if(oPath==NULL)
 	{
@@ -132,7 +132,21 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of output file and press [Enter]: ");
-		fgets(oPath,100,stdio);
+		fgets(oPath,100,stdin);
+	}
+	if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
+    {
+		printf("Error: Failed to allocate memory.\n");
+	    printf("Press [Enter] to terminate the program.\n");
+	    getc(stdin);
+	    return 1;
+	}
+	if((H=malloc(L*sizeof(HashTable)))==NULL)
+    {
+		printf("Error: Failed to allocate memory.\n");
+	    printf("Press [Enter] to terminate the program.\n");
+	    getc(stdin);
+	    return 1;
 	}
 	do
 	{
@@ -184,28 +198,125 @@ int main(int argc,char* argv[])
 							n++;
 						}
 					}
-					if(fsetpos(dataset,&pos))
+					if(!strcmp(bits,"euclidean"))
 					{
-						printf("Error: Function failure.\n");
-		                printf("Press [Enter] to terminate the program.\n");
-		                getc(stdin);
-		                return 1;
-				    }
-				    if((p=malloc(d*sizeof(double)))==NULL)
-		            {
-		                printf("Error: Failed to allocate memory.\n");
-			            printf("Press [Enter] to terminate the program.\n");
-			            getc(stdin);
-			            return 1;
-		            }
-					while(!feof(dataset))
-					{
-						fscanf(dataset,"%*s");
-						for(i=0;i<=d-1;i++)
-					    {
-					        fscanf(dataset,"%lf",&p[i]);
+						for(i=0;i<=L-1;i++)
+						{
+							do
+							{
+								if((g[i]=euclidean_hash_create(d,k,n))==NULL)
+								{
+									printf("Error: Function failure.\n");
+									printf("Press [Enter] to terminate the program.\n");
+									getc(stdin);
+		                            return 1;
+				                }
+							    for(j=0;j<=i-1;j++)
+							    {
+								    token=euclidean_is_equal(g[i],g[j]);
+							        if(token)
+							        {
+							            break;
+							        }
+							    }
+					        }
+					        while(token);
+					        if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					        {
+						        printf("Error: Function failure.\n");
+		                        printf("Press [Enter] to terminate the program.\n");
+		                        getc(stdin);
+		                        return 1;
+				            }
 					    }
-					}
+					    if(fsetpos(dataset,&pos))
+					    {
+						    printf("Error: Function failure.\n");
+		                    printf("Press [Enter] to terminate the program.\n");
+		                    getc(stdin);
+		                    return 1;
+				        }
+				        if((p=malloc(d*sizeof(double)))==NULL)
+		                {
+		                    printf("Error: Failed to allocate memory.\n");
+			                printf("Press [Enter] to terminate the program.\n");
+			                getc(stdin);
+			                return 1;
+		                }
+					    while(!feof(dataset))
+					    {
+						    fscanf(dataset,"%*s");
+						    for(i=0;i<=d-1;i++)
+					        {
+					            fscanf(dataset,"%lf",&p[i]);
+					        }
+					        for(i=0;i<=L-1;i++)
+					        {
+					            hashTable_insert(H[i],euclidean_data_create(g[i],p));
+					        }
+					    }
+				    }
+				    else
+				    {
+				    	if(!strcmp(bits,"cosine"))
+					    {
+						    for(i=0;i<=L-1;i++)
+						    {
+							    do
+							    {
+								    if((g[i]=cosine_hash_create(d,k,n))==NULL)
+								    {
+									    printf("Error: Function failure.\n");
+									    printf("Press [Enter] to terminate the program.\n");
+									    getc(stdin);
+		                                return 1;
+				                    }
+							        for(j=0;j<=i-1;j++)
+							        {
+								        token=cosine_is_equal(g[i],g[j]);
+							            if(token)
+							            {
+							                break;
+							            }
+							        }
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					            {
+						            printf("Error: Function failure.\n");
+		                            printf("Press [Enter] to terminate the program.\n");
+		                            getc(stdin);
+		                            return 1;
+				                }
+					        }
+					        if(fsetpos(dataset,&pos))
+					        {
+						        printf("Error: Function failure.\n");
+		                        printf("Press [Enter] to terminate the program.\n");
+		                        getc(stdin);
+		                        return 1;
+				            }
+				            if((p=malloc(d*sizeof(double)))==NULL)
+		                    {
+		                        printf("Error: Failed to allocate memory.\n");
+			                    printf("Press [Enter] to terminate the program.\n");
+			                    getc(stdin);
+			                    return 1;
+		                    }
+					        while(!feof(dataset))
+					        {
+						        fscanf(dataset,"%*s");
+						        for(i=0;i<=d-1;i++)
+					            {
+					                fscanf(dataset,"%lf",&p[i]);
+					            }
+					            for(i=0;i<=L-1;i++)
+					            {
+					                hashTable_insert(H[i],p);
+					            }
+					        }
+				        }
+				    }
 				}
 			    else
 			    {
@@ -271,13 +382,6 @@ int main(int argc,char* argv[])
 						if(!d)
 						{
 						    d=strlen(bits);
-						    if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
-						    {
-							    printf("Error: Failed to allocate memory.\n");
-			                    printf("Press [Enter] to terminate the program.\n");
-			                    getc(stdin);
-			                    return 1;
-		                    }
 						    for(i=0;i<=L-1;i++)
 						    {
 						    	do
@@ -364,7 +468,7 @@ int main(int argc,char* argv[])
 						    error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							fgets(dPath,100,stdio);
+							fgets(dPath,100,stdin);
 				        }
 		            }
 		            else
@@ -378,7 +482,7 @@ int main(int argc,char* argv[])
 				        	error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							fgets(dPath,100,stdio);
+							fgets(dPath,100,stdin);
 				        }
 				    }
 				}
