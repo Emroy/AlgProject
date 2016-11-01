@@ -158,7 +158,6 @@ int main(int argc,char* argv[])
 	        	if(!strcmp(bits,"@metric"))
 	        	{
 				    fscanf(dataset,"%64s",bits);
-				    token=strcmp(bits,"euclidean")||strcmp(bits,"manhattan")||strcmp(bits,"cosine");
 					if(fgetpos(dataset,&pos))
 					{
 						printf("Error: Function failure.\n");
@@ -166,10 +165,7 @@ int main(int argc,char* argv[])
 		                getc(stdin);
 		                return 1;
 				    }
-				    if(token)
-				    {
-						fscanf(dataset,"%*s");
-					}
+					fscanf(dataset,"%*s");
 					do
 					{
 					    fscanf(dataset,"%*lf");
@@ -197,14 +193,6 @@ int main(int argc,char* argv[])
 			            getc(stdin);
 			            return 1;
 		            }
-		            if(token)
-				    {
-						fscanf(dataset,"%*s");
-					}
-					for(i=0;i<=d-1;i++)
-					{
-					    fscanf(dataset,"%lf",&p[i]);
-					}
 					while(!feof(dataset))
 					{
 						fscanf(dataset,"%*s");
