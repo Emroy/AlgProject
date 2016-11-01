@@ -9,7 +9,7 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,error,token=0,d=0,n=0,j;
+    int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk;
 	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
 	FILE *dataset,*query,*output;
 	double *p;
@@ -17,7 +17,7 @@ int main(int argc,char* argv[])
 	HashTable *H;
 	long long int x;
 	fpos_t pos;
-	unsigned int **a;
+	unsigned int **a,*b;
 	
 	while(i<=argc-1)
 	{
@@ -260,6 +260,11 @@ int main(int argc,char* argv[])
 				    {
 				    	if(!strcmp(bits,"cosine"))
 					    {
+						    tk=1;
+						    for(i=1;i<=k;i++)
+						    {
+						    	tk*=2;
+						    }
 						    for(i=0;i<=L-1;i++)
 						    {
 							    do
@@ -281,7 +286,7 @@ int main(int argc,char* argv[])
 							        }
 					            }
 					            while(token);
-					            if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
 					            {
 						            printf("Error: Function failure.\n");
 		                            printf("Press [Enter] to terminate the program.\n");
@@ -343,6 +348,35 @@ int main(int argc,char* argv[])
 							n++;
 						}
 					}
+					for(i=0;i<=L-1;i++)
+					{
+						do
+						{
+							if((g[i]=euclidean_hash_create(d,k,n))==NULL)
+							{
+								printf("Error: Function failure.\n");
+								printf("Press [Enter] to terminate the program.\n");
+								getc(stdin);
+		                        return 1;
+				            }
+							for(j=0;j<=i-1;j++)
+							{
+								token=euclidean_is_equal(g[i],g[j]);
+							    if(token)
+							    {
+							        break;
+							    }
+							}
+					    }
+					    while(token);
+					    if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					    {
+						    printf("Error: Function failure.\n");
+		                    printf("Press [Enter] to terminate the program.\n");
+		                    getc(stdin);
+		                    return 1;
+				        }
+					}
 					if(fsetpos(dataset,&pos))
 					{
 						printf("Error: Function failure.\n");
@@ -361,12 +395,20 @@ int main(int argc,char* argv[])
 					{
 					    fscanf(dataset,"%lf",&p[i]);
 					}
+					for(i=0;i<=L-1;i++)
+					{
+					    hashTable_insert(H[i],p);
+					}
 					while(!feof(dataset))
 					{
 						fscanf(dataset,"%*s");
 						for(i=0;i<=d-1;i++)
 					    {
 					        fscanf(dataset,"%lf",&p[i]);
+					    }
+					    for(i=0;i<=L-1;i++)
+					    {
+					        hashTable_insert(H[i],p);
 					    }
 					}
 			    }
@@ -382,28 +424,46 @@ int main(int argc,char* argv[])
 						if(!d)
 						{
 						    d=strlen(bits);
-						    for(i=0;i<=L-1;i++)
+						    tk=1;
+						    for(i=1;i<=k;i++)
 						    {
-						    	do
-						    	{
-								    g[i]=hamming_hash_create(k,d);
+						    	tk*=2;
+						    }
+						    for(i=0;i<=L-1;i++)
+					        {
+						        do
+						        {
+							        if((g[i]=hamming_hash_create(d,k,n))==NULL)
+							        {
+								        printf("Error: Function failure.\n");
+								        printf("Press [Enter] to terminate the program.\n");
+								        getc(stdin);
+		                                return 1;
+				                    }
 							        for(j=0;j<=i-1;j++)
 							        {
-									    token=hamming_is_equal(g[i],g[j]);
-							        	if(token)
-							        	{
-							        		break;
-							        	}
+								        token=hamming_is_equal(g[i],g[j]);
+							            if(token)
+							            {
+							                break;
+							            }
 							        }
-							    }
-							    while(token);
-							}
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					            {
+						            printf("Error: Function failure.\n");
+		                            printf("Press [Enter] to terminate the program.\n");
+		                            getc(stdin);
+		                            return 1;
+				                }
+					        }
 						}
 						x=strtoll(bits,NULL,2);
 						for(i=0;i<=L-1;i++)
-						{
-							
-						}
+					    {
+					        hashTable_insert(H[i],&x);
+					    }
 					}
 		        }
 		        else
@@ -438,7 +498,7 @@ int main(int argc,char* argv[])
 		                        getc(stdin);
 		                        return 1;
 				            }
-				            if((a=malloc(n*sizeof(double*)))==NULL)
+				            if((a=malloc(n*sizeof(unsigned int*)))==NULL)
 				            {
 							    printf("Error: Failed to allocate memory.\n");
 			                    printf("Press [Enter] to terminate the program.\n");
@@ -447,7 +507,7 @@ int main(int argc,char* argv[])
 		                    }
 		                    for(i=0;i<=n-1;i++)
 		                    {
-							    if((a[i]=malloc(n*sizeof(double)))==NULL)
+							    if((a[i]=malloc(n*sizeof(unsigned int)))==NULL)
 				                {
 							        printf("Error: Failed to allocate memory.\n");
 			                        printf("Press [Enter] to terminate the program.\n");
@@ -462,7 +522,59 @@ int main(int argc,char* argv[])
 		                    		fscanf(dataset,"%u",&a[i][j]);
 		                    	}
 		                    }
-						}
+						    tk=1;
+						    for(i=1;i<=k;i++)
+						    {
+						        tk*=2;
+						    }
+						    for(i=0;i<=L-1;i++)
+					        {
+						        do
+						        {
+							        if((g[i]=matrix_hash_create(k,a,n))==NULL)
+							        {
+								        printf("Error: Function failure.\n");
+								        printf("Press [Enter] to terminate the program.\n");
+								        getc(stdin);
+		                                return 1;
+				                    }
+							        for(j=0;j<=i-1;j++)
+							        {
+								        token=matrix_is_equal(g[i],g[j]);
+							            if(token)
+							            {
+							                break;
+							            }
+							        }
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					            {
+						            printf("Error: Function failure.\n");
+		                            printf("Press [Enter] to terminate the program.\n");
+		                            getc(stdin);
+		                            return 1;
+				                }
+					        }
+					        if((b=malloc(n*sizeof(unsigned int)))==NULL)
+					        {
+							    printf("Error: Failed to allocate memory.\n");
+			                    printf("Press [Enter] to terminate the program.\n");
+			                    getc(stdin);
+			                    return 1;
+		                    }
+		                    for(i=0;i<=n-1;i++)
+		                    {
+		                    	b[i]=i;
+		                    }
+					        for(i=0;i<=L-1;i++)
+					        {
+					    	    for(j=0;j<=n-1;j++)
+					    	    {
+							        hashTable_insert(H[i],&b[j]);
+							    }
+					        }
+					    }
 						else
 				        {
 						    error=1;
