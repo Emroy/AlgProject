@@ -204,10 +204,52 @@ int main(int argc,char* argv[])
 				}
 			    else
 			    {
-				    error=1;
-				    printf("Error: Incorrect dataset file.\n");
-		            printf("Enter path name of dataset file and press [Enter]: ");
-				    gets(dPath);
+				    if(fgetpos(dataset,&pos))
+					{
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
+					do
+					{
+					    fscanf(dataset,"%*lf");
+					    d++;
+					}
+					while((line=getc(dataset))!='\n');
+					while(!feof(dataset))
+					{
+					    if((line=getc(dataset))=='\n')
+						{
+							n++;
+						}
+					}
+					if(fgetpos(dataset,&pos))
+					{
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
+					if((p=malloc(d*sizeof(double)))==NULL)
+		            {
+		                printf("Error: Failed to allocate memory.\n");
+			            printf("Press [Enter] to terminate the program.\n");
+			            getc(stdin);
+			            return 1;
+		            }
+		            for(i=0;i<=d-1;i++)
+					{
+					    fscanf(dataset,"%lf",&p[i]);
+					}
+					while(!feof(dataset))
+					{
+						fscanf(dataset,"%*s");
+						for(i=0;i<=d-1;i++)
+					    {
+					        fscanf(dataset,"%lf",&p[i]);
+					    }
+					}	
 			    }
 		    }
 	        else
