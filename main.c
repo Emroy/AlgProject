@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include "HashGen.h"
+#include "HashTable.h"
 
 int main(int argc,char* argv[]) 
 {
@@ -583,7 +586,7 @@ int main(int argc,char* argv[])
 							fgets(dPath,100,stdin);
 				        }
 		            }
-		            else
+		            /*else
 		            {
 				        if(!strcmp(bits,"function"))
 				        {
@@ -596,7 +599,7 @@ int main(int argc,char* argv[])
 		                    printf("Enter path name of dataset file and press [Enter]: ");
 							fgets(dPath,100,stdin);
 				        }
-				    }
+				    }*/
 				}
 			}
 		}
