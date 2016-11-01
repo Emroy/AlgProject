@@ -12,13 +12,13 @@
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk;
+    int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk=1,counter=0;
 	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
 	FILE *dataset,*query,*output;
 	double *p;
 	HashDescriptor *g;
 	HashTable *H;
-	long long int x;
+	long long int *x;
 	fpos_t pos;
 	unsigned int **a,*b;
 	
@@ -263,7 +263,6 @@ int main(int argc,char* argv[])
 				    {
 				    	if(!strcmp(bits,"cosine"))
 					    {
-						    tk=1;
 						    for(i=1;i<=k;i++)
 						    {
 						    	tk*=2;
@@ -420,6 +419,37 @@ int main(int argc,char* argv[])
 	        {
 			    if(!strcmp(bits,"hamming"))
 				{
+					if(fgetpos(dataset,&pos))
+					{
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
+				    while(!feof(dataset))
+				    {
+				    	fscanf(dataset,"%*s");
+				    	fscanf(dataset,"%*s");
+				    	line=getc(dataset);
+					    if((line=='\n')||(line==EOF))
+						{
+							n++;
+						}
+					}
+					if((x=malloc(n*sizeof(unsigned int)))==NULL)
+				    {
+		                printf("Error: Failed to allocate memory.\n");
+			            printf("Press [Enter] to terminate the program.\n");
+			            getc(stdin);
+			            return 1;
+		            }
+					if(fsetpos(dataset,&pos))
+					{
+						printf("Error: Function failure.\n");
+		                printf("Press [Enter] to terminate the program.\n");
+		                getc(stdin);
+		                return 1;
+				    }
 				    while(!feof(dataset))
 				    {
 					    fscanf(dataset,"%*s");
@@ -427,7 +457,6 @@ int main(int argc,char* argv[])
 						if(!d)
 						{
 						    d=strlen(bits);
-						    tk=1;
 						    for(i=1;i<=k;i++)
 						    {
 						    	tk*=2;
@@ -462,11 +491,12 @@ int main(int argc,char* argv[])
 				                }
 					        }
 						}
-						x=strtoll(bits,NULL,2);
+						x[counter]=strtoll(bits,NULL,2);
 						for(i=0;i<=L-1;i++)
 					    {
-					        hashTable_insert(H[i],&x);
+					        hashTable_insert(H[i],&x[counter]);
 					    }
+					    counter++;
 					}
 		        }
 		        else
