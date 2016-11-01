@@ -107,7 +107,7 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of dataset file and press [Enter]: ");
-		gets(dPath);
+		fgets(dPath,100,stdio);
 	}
 	if(qPath==NULL)
 	{
@@ -119,7 +119,7 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of query file and press [Enter]: ");
-		gets(qPath);
+		fgets(qPath,100,stdio);
 	}
 	if(oPath==NULL)
 	{
@@ -131,7 +131,7 @@ int main(int argc,char* argv[])
 			return 1;
 		}
 		printf("Enter path name of output file and press [Enter]: ");
-		gets(oPath);
+		fgets(oPath,100,stdio);
 	}
 	do
 	{
@@ -148,7 +148,7 @@ int main(int argc,char* argv[])
 	    {
 		    printf("Error: Incorrect dataset file.\n");
 		    printf("Enter path name of dataset file and press [Enter]: ");
-			gets(dPath);
+			fgets(dPath,100,stdio);
 		}
 		else
 		{
@@ -169,13 +169,16 @@ int main(int argc,char* argv[])
 					fscanf(dataset,"%*s");
 					do
 					{
-					    fscanf(dataset,"%*lf");
+					    fscanf(dataset,"%*f");
+					    line=getc(dataset);
 					    d++;
 					}
-					while((line=getc(dataset))!='\n');
+					while((line!='\n')&&(line!=EOF));
+					n++;
 					while(!feof(dataset))
 					{
-					    if((line=getc(dataset))=='\n')
+						line=getc(dataset);
+					    if((line=='\n')||(line==EOF))
 						{
 							n++;
 						}
@@ -214,14 +217,16 @@ int main(int argc,char* argv[])
 				    }
 					do
 					{
-					    fscanf(dataset,"%*lf");
+					    fscanf(dataset,"%*f");
 					    line=getc(dataset);
 					    d++;
 					}
 					while((line!='\n')&&(line!=EOF));
+					n++;
 					while(!feof(dataset))
 					{
-					    if((line=getc(dataset))=='\n')
+						line=getc(dataset);
+					    if((line=='\n')||(line==EOF))
 						{
 							n++;
 						}
@@ -265,7 +270,7 @@ int main(int argc,char* argv[])
 						if(!d)
 						{
 						    d=strlen(bits);
-						    if((g=mallloc(L*sizeof(HashDescriptor)))==NULL)
+						    if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
 						    {
 							    printf("Error: Failed to allocate memory.\n");
 			                    printf("Press [Enter] to terminate the program.\n");
@@ -315,19 +320,50 @@ int main(int argc,char* argv[])
 				            {
 							    do
 							    {
-							        fscanf(dataset,"%u",x);
+							        fscanf(dataset,"%*u");
 							        line=getc(dataset);
 							        n++;
 							    }
 							    while((line!='\n')&&(line!=EOF));
 							}
+							if(fgetpos(dataset,&pos))
+					        {
+						        printf("Error: Function failure.\n");
+		                        printf("Press [Enter] to terminate the program.\n");
+		                        getc(stdin);
+		                        return 1;
+				            }
+				            if((a=malloc(n*sizeof(double*)))==NULL)
+				            {
+							    printf("Error: Failed to allocate memory.\n");
+			                    printf("Press [Enter] to terminate the program.\n");
+			                    getc(stdin);
+			                    return 1;
+		                    }
+		                    for(i=0;i<=n-1;i++)
+		                    {
+							    if((a[i]=malloc(n*sizeof(double)))==NULL)
+				                {
+							        printf("Error: Failed to allocate memory.\n");
+			                        printf("Press [Enter] to terminate the program.\n");
+			                        getc(stdin);
+			                        return 1;
+		                        }
+		                    }
+		                    for(i=0;i<=n-1;i++)
+		                    {
+		                    	for(j=0;j<=n-1;j++)
+		                    	{
+		                    		fscanf(dataset,"%u",&a[i][j]);
+		                    	}
+		                    }
 						}
 						else
 				        {
 						    error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							gets(dPath);
+							fgets(dPath,100,stdio);
 				        }
 		            }
 		            else
@@ -341,7 +377,7 @@ int main(int argc,char* argv[])
 				        	error=1;
 						    printf("Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							gets(dPath);
+							fgets(dPath,100,stdio);
 				        }
 				    }
 				}

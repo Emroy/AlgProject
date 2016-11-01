@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-int integerUniform(int n) /* Function generating pseudorandom integers uniformly distributed. */
+int integerUniform(int n) /* Function generating pseudorandom integers with uniform distribution. */
 {
     if(n<0)
 	{
@@ -67,7 +67,7 @@ float realUniform(float a,float b,int token) /* Function generating pseudorandom
 	}
 }
 
-float Gaussian01(void) /* Function generating pseudorandom real numbers with Gaussian distribution in interval (0,1). */
+float Gaussian01(void) /* Function generating pseudorandom real numbers with Gaussian distribution in space (0,1). */
 {
 	float x1,x2,s;
 	
