@@ -44,7 +44,7 @@ void cosine_hash_destroy(HashDescriptor hd);
 /*Destroy a cosine HashDescriptor and make it NULL*/
 
 /*---------------MATRIX-------------------*/
-HashDescriptor matrix_hash_create(int k,int n);
+HashDescriptor matrix_hash_create(int k,unsigned int** distanceMatrix,int n);
 /*Creates a matrix function g as described by theory, NULL on failure*/
 
 void matrix_hash_destroy(HashDescriptor hd);
