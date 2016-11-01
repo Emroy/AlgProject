@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "HashGen.h"
 
 int main(int argc,char* argv[]) 
 {
@@ -265,7 +266,7 @@ int main(int argc,char* argv[])
 						if(!d)
 						{
 						    d=strlen(bits);
-						    if((g=mallloc(L*sizeof(HashDescriptor)))==NULL)
+						    if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
 						    {
 							    printf("Error: Failed to allocate memory.\n");
 			                    printf("Press [Enter] to terminate the program.\n");
