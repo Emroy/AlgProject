@@ -66,7 +66,7 @@ double cosine(double *x,double *y,int d)
 	    yy+=y[i]*y[i];
 	}
 	yy=sqrt(yy);
-	return (xy/xx*yy);
+	return (xy/(xx*yy));
 }
 	    
    	    
