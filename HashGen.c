@@ -105,8 +105,6 @@ int hash_apply(HashDescriptor hd,void* x){
 			temp = 1;
 		}
 
-		fprintf(stderr,"hd->hamming->size: %d\n",hd->hamming->size);
-
 		return retVal >> 1;
 	}
 	else if(hd->euclidean != NULL){

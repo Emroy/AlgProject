@@ -350,7 +350,7 @@ int main(int argc,char* argv[])
 
 							/*output search data*/
 							fputs("Nearest neighbor: ",outputFile);
-							/*output nearest neighbor*/
+							for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
 							fputc('\n',outputFile);
 							fputs("distanceLSH: ",outputFile);
 							fprintf(outputFile,"%f\n",db);
@@ -493,7 +493,7 @@ int main(int argc,char* argv[])
 
 								/*output search data*/
 								fputs("Nearest neighbor: ",outputFile);
-								/*output nearest neighbor*/
+								for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
 								fputc('\n',outputFile);
 								fputs("distanceLSH: ",outputFile);
 								fprintf(outputFile,"%f\n",db);
@@ -685,7 +685,7 @@ int main(int argc,char* argv[])
 
 							/*output search data*/
 							fputs("Nearest neighbor: ",outputFile);
-							/*output nearest neighbor*/
+							for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
 							fputc('\n',outputFile);
 							fputs("distanceLSH: ",outputFile);
 							fprintf(outputFile,"%f\n",db);
@@ -719,7 +719,7 @@ int main(int argc,char* argv[])
 							n++;
 						}
 					}
-					if((x=malloc(n*sizeof(unsigned int)))==NULL)
+					if((x=malloc(n*sizeof(long long int)))==NULL)
 				    {
 		                printf("Error: Failed to allocate memory.\n");
 			            printf("Press [Enter] to terminate the program.\n");
@@ -853,7 +853,12 @@ int main(int argc,char* argv[])
 
 						/*output search data*/
 						fputs("Nearest neighbor: ",outputFile);
-						/*output nearest neighbor*/
+						long long int temp2 = true_nearest;
+						while(temp2){
+							if(temp2 & 1) fputc('1',outputFile);
+							else fputc('0',outputFile);
+							temp2 >>= 1;
+						}
 						fputc('\n',outputFile);
 						fputs("distanceLSH: ",outputFile);
 						fprintf(outputFile,"%d\n",db);
