@@ -183,7 +183,7 @@ int main(int argc,char* argv[])
 							n++;
 						}
 					}
-					if(fgetpos(dataset,&pos))
+					if(fsetpos(dataset,&pos))
 					{
 						printf("Error: Function failure.\n");
 		                printf("Press [Enter] to terminate the program.\n");
@@ -231,7 +231,7 @@ int main(int argc,char* argv[])
 							n++;
 						}
 					}
-					if(fgetpos(dataset,&pos))
+					if(fsetpos(dataset,&pos))
 					{
 						printf("Error: Function failure.\n");
 		                printf("Press [Enter] to terminate the program.\n");
@@ -326,7 +326,7 @@ int main(int argc,char* argv[])
 							    }
 							    while((line!='\n')&&(line!=EOF));
 							}
-							if(fgetpos(dataset,&pos))
+							if(fsetpos(dataset,&pos))
 					        {
 						        printf("Error: Function failure.\n");
 		                        printf("Press [Enter] to terminate the program.\n");
