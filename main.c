@@ -303,7 +303,7 @@ int main(int argc,char* argv[])
 						{
 							do
 							{
-							    fscanf(dataset,"%64s",bits);
+							    fscanf(dataset,"%*64s");
 							    n++;
 							}
 							while((line=getc(dataset))!='\n');
@@ -311,12 +311,7 @@ int main(int argc,char* argv[])
 				            {
 							    do
 							    {
-								    fscanf(dataset,"%ld",x);
-							    }
-							    while(x!=0);
-							    do
-							    {
-							        fscanf(dataset,"%ld",x);
+							        fscanf(dataset,"%lld",x);
 							    }
 							    while((line=getc(dataset))!='\n');
 							}
