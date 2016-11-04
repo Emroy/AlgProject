@@ -83,9 +83,7 @@ int main(int argc,char* argv[])
 	{
 	    if((dPath=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Failed to allocate memory.\n");
-			printf("Press [Enter] to terminate the program.\n");
-			getc(stdin);
+		    perror("Failed to allocate memory for dataset file path");
 			return 1;
 		}
 		printf("Enter path name of dataset file and press [Enter]: ");
@@ -95,9 +93,7 @@ int main(int argc,char* argv[])
 	{
 	    if((qPath=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Failed to allocate memory.\n");
-			printf("Press [Enter] to terminate the program.\n");
-			getc(stdin);
+		    perror("Failed to allocate memory for query file path");
 			return 1;
 		}
 		printf("Enter path name of query file and press [Enter]: ");
@@ -107,9 +103,7 @@ int main(int argc,char* argv[])
 	{
 	    if((oPath=malloc(100*sizeof(char)))==NULL)
 		{
-		    printf("Error: Failed to allocate memory.\n");
-			printf("Press [Enter] to terminate the program.\n");
-			getc(stdin);
+		    perror("Failed to allocate memory for output file path");
 			return 1;
 		}
 		printf("Enter path name of output file and press [Enter]: ");
@@ -119,16 +113,12 @@ int main(int argc,char* argv[])
 	/*Allocate Memory for hash function descriptors and hash tables*/
 	if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
     {
-		printf("Error: Failed to allocate memory.\n");
-	    printf("Press [Enter] to terminate the program.\n");
-	    getc(stdin);
+		perror("Failed to allocate memory for hash descriptors in main");
 	    return 1;
 	}
 	if((H=malloc(L*sizeof(HashTable)))==NULL)
     {
-		printf("Error: Failed to allocate memory.\n");
-	    printf("Press [Enter] to terminate the program.\n");
-	    getc(stdin);
+    	perror("Failed to allocate memory for hash tables in main");
 	    return 1;
 	}
 
@@ -136,10 +126,9 @@ int main(int argc,char* argv[])
 	{
 	    if((dataset=fopen(dPath,"r"))==NULL)
 	    {
-		    printf("Error: Failed to open dataset file.\n");
-		    printf("Press [Enter] to terminate the program.\n");
-		    getc(stdin);
-		    return 1;
+		    perror("Failed to open dataset file");
+		    error = 1;
+		    continue;
 	    }
 	    fscanf(dataset,"%64s",bits);
 		error=strcmp(bits,"@metric_space");
