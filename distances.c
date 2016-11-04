@@ -7,32 +7,14 @@
    
 int hamming(long long int x,long long int y)
 {
-    int xBits[64],yBits[64],counter=0,size,i,dH=0;
-    
-	do
-   	{
-	    xBits[counter]=x%2;
-		x/=2;
-		counter++;
-	}
-	while(x);
-	counter=0;
-	do
-   	{
-		yBits[counter]=y%2;
-		y/=2;
-		counter++;
-	}
-	while(y);
-	size=counter;
-	for(i=0;i<=size-1;i++)
-	{
-	    if(xBits[i]!=yBits[i])
-	    {
-	    	dH++;
-	    }
-	}
-	return dH;
+	int distance = 0;
+   	while(x | y){
+   		if((x & 0x1)!=(y & 0x1)) distance+=1;
+   		x >>= 1;
+   		y >>= 1;
+   	}
+
+   	return distance;
 }
 
 double euclidean(double *x,double *y,int d)
