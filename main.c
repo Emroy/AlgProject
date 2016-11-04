@@ -24,6 +24,7 @@ int main(int argc,char* argv[])
 	fpos_t pos;
 	unsigned int **a,*b;
 	
+	/*Read command line parameters*/
 	while(i<=argc-1)
 	{
 		if(!strcmp(argv[i],"-d"))
@@ -33,76 +34,51 @@ int main(int argc,char* argv[])
 			    dPath=argv[i+1];
 			    i+=2;
 			}
-			else
-			{
-				break;
-			}
+			else break;
 		}
-		else
+		else if(!strcmp(argv[i],"-q"))
 		{
-		    if(!strcmp(argv[i],"-q"))
+		    if(argv[i+1]!=NULL)
+		    {
+			    qPath=argv[i+1];
+		        i+=2;
+		    }
+		    else break;
+		}
+	    else if(!strcmp(argv[i],"-k"))
+		{
+			if(argv[i+1]!=NULL)
+			{
+			    k=atoi(argv[i+1]);
+		        i+=2;
+		    }
+			else break;
+		}
+		else if(!strcmp(argv[i],"-L"))
+		{
+			if(argv[i+1]!=NULL)
+			{
+		        L=atoi(argv[i+1]);
+		        i+=2;
+		    }
+		    else break;
+        }
+        else
+		{
+		    if(!strcmp(argv[i],"-o"))
 			{
 			    if(argv[i+1]!=NULL)
-			    {
-				    qPath=argv[i+1];
-			        i+=2;
-			    }
-			    else
-				{
-				    break;
-			    }
-			}
-		    else
-			{
-			    if(!strcmp(argv[i],"-k"))
-				{
-					if(argv[i+1]!=NULL)
-					{
-					    k=atoi(argv[i+1]);
-				        i+=2;
-				    }
-					else
-			        {
-				        break;
-			        }
-				}
-				else
-				{
-				    if(!strcmp(argv[i],"-L"))
-					{
-						if(argv[i+1]!=NULL)
-						{
-					        L=atoi(argv[i+1]);
-					        i+=2;
-					    }
-					    else
-			            {
-				            break;
-			            }
-		            }
-		            else
-					{
-					    if(!strcmp(argv[i],"-o"))
-						{
-						    if(argv[i+1]!=NULL)
-			                {
-							    oPath=argv[i+1];
-			                    i+=2;
-			                }
-			                else
-			                {
-				                break;
-			                }
-		                }
-		                else
-		                {
-		                	i++;
-		                }
-					}
-				}
-			}
+                {
+				    oPath=argv[i+1];
+                    i+=2;
+                }
+                else break;
+            }
+            else i++;
 		}
 	}
+
+	/*Ask for file paths if not given from command line*/
 	if(dPath==NULL)
 	{
 	    if((dPath=malloc(100*sizeof(char)))==NULL)
@@ -139,6 +115,8 @@ int main(int argc,char* argv[])
 		printf("Enter path name of output file and press [Enter]: ");
 		fgets(oPath,100,stdin);
 	}
+
+	/*Allocate Memory for hash function descriptors and hash tables*/
 	if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
     {
 		printf("Error: Failed to allocate memory.\n");
@@ -153,6 +131,7 @@ int main(int argc,char* argv[])
 	    getc(stdin);
 	    return 1;
 	}
+
 	do
 	{
 	    if((dataset=fopen(dPath,"r"))==NULL)
