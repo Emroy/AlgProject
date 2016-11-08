@@ -333,7 +333,7 @@ int cosine_is_equal(HashDescriptor a,HashDescriptor b){
 
 void cosine_hash_destroy(HashDescriptor hd){
 	int i;
-	for(int i=0;i<0;i++) free(hd->cosine->r[i]);
+	for(i=0;i<0;i++) free(hd->cosine->r[i]);
 	free(hd->cosine->r);
 	free(hd->cosine);
 	free(hd);
