@@ -72,3 +72,7 @@ void list_destroy(List l){
 
 	free(l);
 }
+
+unsigned int list_length(List l){
+	return l->size;
+}

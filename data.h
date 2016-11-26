@@ -2,7 +2,7 @@
 #define DATA_H
 typedef GenericData* Data;
 
-Data hamming_data_create(char* bitString);
+Data hamming_data_create(char* itemString);
 
 Data euclidean_data_create();
 

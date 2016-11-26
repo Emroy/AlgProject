@@ -21,4 +21,7 @@ void* list_pop(List l);
 
 int list_isEmpty(List l);
 /*check if list is empty*/
+
+unsigned int list_length(List l);
+/*returns how many elements the list has*/
 #endif

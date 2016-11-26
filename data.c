@@ -1,9 +1,11 @@
 #include "data.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 typedef struct HammingData{
+	uint64_t id;
 	uint64_t bits;
 }HammingData;
 
@@ -22,7 +24,7 @@ typedef struct GenData{
 	CosineData cData;
 }GenericData;
 
-Data hamming_data_create(char* bitString){
+Data hamming_data_create(char* itemString){
 	Data retVal = malloc(sizeof(GenericData));
 	if(retVal == NULL){
 		perror("Failed to allocate memory for new Data");
@@ -38,6 +40,11 @@ Data hamming_data_create(char* bitString){
 
 	retVal->eData = NULL;
 	retVal->cData = NULL;
+
+	char* itemID = strtok(itemString," \n\t");
+	char* bitString = strtok(NULL," \n\t");
+
+	retVal->hData->id = atoi(itemID);
 
 	retVal->hData->bits = 0;
 	unsigned short int i = 0;
