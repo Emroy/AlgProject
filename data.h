@@ -21,6 +21,12 @@ unsigned int hamming_data_distance(HammingData a,HammingData b);
 void hamming_data_destroy(HammingData data);
 /*Destroy Hamming Data created by hamming_data_create*/
 
+void hamming_data_create_distance_matrix(HammingData* data,int n);
+/*Create a distance matrix with all data distances*/
+
+void hamming_data_destroy_distance_matrix();
+/*Destroy hamming distance matrix*/
+
 /*------------EUCLIDEAN DATA-----------*/
 EuclideanData euclidean_data_create(HashDescriptor hd,double* p);
 /*Create new Euclidean Data*/
@@ -31,6 +37,12 @@ double euclidean_data_distance(EuclideanData a,EuclideanData b);
 void euclidean_data_destroy(EuclideanData data);
 /*Derstroy Euclidean Data created by euclidean_data_create*/
 
+void euclidean_data_create_distance_matrix(EuclideanData* data,int n);
+/*Create a distance matrix with all data distances*/
+
+void euclidean_data_destroy_distance_matrix();
+/*Destroy euclidean distance matrix*/
+
 /*------------COSINE DATA--------------*/
 CosineData cosine_data_create(double* p);
 /*Create new Cosine Data*/
@@ -40,6 +52,12 @@ double cosine_data_distance(CosineData a,CosineData b);
 
 void cosine_data_destroy(CosineData data);
 /*Destroy Cosine Data created by cosine_data_create*/
+
+void cosine_data_create_distance_matrix(CosineData* data,int n);
+/*Create a distance matrix with all data distances*/
+
+void cosine_data_destroy_distance_matrix();
+/*Destory cosine distance matrix*/
 
 /*------------MATRIX DATA--------------*/
 void matrix_data_set_distance_matrix(unsigned int** distance_matr);
