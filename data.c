@@ -4,18 +4,35 @@
 #include <string.h>
 #include <math.h>
 
+/*------------HAMMING DATA-------------*/
 typedef struct HammingData{
 	uint64_t id;
 	uint64_t bits;
 }HammingData;
 
-typedef struct EucliudeanData{
+static unsigned int** hamming_distance_matrix = NULL;
 
+/*------------EUCLIDEAN DATA-----------*/
+typedef struct EucliudeanData{
+	uint64_t id; 		/*the number of this element*/
+	unsigned int ID; 	/*calculated by hashFunction*/
+	double* vector;
 }EuclideanData;
 
-typedef struct CosineData{
+static unsigned short euclidean_dim = 0;
+static double** euclidean_distance_matrix = NULL;
 
+/*-----------COSINE DATA---------------*/
+typedef struct CosineData{
+	uint64_t id;
+	double* vector;
 }CosineData;
+
+static unsigned short cosine_dim = 0;
+static double** cosine_distance_matrix = NULL;
+
+/*--------------MATRIX DATA------------*/
+static unsigned int** matrix_distance_matrix = NULL;
 
 /*--------------GENERIC DATA-----------*/
 typedef struct GenData{
@@ -44,11 +61,19 @@ Data hamming_data_create(char* itemString){
 	char* itemID = strtok(itemString," \n\t");
 	char* bitString = strtok(NULL," \n\t");
 
-	retVal->hData->id = atoi(itemID);
+	retVal->hData->id = 0;
+	unsigned short int i = 0;
+	while(itemID[i]){
+		if(itemID[i] >= '0' && itemID[i] <= '9'){
+			retVal->hData->id *= 10;
+			retVal->hData->id += itemID[i]-'0';
+		}
+		i++;
+	}
 
 	retVal->hData->bits = 0;
-	unsigned short int i = 0;
 	unsigned short int bitCount = 0;
+	i=0;
 	while(bitString[i]){
 		if(bitString[i] == '1'){
 			retVal->hData->bits = retVal->hData->bits << 1;
