@@ -18,7 +18,8 @@ typedef struct ConfParams{
 
 void evalInput(char* inputFilePath)
 {
-	char check[20];
+	int size;
+	char symbols[100];
     FILE* inputFile;
     
 	if((inputFile=fopen(inputFilePath,"r"))==NULL)
@@ -26,19 +27,19 @@ void evalInput(char* inputFilePath)
 		perror("Failed to open input file");
 		exit(-1);
 	}
-	fscanf(inputFile,"%s",check);
-	if(!strcmp(check,"@metric_space"))
+	fscanf(inputFile,"%s",symbols);
+	if(!strcmp(symbols,"@metric_space"))
 	{
-		fscanf(inputFile,"%s",check);
-		if(!strcmp(check,"vector"))
+		fscanf(inputFile,"%s",symbols);
+		if(!strcmp(symbols,"vector"))
 		{
-		    fscanf(inputFile,"%s",check);
-		    if(!strcmp(check,"@metric"))
+		    fscanf(inputFile,"%s",symbols);
+		    if(!strcmp(symbols,"@metric"))
 		    {
-		    	if(!strcmp(check,"euclidean"))
+		    	if(!strcmp(symbols,"euclidean"))
 		    	{
 		    	}
-		    	else if(!strcmp(check,"cosine"))
+		    	else if(!strcmp(symbols,"cosine"))
 		    	{
 		    	}
 		    	else
@@ -50,10 +51,18 @@ void evalInput(char* inputFilePath)
 			{
 			}
 		}
-		else if(!strcmp(check,"hamming"))
+		else if(!strcmp(symbols,"hamming"))
 		{
+			while(!feof(inputFile))
+			{
+				fscanf(inputFile,"%s",symbols);
+				size=strlen(symbols);
+				symbols[size]= ;
+				fscanf(inputFile,"%s",symbols+size+1);
+				hamming_data_create(symbols);
+			}
 		}
-		else if(!strcmp(check,"matrix"))
+		else if(!strcmp(symbols,"matrix"))
 		{
 		}
 		else
