@@ -29,24 +29,62 @@ void evalInput(char* inputFilePath){
 	/*destroy list*/
 }
 
-ConfParams* evalConf(char* confFilePath){
-	FILE* confFile = fopen(confFilePath,"r");
-	if(confFilePath == NULL){
+ConfParams* evalConf(char* confFilePath,int n)
+{
+	int k=0,f=0,L=0,s=0,i=0;
+	double max;
+    FILE* confFile;
+    ConfParams *params;
+    
+	if((confFile=fopen(confFilePath,"r"))==NULL)
+	{
 		perror("Failed to open configuration file");
 		exit(-2);
 	}
-
-	ConfParams* retVal = malloc(sizeof(ConfParams));
-	if(retVal == NULL){
+	if((params=malloc(sizeof(ConfParams)))==NULL)
+	{
 		perror("Failed to allocate memory for configuration parameters");
 		return NULL;
 	}
-
-	/*read k*/
-	/*read number of hash functions*/
-	/*read L*/
-	/*read clarans fraction*/
-	/*read clarans iterations*/
+	fscanf(confFile,"number_of_clusters:%d",&k);
+	if(!k)
+	{
+		printf("Wrong configuration file.\n");
+		return NULL;
+	}
+	fscanf(confFile,"number_of_hash_functions:%d",&f);
+	if(!f)
+	{
+	    f=4;
+	}
+	fscanf(confFile,"number_of_hash_tables:%d",&L);
+	if(!L)
+	{
+		L=5;
+	}
+	fscanf(confFile,"clarans_set_fraction:%d",&s);
+	if(!s)
+	{
+	    if((max=0.12*k*(n-k))>250)
+	    {
+	    	s=max;
+	    }
+	    else
+	    {
+	    	s=250;
+	    }
+	}
+	fscanf(confFile,"clarans_iterations:%d",&i);
+	if(!s)
+	{
+		i=2;
+	}
+	params->k=k;
+	params->hashFuncNum=f;
+	params->hashTableNum=L;
+	params->claransFrac=s;
+	params->claransIter=i;
+	return params;
 }
 
 void aplly_kMedoids(int mode){
