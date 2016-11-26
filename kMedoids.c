@@ -16,13 +16,71 @@ typedef struct ConfParams{
 	int claransIter;
 }ConfParams;
 
-void evalInput(char* inputFilePath){
-	FILE* inputFile = fopen(inputFilePath,"r");
-	if(inputFile == NULL){
+void evalInput(char* inputFilePath)
+{
+	char check[20];
+    FILE* inputFile;
+    
+	if((inputFile=fopen(inputFilePath,"r"))==NULL)
+	{
 		perror("Failed to open input file");
 		exit(-1);
 	}
-
+	fscanf(inputFile,"%s",check);
+	if(!strcmp(check,"@metric_space"))
+	{
+		fscanf(inputFile,"%s",check);
+		if(!strcmp(check,"vector"))
+		{
+		    fscanf(inputFile,"%s",check);
+		    if(!strcmp(check,"@metric"))
+		    {
+		    	if(!strcmp(check,"euclidean"))
+		    	{
+		    	}
+		    	else
+		    	{
+				    if(!strcmp(check,"manhattan"))
+				    {
+				    	;
+				    }
+				    else
+				    {
+				    	if(!strcmp(check,"cosine"))
+				    	{
+				    	}
+				    	else
+				    	{
+				    		printf("Wrong input file.\n");
+				    	}
+				    }
+				}
+			}
+			else
+			{
+			}
+		}
+		else
+		{
+			if(!strcmp(check,"hamming"))
+			{
+			}
+			else
+			{
+				if(!strcmp(check,"matrix"))
+				{
+				}
+				else
+				{
+					printf("Wrong input file.\n");
+				}
+			}
+		}
+	}
+	else
+	{
+		printf("Wrong input file.\n");
+	}
 	/*find metric*/
 	/*read data to temp list*/
 	/*create array and put data from list to array*/
