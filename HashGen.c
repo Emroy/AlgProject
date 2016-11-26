@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "HashGen.h"
 #include "RNG.h"
+#include "data.h"
 #define W 4
 #define M 4294967291
 
@@ -20,11 +21,6 @@ typedef struct EuclideanDesc{
 	int d;
 	int n;
 } EuclideanDescriptor;
-
-struct EuData{
-	int id;
-	double* data;
-};
 
 /*-----------------------------*/
 
@@ -60,32 +56,6 @@ int euclidean_data_getID(EuclideanData ed){
 
 double* euclidean_data_getVector(EuclideanData ed){
 	return ed->data;
-}
-
-/*--------------DATA CREATORS---------------*/
-
-EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
-	if(hd->euclidean == NULL) fprintf(stderr, "invalid HashDescriptor given on euclidean_data_create\n");
-
-	EuclideanData retVal = malloc(sizeof(struct EuData));
-	if(retVal == NULL){
-		perror("Could not allocate memory for new EuclideanData");
-		return NULL;
-	}
-
-	retVal->data = p;
-
-	long int temp = 0;
-	int i,j,h;
-	for(i=0;i<hd->euclidean->k;i++){
-		h = 0;
-		for(j=0;j<hd->euclidean->d;j++) h+=p[j]*hd->euclidean->v[i][j];
-		temp += hd->euclidean->r[i]*h;
-	}
-
-	retVal->id = temp % M;
-
-	return retVal;
 }
 
 /*-------------------GENERAL--------------------*/

@@ -5,14 +5,6 @@
 
 typedef struct HashDesc *HashDescriptor;
 
-typedef struct EuData *EuclideanData;
-
-typedef struct MatrData* MatrixData;
-
-EuclideanData euclidean_data_create(HashDescriptor hd,double* p);
-int euclidean_data_getID(EuclideanData ed);
-double* euclidean_data_getVector(EuclideanData ed);
-
 /*--------------GENERAL----------------------*/
 int hash_apply(HashDescriptor hd,void* x);
 /*Aplly function described by HashDescriptor on element x and return the ouput*/
@@ -23,7 +15,7 @@ HashDescriptor hamming_hash_create(int d,int k);
 /*Creates a hamming function g as described by theory, return NULL on failure*/
 
 int hamming_is_equal(HashDescriptor a,HashDescriptor b);
-/*if HashDescritor function a is the same as HashDescriptor function b returns 1 else returns 0*/
+/*if HashDescriptor function a is the same as HashDescriptor function b returns 1 else returns 0*/
 
 void hamming_hash_destroy(HashDescriptor hd);
 /*Destory a hamming HashDescriptor and make it NULL*/
@@ -35,6 +27,7 @@ HashDescriptor euclidean_hash_create(int d,int k,int n);
   n: number of total elements in query. Used to determine TableSize. See theory for more info*/
 
 int euclidean_is_equal(HashDescriptor a,HashDescriptor b);
+/*if HashDescriptor function a is the same as HashDescriptor function b returns 1 else returns 0*/
 
 void euclidean_hash_destroy(HashDescriptor hd);
 /*Destroy an euclidean HashDescriptor and make it NULL*/
@@ -45,6 +38,7 @@ HashDescriptor cosine_hash_create(int d,int k);
 /*Creates a cosine function g as described by theory, NULL on failure*/
 
 int cosine_is_equal(HashDescriptor a,HashDescriptor b);
+/*if HashDescriptor function a is the same as HashDescriptor function b returns 1 else returns 0*/
 
 void cosine_hash_destroy(HashDescriptor hd);
 /*Destroy a cosine HashDescriptor and make it NULL*/
@@ -54,6 +48,7 @@ HashDescriptor matrix_hash_create(int k,unsigned int** distanceMatrix,int n);
 /*Creates a matrix function g as described by theory, NULL on failure*/
 
 int matrix_is_equal(HashDescriptor a,HashDescriptor b);
+/*if HashDescriptor function a is the same as HashDescriptor function b returns 1 else returns 0*/
 
 void matrix_hash_destroy(HashDescriptor hd);
 /*Destroy a matrix HashDescriptor and make it NULL*/
