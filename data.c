@@ -3,33 +3,58 @@
 #include <stdio.h>
 #include <math.h>
 
-/*------------HAMMING DATA-------------*/
-struct HammingData{
+typedef struct HammingData{
 	uint64_t bits;
-};
+}HammingData;
 
-HammingData hamming_data_create(char* bitString){
-	HammingData retVal = malloc(sizeof(struct HammingData));
+typedef struct EucliudeanData{
+
+}EuclideanData;
+
+typedef struct CosineData{
+
+}CosineData;
+
+/*--------------GENERIC DATA-----------*/
+typedef struct GenData{
+	HammingData* hData;
+	EuclideanData eData;
+	CosineData cData;
+}GenericData;
+
+Data hamming_data_create(char* bitString){
+	Data retVal = malloc(sizeof(GenericData));
 	if(retVal == NULL){
-		perror("Failed to allocate memory for new Hamming Data");
+		perror("Failed to allocate memory for new Data");
 		return NULL;
 	}
 
-	retVal->bits = 0;
+	retVal->hData = malloc(sizeof(HammingData));
+	if(retVal->hData == NULL){
+		perror("Failed to allocate memory for new Hamming Data");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->eData = NULL;
+	retVal->cData = NULL;
+
+	retVal->hData->bits = 0;
 	unsigned short int i = 0;
 	unsigned short int bitCount = 0;
 	while(bitString[i]){
 		if(bitString[i] == '1'){
-			retVal->bits = retVal->bits << 1;
-			retVal->bits++;
+			retVal->hData->bits = retVal->hData->bits << 1;
+			retVal->hData->bits++;
 			bitCount++;
 		}
 		else if(bitString[i] == '0'){
-			retVal->bits = retVal->bits << 1;
+			retVal->hData->bits = retVal->hData->bits << 1;
 			bitCount++;
 		}
 		if(bitCount >= 64){
 			fprintf(stderr,"hamming_data_create: Can't have hamming data longer than 64 bits\n");
+			free(retVal->hData);
 			free(retVal);
 			return NULL;
 		}
@@ -38,6 +63,14 @@ HammingData hamming_data_create(char* bitString){
 	}
 
 	return retVal;
+}
+
+Data euclidean_data_create(){
+
+}
+
+Data cosine_data_create(){
+
 }
 
 unsigned int hamming_data_distance(HammingData a,HammingData b){

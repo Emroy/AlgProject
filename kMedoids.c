@@ -38,49 +38,34 @@ void evalInput(char* inputFilePath)
 		    	if(!strcmp(check,"euclidean"))
 		    	{
 		    	}
+		    	else if(!strcmp(check,"cosine"))
+		    	{
+		    	}
 		    	else
 		    	{
-				    if(!strcmp(check,"manhattan"))
-				    {
-				    	;
-				    }
-				    else
-				    {
-				    	if(!strcmp(check,"cosine"))
-				    	{
-				    	}
-				    	else
-				    	{
-				    		printf("Wrong input file.\n");
-				    	}
-				    }
-				}
+		    		printf("Wrong input file.\n");
+		    	}
 			}
 			else
 			{
 			}
 		}
+		else if(!strcmp(check,"hamming"))
+		{
+		}
+		else if(!strcmp(check,"matrix"))
+		{
+		}
 		else
 		{
-			if(!strcmp(check,"hamming"))
-			{
-			}
-			else
-			{
-				if(!strcmp(check,"matrix"))
-				{
-				}
-				else
-				{
-					printf("Wrong input file.\n");
-				}
-			}
+			printf("Wrong input file.\n");
 		}
 	}
 	else
 	{
 		printf("Wrong input file.\n");
 	}
+
 	/*find metric*/
 	/*read data to temp list*/
 	/*create array and put data from list to array*/
@@ -178,8 +163,8 @@ void aplly_kMedoids(int mode){
 }
 
 void outputResults(char* outFilePath){
-	FILE* fp = fopen(outFilePath,"w");
-	if(fp == NULL){
+	FILE* outFile = fopen(outFilePath,"w");
+	if(outFile == NULL){
 		perror("Failed to open/create output file");
 		exit(-3);
 	}
