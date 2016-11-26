@@ -1,6 +1,7 @@
 #include "data.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 /*------------HAMMING DATA-------------*/
 struct HammingData{
@@ -39,6 +40,19 @@ HammingData hamming_data_create(char* bitString){
 	return retVal;
 }
 
+unsigned int hamming_data_distance(HammingData a,HammingData b){
+	unsigned int distance = 0;
+	uint64_t x = a->bits;
+	uint64_t y = b->bits;
+   	while(x | y){
+   		if((x & 0x1)!=(y & 0x1)) distance+=1;
+   		x >>= 1;
+   		y >>= 1;
+   	}
+
+   	return distance;
+}
+
 void hamming_data_destroy(HammingData data){
 	free(data);
 }
@@ -46,7 +60,8 @@ void hamming_data_destroy(HammingData data){
 /*------------EUCLIDEAN DATA-----------*/
 struct EucliudeanData{
 	int id;
-	double* data;
+	double* data; /*data vector*/
+	int dim; /*dimention of data vector*/
 };
 
 EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
@@ -73,6 +88,20 @@ EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
 	return retVal;
 }
 
+double euclidean_data_distance(EuclideanData a,EuclideanData b){
+	int i;
+	double sum=0.0;
+	int d = a->dim;
+	double* x = a->data;
+	double* y = b->data;
+
+	for(i=0;i<=d-1;i++)
+	{
+		sum+=(x[i]-y[i])*(x[i]-y[i]);
+	}
+	return sum;
+}
+
 void euclidean_data_destroy(EuclideanData data){
 	free(data);
 }
@@ -80,6 +109,7 @@ void euclidean_data_destroy(EuclideanData data){
 /*------------COSINE DATA--------------*/
 struct CosineData{
 	double *data;
+	int dim;
 };
 
 CosineData cosine_data_create(double* p){
@@ -92,6 +122,30 @@ CosineData cosine_data_create(double* p){
 	retVal = p;
 
 	return retVal;
+}
+
+double cosine(CosineData a,CosineData b){
+	int i;
+	double xy=0.0,xx=0.0,yy=0.0;
+	int d = a->dim;
+	double* x = a->data;
+	double* y = b->data;
+	
+	for(i=0;i<=d-1;i++)
+	{
+		xy+=x[i]*y[i];
+	}
+	for(i=0;i<=d-1;i++)
+	{
+		xx+=x[i]*x[i];
+	}
+	xx=sqrt(xx);
+	for(i=0;i<=d-1;i++)
+	{
+	    yy+=y[i]*y[i];
+	}
+	yy=sqrt(yy);
+	return (xy/(xx*yy));
 }
 
 void cosine_data_destroy(CosineData data){
