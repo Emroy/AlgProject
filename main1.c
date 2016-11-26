@@ -1,0 +1,959 @@
+/* SOFTWARE DEVELOPMENT FOR ALGORITHMIC PROBLEMS
+   ASSIGNMENT 1
+   LELEGIANNIS IOANNIS: 1115201200090
+   POULIDIS NIKOLAOS: 1115200000111 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "HashGen.h"
+#include "HashTable.h"
+#include "distances.h"
+#define BUFFER_SIZE 512
+#define PATH_BUFFER_SIZE 100
+
+int main(int argc,char* argv[]) 
+{
+    int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk=1,counter=0;
+	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
+	FILE *dataset,*queryFile,*outputFile;
+	double **p;
+	HashDescriptor *g;
+	HashTable *H;
+	long long int *x;
+	fpos_t pos;
+	unsigned int **a,*b;
+	
+	/*Read command line parameters*/
+	while(i<=argc-1)
+	{
+		if(!strcmp(argv[i],"-d"))
+		{
+			if(argv[i+1]!=NULL)
+			{
+			    dPath=argv[i+1];
+			    i+=2;
+			}
+			else break;
+		}
+		else if(!strcmp(argv[i],"-q"))
+		{
+		    if(argv[i+1]!=NULL)
+		    {
+			    qPath=argv[i+1];
+		        i+=2;
+		    }
+		    else break;
+		}
+	    else if(!strcmp(argv[i],"-k"))
+		{
+			if(argv[i+1]!=NULL)
+			{
+			    k=atoi(argv[i+1]);
+		        i+=2;
+		    }
+			else break;
+		}
+		else if(!strcmp(argv[i],"-L"))
+		{
+			if(argv[i+1]!=NULL)
+			{
+		        L=atoi(argv[i+1]);
+		        i+=2;
+		    }
+		    else break;
+        }
+        else
+		{
+		    if(!strcmp(argv[i],"-o"))
+			{
+			    if(argv[i+1]!=NULL)
+                {
+				    oPath=argv[i+1];
+                    i+=2;
+                }
+                else break;
+            }
+            else i++;
+		}
+	}
+
+	/*Ask for file paths if not given from command line*/
+	if(dPath==NULL)
+	{
+	    if((dPath=malloc(PATH_BUFFER_SIZE*sizeof(char)))==NULL)
+		{
+		    perror("Failed to allocate memory for dataset file path");
+			return 1;
+		}
+		printf("Enter path name of dataset file and press [Enter]: ");
+		fgets(dPath,PATH_BUFFER_SIZE,stdin);
+	}
+	if(qPath==NULL)
+	{
+	    if((qPath=malloc(PATH_BUFFER_SIZE*sizeof(char)))==NULL)
+		{
+		    perror("Failed to allocate memory for query file path");
+			return 1;
+		}
+		printf("Enter path name of query file and press [Enter]: ");
+		fgets(qPath,PATH_BUFFER_SIZE,stdin);
+	}
+	if(oPath==NULL)
+	{
+	    if((oPath=malloc(PATH_BUFFER_SIZE*sizeof(char)))==NULL)
+		{
+		    perror("Failed to allocate memory for output file path");
+			return 1;
+		}
+		printf("Enter path name of output file and press [Enter]: ");
+		fgets(oPath,PATH_BUFFER_SIZE,stdin);
+	}
+
+	/*Allocate Memory for hash function descriptors and hash tables*/
+	if((g=malloc(L*sizeof(HashDescriptor)))==NULL)
+    {
+		perror("Failed to allocate memory for hash descriptors in main");
+	    return 1;
+	}
+	if((H=malloc(L*sizeof(HashTable)))==NULL)
+    {
+    	perror("Failed to allocate memory for hash tables in main");
+	    return 1;
+	}
+
+	do
+	{
+	    if((dataset=fopen(dPath,"r"))==NULL)
+	    {
+		    perror("Failed to open dataset file");
+		    error = 1;
+		    continue;
+	    }
+	    fscanf(dataset,"%64s",bits);
+		error=strcmp(bits,"@metric_space");
+		if(error)
+	    {
+		    printf("Error: Incorrect dataset file.\n");
+		    printf("Enter path name of dataset file and press [Enter]: ");
+			fgets(dPath,PATH_BUFFER_SIZE,stdin);
+		}
+		else
+		{
+		    fscanf(dataset,"%64s",bits);
+	        if(!strcmp(bits,"vector"))
+	        {
+			    fscanf(dataset,"%64s",bits);
+	        	if(!strcmp(bits,"@metric"))
+	        	{
+				    fscanf(dataset,"%64s",bits);
+					if(fgetpos(dataset,&pos))
+					{
+						perror("Failure in fgetpos");
+		                return 1;
+				    }
+					fscanf(dataset,"%*s");
+					do
+					{
+					    fscanf(dataset,"%*f");
+					    line=getc(dataset);
+					    d++;
+					}
+					while((line!='\n')&&(line!=EOF));
+					n++;
+					while(!feof(dataset))
+					{
+						line=getc(dataset);
+					    if((line=='\n')||(line==EOF)) n++;
+					}
+					if((p=malloc(n*sizeof(double*)))==NULL)
+					{
+		                perror("Failed to allocate memory for dataset metric vectors");
+	                    return 1;
+	                }
+	                for(i=0;i<=n-1;i++)
+	                {
+					    if((p[i]=malloc(d*sizeof(double)))==NULL)
+					    {
+		                    perror("Failed to allocate memory for dataset metric vectors");
+	                        return 1;
+	                    }
+	                }
+					if(!strcmp(bits,"euclidean"))
+					{
+						for(i=0;i<=L-1;i++)
+						{
+							do
+							{
+								if((g[i]=euclidean_hash_create(d,k,n))==NULL)
+								{
+									fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                            return 1;
+				                }
+							    for(j=0;j<=i-1;j++)
+							    {
+								    token=euclidean_is_equal(g[i],g[j]);
+							        if(token) break;
+							    }
+					        }
+					        while(token);
+					        if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					        {
+					        	fprintf(stderr,"Could not create hash table.\n");
+		                        return 1;
+				            }
+					    }
+					    if(fsetpos(dataset,&pos))
+					    {
+						    perror("Failure on fsetpos call");
+		                    return 1;
+				        }
+					    while(!feof(dataset))
+					    {
+					    	for(i=0;i<=n-1;i++)
+					    	{
+							    fscanf(dataset,"%*s");
+						        for(j=0;j<=d-1;j++) fscanf(dataset,"%lf",&p[i][j]);
+					            for(counter=0;counter<=L-1;counter++) hashTable_insert(H[counter],euclidean_data_create(g[counter],p[i]));
+					        }
+					    }
+
+					    queryFile = fopen(qPath,"r");
+						if(queryFile == NULL){
+							perror("Failed to open query file");
+							return -2;
+						}
+
+						outputFile = fopen(oPath,"w");
+						if(outputFile == NULL){
+							perror("Failed to open/create output file");
+							return -3;
+						}
+
+						char buffer[BUFFER_SIZE];
+
+						fgets(buffer,BUFFER_SIZE,queryFile);
+						unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+						double* q = malloc(sizeof(double)*d);
+						if(q == NULL){
+							perror("Failed to allocate memory for query vector");
+							return -4;
+						}
+
+						while(fgets(buffer,BUFFER_SIZE,queryFile)){
+							char* item_name=strtok(buffer," \t\n");
+							for(i=0;i<d;i++) q[i] = atof(strtok(NULL," \t\n"));
+							
+							fputs("Query: ",outputFile);
+							fputs(item_name,outputFile);
+							fputc('\n',outputFile);
+							fputs("R-near neighbors:\n",outputFile);
+
+							/*calculate and time lsh*/
+							clock_t begin = clock();
+							EuclideanData p_eu,q_eu;
+							double* b;
+							double db=-1.0,temp;
+							int i,j=0;
+							for(i=0;i<L;i++){
+								q_eu = euclidean_data_create(g[i],q);
+								while(p_eu=hashTable_getNext(H[i],q_eu)){
+									if(j > 3*L) break;
+									if(euclidean_data_getID(q_eu)!=euclidean_data_getID(p_eu)){
+										j++;
+										continue;
+									}
+									temp = euclidean(q,euclidean_data_getVector(p_eu),d);
+									if(temp < radius){
+										int iter;
+										for(iter=0;iter<d;iter++) fprintf(outputFile,"%f ",q[iter]);
+										fputc('\n',outputFile);
+									}
+									if(temp < db || db < 0.0){
+										b = q;
+										db = temp;
+									}
+									j++;
+								}
+							}
+							clock_t end = clock();
+							double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*calculate and time true nearest*/
+							begin = clock();
+							double* true_nearest;
+							double true_dist = -1.0;
+							for(i=0;i<n;i++){
+								temp = euclidean(p[i],q,d);
+								if(temp < true_dist || true_dist < 0.0){
+									true_nearest = p[i];
+									true_dist = temp;
+								}
+							}
+							end = clock();
+							double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*output search data*/
+							fputs("Nearest neighbor: ",outputFile);
+							for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
+							fputc('\n',outputFile);
+							fputs("distanceLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",db);
+							fputs("distanceTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_dist);
+							fputs("tLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",lsh_time);
+							fputs("tTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_time);
+						}
+				    }
+				    else
+				    {
+				    	if(!strcmp(bits,"cosine"))
+					    {
+						    for(i=1;i<=k;i++)
+						    {
+						    	tk*=2;
+						    }
+						    for(i=0;i<=L-1;i++)
+						    {
+							    do
+							    {
+								    if((g[i]=cosine_hash_create(d,k))==NULL)
+								    {
+									    fprintf(stderr,"Could not create cosine hash descriptor.\n");
+		                                return 1;
+				                    }
+							        for(j=0;j<=i-1;j++)
+							        {
+								        token=cosine_is_equal(g[i],g[j]);
+							            if(token)
+							            {
+							                break;
+							            }
+							        }
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					            {
+					            	fprintf(stderr,"Could not create hash table.\n");
+		                            return 1;
+				                }
+					        }
+					        if(fsetpos(dataset,&pos))
+					        {
+					        	perror("Failure on fsetpos call");
+		                        return 1;
+				            }
+					        while(!feof(dataset))
+					        {
+					        	for(i=0;i<=n-1;i++)
+					        	{
+						            fscanf(dataset,"%*s");
+						            for(j=0;j<=d-1;j++)
+					                {
+					                    fscanf(dataset,"%lf",&p[i][j]);
+					                }
+					                for(counter=0;counter<=L-1;counter++)
+					                {
+					                    hashTable_insert(H[counter],p[i]);
+					                }
+					            }
+					        }
+					        queryFile = fopen(qPath,"r");
+							if(queryFile == NULL){
+								perror("Failed to open query file");
+								return -2;
+							}
+
+							outputFile = fopen(oPath,"w");
+							if(outputFile == NULL){
+								perror("Failed to open/create output file");
+								return -3;
+							}
+
+							char buffer[BUFFER_SIZE];
+
+							fgets(buffer,BUFFER_SIZE,queryFile);
+							unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+							double* q = malloc(sizeof(double)*d);
+							if(q == NULL){
+								perror("Failed to allocate memory for query vector");
+								return -4;
+							}
+
+							while(fgets(buffer,BUFFER_SIZE,queryFile)){
+								char* item_name=strtok(buffer," \t\n");
+								for(i=0;i<d;i++) q[i] = atof(strtok(NULL," \t\n"));
+								
+								fputs("Query: ",outputFile);
+								fputs(item_name,outputFile);
+								fputc('\n',outputFile);
+								fputs("R-near neighbors:\n",outputFile);
+
+								/*calculate and time lsh*/
+								clock_t begin = clock();
+								double* p_current;
+								double* b;
+								double db=-1.0,temp;
+								int i,j=0;
+								for(i=0;i<L;i++){
+									while(p_current=hashTable_getNext(H[i],q)){
+										if(j > 3*L) break;
+										temp = cosine(p_current,q,d);
+										if(temp < radius){
+											int iter;
+											for(iter=0;iter<d;iter++) fprintf(outputFile,"%f ",q[iter]);
+											fputc('\n',outputFile);
+										}
+										if(temp < db || db < 0.0){
+											b = q;
+											db = temp;
+										}
+										j++;
+									}
+								}
+								clock_t end = clock();
+								double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*calculate and time true nearest*/
+								begin = clock();
+								double* true_nearest;
+								double true_dist = -1.0;
+								for(i=0;i<n;i++){
+									temp = cosine(p[i],q,d);
+									if(temp < true_dist || true_dist < 0.0){
+										true_nearest = p[i];
+										true_dist = temp;
+									}
+								}
+								end = clock();
+								double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*output search data*/
+								fputs("Nearest neighbor: ",outputFile);
+								for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
+								fputc('\n',outputFile);
+								fputs("distanceLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",db);
+								fputs("distanceTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_dist);
+								fputs("tLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",lsh_time);
+								fputs("tTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_time);
+							}
+				        }
+				    }
+				}
+			    else
+			    {
+				    if(fgetpos(dataset,&pos))
+					{
+						fprintf(stderr,"Failure on fgetpos call");
+		                return 1;
+				    }
+					do
+					{
+					    fscanf(dataset,"%*f");
+					    line=getc(dataset);
+					    d++;
+					}
+					while((line!='\n')&&(line!=EOF));
+					n++;
+					while(!feof(dataset))
+					{
+						line=getc(dataset);
+					    if((line=='\n')||(line==EOF)) n++;
+					}
+					if((p=malloc(n*sizeof(double*)))==NULL)
+					{
+		                perror("Failed to allocate memory for dataset vectors");
+	                    return 1;
+	                }
+	                for(i=0;i<=n-1;i++)
+	                {
+					    if((p[i]=malloc(d*sizeof(double)))==NULL)
+					    {
+		                    perror("Failed to allocate memory for dataset vectors");
+	                        return 1;
+	                    }
+	                }
+					for(i=0;i<=L-1;i++)
+					{
+						do
+						{
+							if((g[i]=euclidean_hash_create(d,k,n))==NULL)
+							{
+								fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                        return 1;
+				            }
+							for(j=0;j<=i-1;j++)
+							{
+								token=euclidean_is_equal(g[i],g[j]);
+							    if(token) break;
+							}
+					    }
+					    while(token);
+					    if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+					    {
+						    fprintf(stderr,"Could not create hash table.\n");
+		                    return 1;
+				        }
+					}
+					if(fsetpos(dataset,&pos))
+					{
+						perror("Failure on fsetpos call");
+		                return 1;
+				    }
+		            for(i=0;i<=d-1;i++) fscanf(dataset,"%lf",&p[0][i]);
+					for(j=0;j<=L-1;j++) hashTable_insert(H[j],p[0]);
+					while(!feof(dataset))
+					{
+						for(i=1;i<=n-1;i++)
+						{
+						    fscanf(dataset,"%*s");
+						    for(j=0;j<=d-1;j++) fscanf(dataset,"%lf",&p[i][j]);
+					        for(counter=0;counter<=L-1;counter++) hashTable_insert(H[counter],p[i]);
+					    }
+			        }
+			        queryFile = fopen(qPath,"r");
+						if(queryFile == NULL){
+							perror("Failed to open query file");
+							return -2;
+						}
+
+						outputFile = fopen(oPath,"w");
+						if(outputFile == NULL){
+							perror("Failed to open/create output file");
+							return -3;
+						}
+
+						char buffer[BUFFER_SIZE];
+
+						fgets(buffer,BUFFER_SIZE,queryFile);
+						unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+						double* q = malloc(sizeof(double)*d);
+						if(q == NULL){
+							perror("Failed to allocate memory for query vector");
+							return -4;
+						}
+
+						while(fgets(buffer,BUFFER_SIZE,queryFile)){
+							char* item_name=strtok(buffer," \t\n");
+							for(i=0;i<d;i++) q[i] = atof(strtok(NULL," \t\n"));
+							
+							fputs("Query: ",outputFile);
+							fputs(item_name,outputFile);
+							fputc('\n',outputFile);
+							fputs("R-near neighbors:\n",outputFile);
+
+							/*calculate and time lsh*/
+							clock_t begin = clock();
+							EuclideanData p_eu,q_eu;
+							double* b;
+							double db=-1.0,temp;
+							int i,j=0;
+							for(i=0;i<L;i++){
+								q_eu = euclidean_data_create(g[i],q);
+								while(p_eu=hashTable_getNext(H[i],q_eu)){
+									if(j > 3*L) break;
+									if(euclidean_data_getID(q_eu)!=euclidean_data_getID(p_eu)){
+										j++;
+										continue;
+									}
+									temp = euclidean(q,euclidean_data_getVector(p_eu),d);
+									if(temp < radius){
+										int iter;
+										for(iter=0;iter<d;iter++) fprintf(outputFile,"%f ",q[iter]);
+										fputc('\n',outputFile);
+									}
+									if(temp < db || db < 0.0){
+										b = q;
+										db = temp;
+									}
+									j++;
+								}
+							}
+							clock_t end = clock();
+							double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*calculate and time true nearest*/
+							begin = clock();
+							double* true_nearest;
+							double true_dist = -1.0;
+							for(i=0;i<n;i++){
+								temp = euclidean(p[i],q,d);
+								if(temp < true_dist || true_dist < 0.0){
+									true_nearest = p[i];
+									true_dist = temp;
+								}
+							}
+							end = clock();
+							double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+							/*output search data*/
+							fputs("Nearest neighbor: ",outputFile);
+							for(i=0;i<d;i++) fprintf(outputFile,"%f ",true_nearest[i]);
+							fputc('\n',outputFile);
+							fputs("distanceLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",db);
+							fputs("distanceTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_dist);
+							fputs("tLSH: ",outputFile);
+							fprintf(outputFile,"%f\n",lsh_time);
+							fputs("tTrue: ",outputFile);
+							fprintf(outputFile,"%f\n",true_time);
+						}
+			    }
+			}
+	        else
+	        {
+			    if(!strcmp(bits,"hamming"))
+				{
+					if(fgetpos(dataset,&pos))
+					{
+						perror("Failure on fgetpos call");
+		                return 1;
+				    }
+				    while(!feof(dataset))
+				    {
+				    	fscanf(dataset,"%*s");
+				    	fscanf(dataset,"%*s");
+				    	line=getc(dataset);
+					    if((line=='\n')||(line==EOF)) n++;
+					}
+					if((x=malloc(n*sizeof(long long int)))==NULL)
+				    {
+		                perror("Failed to allocate memory for dataset data");
+			            return 1;
+		            }
+					if(fsetpos(dataset,&pos))
+					{
+						perror("Failure on fsetpos call");
+		                return 1;
+				    }
+				    while(!feof(dataset))
+				    {
+					    fscanf(dataset,"%*s");
+						fscanf(dataset,"%64s",bits);
+						if(!d)
+						{
+						    d=strlen(bits);
+						    for(i=1;i<=k;i++)
+						    {
+						    	tk*=2;
+						    }
+						    for(i=0;i<=L-1;i++)
+					        {
+						        do
+						        {
+							        if((g[i]=hamming_hash_create(d,k))==NULL)
+							        {
+								        fprintf(stderr,"Could not create hamming hash descriptor.\n");
+		                                return 1;
+				                    }
+							        for(j=0;j<=i-1;j++)
+							        {
+								        token=hamming_is_equal(g[i],g[j]);
+							            if(token)
+							            {
+							                break;
+							            }
+							        }
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					            {
+						            fprintf(stderr,"Could not create hash table.\n");
+		                            return 1;
+				                }
+					        }
+						}
+						x[counter]=strtoll(bits,NULL,2);
+						for(i=0;i<=L-1;i++)
+					    {
+					        hashTable_insert(H[i],&x[counter]);
+					    }
+					    counter++;
+					}
+
+					queryFile = fopen(qPath,"r");
+					if(queryFile == NULL){
+						perror("Failed to open query file");
+						return -2;
+					}
+
+					outputFile = fopen(oPath,"w");
+					if(outputFile == NULL){
+						perror("Failed to open/create output file");
+						return -3;
+					}
+
+					char buffer[BUFFER_SIZE];
+
+					fgets(buffer,BUFFER_SIZE,queryFile);
+					unsigned short hamming_radius = atoi(strtok(buffer,"Radius: \t\n"));
+					long long int q;
+
+					while(fgets(buffer,BUFFER_SIZE,queryFile)){
+						char* item_name=strtok(buffer," \t\n");
+						q = strtoll(strtok(NULL," \t\n"),NULL,2);
+						
+						fputs("Query: ",outputFile);
+						fputs(item_name,outputFile);
+						fputc('\n',outputFile);
+						fputs("R-near neighbors:\n",outputFile);
+
+						/*calculate and time lsh*/
+						clock_t begin = clock();
+						long long int* p;
+						long long int b;
+						int i,j=0,db=-1,temp;
+						for(i=0;i<L;i++){
+							while(p=hashTable_getNext(H[i],&q)){
+								if(j > 3*L) break;
+								temp = hamming(*p,q);
+								if(temp < hamming_radius){
+									long long int temp2 = *p;
+									while(temp2){
+										if(temp2 & 1) fputc('1',outputFile);
+										else fputc('0',outputFile);
+										temp2 >>= 1;
+									}
+									fputc('\n',outputFile);
+								}
+								if(temp < db || db == -1){
+									b = *p;
+									db = temp;
+								}
+								j++;
+							}
+						}
+						clock_t end = clock();
+						double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+						/*calculate and time true nearest*/
+						begin = clock();
+						long long int true_nearest;
+						int true_dist = -1;
+						for(i=0;i<n;i++){
+							temp = hamming(x[i],q);
+							if(temp < true_dist || true_dist == -1){
+								true_nearest = x[i];
+								true_dist = temp;
+							}
+						}
+						end = clock();
+						double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+						/*output search data*/
+						fputs("Nearest neighbor: ",outputFile);
+						long long int temp2 = true_nearest;
+						while(temp2){
+							if(temp2 & 1) fputc('1',outputFile);
+							else fputc('0',outputFile);
+							temp2 >>= 1;
+						}
+						fputc('\n',outputFile);
+						fputs("distanceLSH: ",outputFile);
+						fprintf(outputFile,"%d\n",db);
+						fputs("distanceTrue: ",outputFile);
+						fprintf(outputFile,"%d\n",true_dist);
+						fputs("tLSH: ",outputFile);
+						fprintf(outputFile,"%f\n",lsh_time);
+						fputs("tTrue: ",outputFile);
+						fprintf(outputFile,"%f\n",true_time);
+					}
+		        }
+		        else
+		        {
+			        if(!strcmp(bits,"matrix"))
+		            {
+					    fscanf(dataset,"%64s",bits);
+						if(!strcmp(bits,"@items"))
+						{
+						    fscanf(dataset,"%*s");
+						    if(fgetpos(dataset,&pos))
+					        {
+						        perror("Failure on fgetpos call");
+		                        return 1;
+				            }
+							while(!feof(dataset))
+				            {
+							    do
+							    {
+							        fscanf(dataset,"%*u");
+							        line=getc(dataset);
+							        n++;
+							    }
+							    while((line!='\n')&&(line!=EOF));
+							}
+							if(fsetpos(dataset,&pos))
+					        {
+						        perror("Failure on fsetpos call");
+		                        return 1;
+				            }
+				            if((a=malloc(n*sizeof(unsigned int*)))==NULL)
+				            {
+							    perror("Failed to allocate memory for matrix distances");
+			                    return 1;
+		                    }
+		                    for(i=0;i<=n-1;i++)
+		                    {
+							    if((a[i]=malloc(n*sizeof(unsigned int)))==NULL)
+				                {
+							        perror("Failed to allocate memory for matrix distances");
+			                        return 1;
+		                        }
+		                    }
+		                    for(i=0;i<=n-1;i++)
+		                    	for(j=0;j<=n-1;j++)
+		                    		fscanf(dataset,"%u",&a[i][j]);
+						    tk=1;
+						    for(i=1;i<=k;i++) tk*=2;
+						    for(i=0;i<=L-1;i++)
+					        {
+						        do
+						        {
+							        if((g[i]=matrix_hash_create(k,a,n))==NULL)
+							        {
+								        fprintf(stderr,"Could not create matrix hash descriptor.\n");
+		                                return 1;
+				                    }
+							        for(j=0;j<=i-1;j++)
+							        {
+								        token=matrix_is_equal(g[i],g[j]);
+							            if(token) break;
+							        }
+					            }
+					            while(token);
+					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					            {
+						            fprintf(stderr,"Could not create hash table.\n");
+		                            return 1;
+				                }
+					        }
+					        if((b=malloc(n*sizeof(unsigned int)))==NULL)
+					        {
+							    perror("Failed to allocate memory for position variables");
+			                    return 1;
+		                    }
+		                    for(i=0;i<=n-1;i++) b[i]=i;
+					        for(i=0;i<=L-1;i++)
+					        	for(j=0;j<=n-1;j++)
+							        hashTable_insert(H[i],&b[j]);
+
+					        queryFile = fopen(qPath,"r");
+							if(queryFile == NULL){
+								perror("Failed to open query file");
+								return -2;
+							}
+
+							outputFile = fopen(oPath,"w");
+							if(outputFile == NULL){
+								perror("Failed to open/create output file");
+								return -3;
+							}
+
+							char buffer[BUFFER_SIZE];
+
+							fgets(buffer,BUFFER_SIZE,queryFile);
+							unsigned short radius = atoi(strtok(buffer,"Radius: \t\n"));
+							unsigned int* q = malloc(sizeof(double)*n);
+							if(q == NULL){
+								perror("Failed to allocate memory for query vector");
+								return -4;
+							}
+
+							while(fgets(buffer,BUFFER_SIZE,queryFile)){
+								char* item_name=strtok(buffer," \t\n");
+								for(i=0;i<d;i++) q[i] = (unsigned int)(atoi(strtok(NULL," \t\n")));
+								
+								fputs("Query: ",outputFile);
+								fputs(item_name,outputFile);
+								fputc('\n',outputFile);
+								fputs("R-near neighbors:\n",outputFile);
+
+								/*calculate and time lsh*/
+								clock_t begin = clock();
+								unsigned int* current;
+								unsigned int temp,b,db;
+								int i,j=0;
+								for(i=0;i<L;i++){
+									while(current=hashTable_getNext(H[i],q)){
+										if(j > 3*L) break;
+										temp = q[*current];
+										if(temp < radius){
+											int iter;
+											for(iter=0;iter<d;iter++) fprintf(outputFile,"%u ",a[iter][*current]);
+											fputc('\n',outputFile);
+										}
+										if(temp < db || db < 0.0){
+											b = *current;
+											db = temp;
+										}
+										j++;
+									}
+								}
+								clock_t end = clock();
+								double lsh_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*calculate and time true nearest*/
+								begin = clock();
+								unsigned int* true_nearest;
+								unsigned int true_dist = -1;
+								for(i=0;i<n;i++){
+									temp = q[i];
+									if(temp < true_dist || true_dist < 0){
+										true_nearest = a[i];
+										true_dist = temp;
+									}
+								}
+								end = clock();
+								double true_time = (double)(end - begin)/CLOCKS_PER_SEC;
+
+								/*output search data*/
+								fputs("Nearest neighbor: ",outputFile);
+								for(i=0;i<n;i++) fprintf(outputFile,"%u ",true_nearest[i]);
+								fputc('\n',outputFile);
+								fputs("distanceLSH: ",outputFile);
+								fprintf(outputFile,"%u\n",db);
+								fputs("distanceTrue: ",outputFile);
+								fprintf(outputFile,"%u\n",true_dist);
+								fputs("tLSH: ",outputFile);
+								fprintf(outputFile,"%f\n",lsh_time);
+								fputs("tTrue: ",outputFile);
+								fprintf(outputFile,"%f\n",true_time);
+							}
+					    }
+						else
+				        {
+						    error=1;
+						    fprintf(stderr,"Error: Incorrect dataset file.\n");
+		                    printf("Enter path name of dataset file and press [Enter]: ");
+							fgets(dPath,100,stdin);
+				        }
+		            }
+		            /*else
+		            {
+				        if(!strcmp(bits,"function"))
+				        {
+				        	;
+				        }
+				        else
+				        {
+				        	error=1;
+						    printf("Error: Incorrect dataset file.\n");
+		                    printf("Enter path name of dataset file and press [Enter]: ");
+							fgets(dPath,100,stdin);
+				        }
+				    }*/
+				}
+			}
+		}
+	}
+	while(error);
+	return 0;
+}
