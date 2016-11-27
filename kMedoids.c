@@ -20,7 +20,9 @@ void evalInput(char* inputFilePath)
 {
 	int size,i,token=0;
 	char symbols[100],*line;
-    FILE* inputFile;
+    FILE *inputFile;
+    List list;
+    Data data,*dataP;
     
 	if((inputFile=fopen(inputFilePath,"r"))==NULL)
 	{
@@ -38,6 +40,11 @@ void evalInput(char* inputFilePath)
 		    {
 		    	if(!strcmp(symbols,"euclidean"))
 		    	{
+		    		if((list=list_create())==NULL)
+		    		{
+		    			printf("Error: System failure.\n");
+		    			return 1;
+		    		}
 				    while(!feof(inputFile))
 			        {
 				        fscanf(inputFile,"%s",symbols);
@@ -48,25 +55,90 @@ void evalInput(char* inputFilePath)
 					        return 1;
 				        }
 				        strcpy(line,symbols);
-				        i=size;
-				        line[i]= ;
+				        i=size+1;
+				        line[i-1]= ;
 				        while(getc(inputFile)!='\n')
 				        {
 						    fscanf(inputFile,"%s",symbols);
 				            size=strlen(symbols);
-				            if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
 				            {
 				                printf("Error: System failure.\n");
 					            return 1;
 				            }
-				            strcpy(line+i+1,symbols);
+				            strcpy(line+i,symbols);
+				            i+=size+1;
+				            line[i-1]= ;
 				        }
-				        euclidean_data_create(line);
+				        line[i-1]='\0';
+				        data=euclidean_data_create(line);
+				        list_pushEnd(list,data);
 				        free(line);
 				    }
+				    size=list_length(list);
+				    if((dataP=malloc(size*sizeof(data)))==NULL)
+				    {
+				    	printf("System failure.\n");
+				    	return 1;
+				    }
+				    i=0;
+				    while(!list_isEmpty(list))
+				    {
+					    dataP[i]=list_pop(list);
+				    	i++;
+				    }
+				    list_destroy(list);
 		    	}
 		    	else if(!strcmp(symbols,"cosine"))
 		    	{
+		    		if((list=list_create())==NULL)
+		    		{
+		    			printf("Error: System failure.\n");
+		    			return 1;
+		    		}
+				    while(!feof(inputFile))
+			        {
+				        fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=malloc((size+1)*sizeof(char)))==NULL)
+				        {
+					        printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line,symbols);
+				        i=size+1;
+				        line[i-1]= ;
+				        while(getc(inputFile)!='\n')
+				        {
+						    fscanf(inputFile,"%s",symbols);
+				            size=strlen(symbols);
+				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
+				            {
+				                printf("Error: System failure.\n");
+					            return 1;
+				            }
+				            strcpy(line+i,symbols);
+				            i+=size+1;
+				            line[i-1]= ;
+				        }
+				        line[i-1]='\0';
+				        data=cosine_data_create(line);
+				        list_pushEnd(list,data);
+				        free(line);
+				    }
+				    size=list_length(list);
+				    if((dataP=malloc(size*sizeof(data)))==NULL)
+				    {
+				    	printf("System failure.\n");
+				    	return 1;
+				    }
+				    i=0;
+				    while(!list_isEmpty(list))
+				    {
+					    dataP[i]=list_pop(list);
+				    	i++;
+				    }
+				    list_destroy(List l);
 		    	}
 		    	else
 		    	{
@@ -75,6 +147,11 @@ void evalInput(char* inputFilePath)
 			}
 			else
 			{
+				if((list=list_create())==NULL)
+		    	{
+		    		printf("Error: System failure.\n");
+		    		return 1;
+		    	}
 				while(!feof(inputFile))
 			    {
 			    	if(!token)
@@ -92,35 +169,52 @@ void evalInput(char* inputFilePath)
 					    return 1;
 				    }
 				    strcpy(line,symbols);
-				    i=size;
-				    line[i]= ;
+				    i=size+1;
+				    line[i-1]= ;
 				    while(getc(inputFile)!='\n')
 				    {
 						fscanf(inputFile,"%s",symbols);
 				        size=strlen(symbols);
-				        if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				        if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
 				        {
 				            printf("Error: System failure.\n");
 					        return 1;
 				        }
-				        strcpy(line+i+1,symbols);
+				        strcpy(line+i,symbols);
+				        i+=size+1;
+				        line[i-1]= ;
 				    }
-				    euclidean_data_create(line);
+				    line[i-1]='\0';
+				    data=euclidean_data_create(line);
+				    list_pushEnd(list,data);
 				    free(line);
 				}
+				size=list_length(list);
+				if((dataP=malloc(size*sizeof(data)))==NULL)
+				{
+				    printf("System failure.\n");
+				    return 1;
+				}
+				i=0;
+				while(!list_isEmpty(list))
+				{
+					dataP[i]=list_pop(list);
+				    i++;
+				}
+				list_destroy(list);
 			}
 		}
 		else if(!strcmp(symbols,"hamming"))
 		{
+			if((list=list_create())==NULL)
+		    {
+		    	printf("Error: System failure.\n");
+		    	return 1;
+		    }
 			while(!feof(inputFile))
 			{
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
-<<<<<<< HEAD
-				symbols[size]= ' ';
-				fscanf(inputFile,"%s",symbols+size+1);
-				hamming_data_create(symbols);
-=======
 				if((line=malloc((size+1)*sizeof(char)))==NULL)
 				{
 					printf("Error: System failure.\n");
@@ -137,13 +231,63 @@ void evalInput(char* inputFilePath)
 					return 1;
 				}
 				strcpy(line+i+1,symbols);
-				hamming_data_create(line);
+				data=hamming_data_create(line);
+				list_pushEnd(list,data);
 				free(line);
->>>>>>> deaba62bdf9855d04bf460e6b04141bf20283805
 			}
+			size=list_length(list);
+			if((dataP=malloc(size*sizeof(data)))==NULL)
+			{
+				printf("System failure.\n");
+				return 1;
+			}
+			i=0;
+			while(!list_isEmpty(list))
+			{
+				dataP[i]=list_pop(list);
+				i++;
+			}
+			list_destroy(list);
 		}
 		else if(!strcmp(symbols,"matrix"))
 		{
+			fscanf(inputFile,"%s",symbols);
+			if(!strcmp(symbols,"@items"))
+			{
+			    while(!feof(inputFile))
+			    {
+				    fscanf(inputFile,"%s",symbols);
+				    size=strlen(symbols);
+				    if((line=malloc((size+1)*sizeof(char)))==NULL)
+				    {
+					    printf("Error: System failure.\n");
+					    return 1;
+				    }
+				    strcpy(line,symbols);
+				    i=size+1;
+				    line[i-1]= ;
+				    while(getc(inputFile)!='\n')
+				    {
+						fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
+				        {
+				            printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line+i,symbols);
+				        i+=size+1;
+				        line[i-1]= ;
+				    }
+				    line[i-1]='\0';
+				    data=matrix_data_create(line);
+				    free(line);
+				}
+			}
+			else
+			{
+				printf("Wrong input file.\n");
+			}
 		}
 		else
 		{
@@ -154,7 +298,6 @@ void evalInput(char* inputFilePath)
 	{
 		printf("Wrong input file.\n");
 	}
-
 	/*find metric*/
 	/*read data to temp list*/
 	/*create array and put data from list to array*/
