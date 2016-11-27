@@ -57,7 +57,7 @@ void evalInput(char* inputFilePath)
 			{
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
-				symbols[size]= ;
+				symbols[size]= ' ';
 				fscanf(inputFile,"%s",symbols+size+1);
 				hamming_data_create(symbols);
 			}

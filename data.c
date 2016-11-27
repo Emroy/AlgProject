@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include "List.h"
 
 /*------------HAMMING DATA-------------*/
 typedef struct HammingData{
@@ -16,6 +17,7 @@ static unsigned int** hamming_distance_matrix = NULL;
 typedef struct EucliudeanData{
 	uint64_t id; 		/*the number of this element*/
 	unsigned int ID; 	/*calculated by hashFunction*/
+	uint8_t id_flag;	/*0 if ID is not set, 1 otherwise*/
 	double* vector;
 }EuclideanData;
 
@@ -97,11 +99,107 @@ Data hamming_data_create(char* itemString){
 	return retVal;
 }
 
-Data euclidean_data_create(){
+Data euclidean_data_create(char* itemString){
+	Data retVal = malloc(sizeof(GenericData));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new Data");
+		return NULL;
+	}
+
+	retVal->eData = malloc(sizeof(EuclideanData));
+	if(retVal->eData == NULL){
+		perror("Failed to allocate memory for new Euclidean Data");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->hData = NULL;
+	retVal->cData = NULL;
+
+	char* itemID = strtok(itemString," \t\n");
+	char* vectorString = strtok(NULL," \t\n");
+
+	/*set item id*/
+	retVal->eData->id_flag = 0;
+	retVal->eData->id = 0;
+	unsigned short i = 0;
+	while(itemID[i]){
+		if(itemID[i] >= '0' && itemID[i] <= '9'){
+			retVal->eData->id *= 10;
+			retVal->eData->id += itemID[i]-'0';
+		}
+		i++;
+	}
+
+	if(euclidean_dim == 0){
+		List l = list_create();
+		char* str;
+		while(str = strtok(NULL," \t\n")){
+			double* element = malloc(sizeof(double));
+			if(element == NULL){
+				perror("Failed to allocate memory for Euclidean Data vector");
+				free(retVal->eData);
+				free(retVal);
+				while(!list_empty(l)) free(list_pop(l));
+				list_destroy(l);
+				return NULL;
+			}
+			*element = strtod(str,NULL);
+			list_pushEnd(l,element);
+		}
+
+		euclidean_dim = list_length(l);
+		retVal->eData->vector = malloc(euclidean_dim*sizeof(double));
+		if(retVal->eData->vector == NULL){
+			perror("Failed to allocate memory for Euclidean Data vector");
+			free(retVal->eData);
+			free(retVal);
+			while(!list_empty(l)) free(list_pop(l));
+			list_destroy(l);
+			return NULL;
+		}
+
+		i=0;
+		while(!list_empty(l)){
+			double* temp = (double*)list_pop(l);
+			retVal->eData->vector[i] = *temp;
+			free(temp);
+			i++;
+		}
+
+		list_destroy(l);
+		return retVal;
+	}
+
+	retVal->eData->vector = malloc(euclidean_dim*sizeof(double));
+	if(retVal->eData->vector == NULL){
+		perror("Failed to allocate memory for Euclidean Data vector");
+		free(retVal->eData);
+		free(retVal);
+		return NULL;
+	}
+
+	char* vec_element;
+	for(i=0;i<euclidean_dim;i++){
+		vec_element = strtok(NULL," \t\n");
+		if(vec_element == NULL){
+			fprintf(stderr,"Inconsistent dimention given on Euclidean Data vectors\n");
+			free(retVal->eData->vector);
+			free(retVal->eData);
+			free(retVal);
+			return NULL;
+		}
+		retVal->eData->vector = strtod(vec_element,NULL);
+	}
+
+	return retVal;
+}
+
+Data cosine_data_create(char* itemString){
 
 }
 
-Data cosine_data_create(){
+void* data_distance(){
 
 }
 
@@ -128,30 +226,6 @@ struct EucliudeanData{
 	double* data; /*data vector*/
 	int dim; /*dimention of data vector*/
 };
-
-EuclideanData euclidean_data_create(HashDescriptor hd,double* p){
-	if(hd->euclidean == NULL) fprintf(stderr, "invalid HashDescriptor given on euclidean_data_create\n");
-
-	EuclideanData retVal = malloc(sizeof(struct EuData));
-	if(retVal == NULL){
-		perror("Could not allocate memory for new EuclideanData");
-		return NULL;
-	}
-
-	retVal->data = p;
-
-	long int temp = 0;
-	int i,j,h;
-	for(i=0;i<hd->euclidean->k;i++){
-		h = 0;
-		for(j=0;j<hd->euclidean->d;j++) h+=p[j]*hd->euclidean->v[i][j];
-		temp += hd->euclidean->r[i]*h;
-	}
-
-	retVal->id = temp % M;
-
-	return retVal;
-}
 
 double euclidean_data_distance(EuclideanData a,EuclideanData b){
 	int i;

@@ -3,10 +3,11 @@
 typedef GenericData* Data;
 
 Data hamming_data_create(char* itemString);
+/*Returns Data */
 
-Data euclidean_data_create();
+Data euclidean_data_create(char* itemString);
 
-Data cosine_data_create();
+Data cosine_data_create(char* itemString);
 
 void data_destroy(Data d);
 
