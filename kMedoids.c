@@ -49,7 +49,7 @@ void evalInput(char* inputFilePath)
 			        {
 				        fscanf(inputFile,"%s",symbols);
 				        size=strlen(symbols);
-				        if((line=malloc((size+1)*sizeof(char)))==NULL)
+				        if((line=realloc(NULL,(size+1)*sizeof(char)))==NULL)
 				        {
 					        printf("Error: System failure.\n");
 					        return 1;
@@ -76,7 +76,7 @@ void evalInput(char* inputFilePath)
 				        free(line);
 				    }
 				    size=list_length(list);
-				    if((dataP=malloc(size*sizeof(data)))==NULL)
+				    if((dataP=realloc(NULL,size*sizeof(data)))==NULL)
 				    {
 				    	printf("System failure.\n");
 				    	return 1;
@@ -100,7 +100,7 @@ void evalInput(char* inputFilePath)
 			        {
 				        fscanf(inputFile,"%s",symbols);
 				        size=strlen(symbols);
-				        if((line=malloc((size+1)*sizeof(char)))==NULL)
+				        if((line=realloc(NULL,(size+1)*sizeof(char)))==NULL)
 				        {
 					        printf("Error: System failure.\n");
 					        return 1;
@@ -127,7 +127,7 @@ void evalInput(char* inputFilePath)
 				        free(line);
 				    }
 				    size=list_length(list);
-				    if((dataP=malloc(size*sizeof(data)))==NULL)
+				    if((dataP=realloc(NULL,size*sizeof(data)))==NULL)
 				    {
 				    	printf("System failure.\n");
 				    	return 1;
@@ -163,7 +163,7 @@ void evalInput(char* inputFilePath)
 					    fscanf(inputFile,"%s",symbols);
 					}
 				    size=strlen(symbols);
-				    if((line=malloc((size+1)*sizeof(char)))==NULL)
+				    if((line=realloc(NULL,(size+1)*sizeof(char)))==NULL)
 				    {
 					    printf("Error: System failure.\n");
 					    return 1;
@@ -190,7 +190,7 @@ void evalInput(char* inputFilePath)
 				    free(line);
 				}
 				size=list_length(list);
-				if((dataP=malloc(size*sizeof(data)))==NULL)
+				if((dataP=realloc(NULL,size*sizeof(data)))==NULL)
 				{
 				    printf("System failure.\n");
 				    return 1;
@@ -215,28 +215,28 @@ void evalInput(char* inputFilePath)
 			{
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
-				if((line=malloc((size+1)*sizeof(char)))==NULL)
+				if((line=realloc(NULL,(size+1)*sizeof(char)))==NULL)
 				{
 					printf("Error: System failure.\n");
 					return 1;
 				}
 				strcpy(line,symbols);
-				i=size;
-				line[i]= ;
+				i=size+1;
+				line[i-1]= ;
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
-				if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
 				{
 				    printf("Error: System failure.\n");
 					return 1;
 				}
-				strcpy(line+i+1,symbols);
+				strcpy(line+i,symbols);
 				data=hamming_data_create(line);
 				list_pushEnd(list,data);
 				free(line);
 			}
 			size=list_length(list);
-			if((dataP=malloc(size*sizeof(data)))==NULL)
+			if((dataP=realloc(NULL,size*sizeof(data)))==NULL)
 			{
 				printf("System failure.\n");
 				return 1;
