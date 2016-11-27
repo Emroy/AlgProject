@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 #include "List.h"
 
@@ -12,6 +13,10 @@ typedef struct HammingData{
 }HammingData;
 
 static unsigned int** hamming_distance_matrix = NULL;
+static unsigned int hamming_distance_matrix_size = 0;
+
+unsigned int hamming_data_distance(HammingData a,HammingData b);
+/*Calculate the distance between HammingData a and b*/
 
 /*------------EUCLIDEAN DATA-----------*/
 typedef struct EucliudeanData{
@@ -23,6 +28,10 @@ typedef struct EucliudeanData{
 
 static unsigned short euclidean_dim = 0;
 static double** euclidean_distance_matrix = NULL;
+static unsigned int euclidean_distance_matrix_size = 0;
+
+double euclidean_data_distance(EuclideanData a,EuclideanData b);
+/*Calculate the distance between EuclideanData a and b*/
 
 /*-----------COSINE DATA---------------*/
 typedef struct CosineData{
@@ -32,15 +41,25 @@ typedef struct CosineData{
 
 static unsigned short cosine_dim = 0;
 static double** cosine_distance_matrix = NULL;
+static unsigned int cosine_distance_matrix_size = 0;
+
+double cosine_data_distance(CosineData a,CosineData b);
+/*Calculate the distance between CosineData a and b*/
 
 /*--------------MATRIX DATA------------*/
+typedef struct MatrixData{
+	uint64_t id;
+}MatrixData;
+
 static unsigned int** matrix_distance_matrix = NULL;
+static unsigned int matrix_distance_matrix_size = 0;
 
 /*--------------GENERIC DATA-----------*/
 typedef struct GenData{
 	HammingData* hData;
 	EuclideanData eData;
 	CosineData cData;
+	MatrixData mData;
 }GenericData;
 
 Data hamming_data_create(char* itemString){
@@ -59,6 +78,7 @@ Data hamming_data_create(char* itemString){
 
 	retVal->eData = NULL;
 	retVal->cData = NULL;
+	retVal->mData = NULL;
 
 	char* itemID = strtok(itemString," \n\t");
 	char* bitString = strtok(NULL," \n\t");
@@ -115,6 +135,7 @@ Data euclidean_data_create(char* itemString){
 
 	retVal->hData = NULL;
 	retVal->cData = NULL;
+	retVal->mData = NULL;
 
 	char* itemID = strtok(itemString," \t\n");
 	char* vectorString = strtok(NULL," \t\n");
@@ -211,6 +232,7 @@ Data cosine_data_create(char* itemString){
 
 	retVal->hData = NULL;
 	retVal->eData = NULL;
+	retVal->mData = NULL;
 
 	char* itemID = strtok(itemString," \t\n");
 	char* vectorString = strtok(NULL," \t\n");
@@ -290,8 +312,226 @@ Data cosine_data_create(char* itemString){
 	return retVal;
 }
 
-void* data_distance(){
+Data matrix_data_create(char* itemID){
+	Data retVal = malloc(sizeof(GenericData));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new Data");
+		return NULL;
+	}
 
+	retVal->mData = malloc(sizeof(MatrixData));
+	if(retVal->mData == NULL){
+		perror("Failed to allocate memory for new Matrix Data");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->hData = NULL;
+	retVal->eData = NULL;
+	retVal->cData = NULL;
+
+	retVal->mData->id = 0;
+	unsigned short i = 0;
+	while(itemID[i]){
+		if(itemID[i] >= '0' && itemID[i] <= '9'){
+			retVal->cData->id *= 10;
+			retVal->cData->id += itemID[i]-'0';
+		}
+		i++;
+	}
+
+	return retVal;
+}
+
+void data_destroy(Data d){
+	if(d->hData) free(d->hData);
+	else if(d->eData){
+		free(d->eData->vector);
+		free(d->eData);
+	}
+	else if(d->cData){
+		free(d->cData->vector);
+		free(d->cData);
+	}
+	else if(d->mData) free(d->mData);
+
+	free(d);
+}
+
+void* data_distance(Data a,Data b){
+	static usnigned int uRetVal;
+	static double dRetVal;
+
+	if(a->hData){
+		if(b->hData == NULL){
+			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		if(hamming_distance_matrix)
+			uRetVal = hamming_distance_matrix[a->hData->id][b->hData->id];
+		else
+			uRetVal = hamming_data_distance(a->hData,b->hData);
+
+		return &uRetVal;
+	}
+	else if(a->eData){
+		if(b->eData == NULL){
+			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		if(euclidean_distance_matrix)
+			dRetVal = euclidean_distance_matrix[a->eData->id][b->eData->id];
+		else
+			dRetVal = euclidean_data_distance(a->eData,b->eData);
+
+		return &dRetVal;
+
+	}
+	else if(a->cData){
+		if(b->cData == NULL){
+			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		if(cosine_distance_matrix)
+			dRetVal = cosine_distance_matrix[a->cData->id][b->cData->id];
+		else
+			dRetVal = cosine_data_distance(a->cData,b->cData);
+
+		return &dRetVal;
+
+	}
+	else if(a->mData){
+		if(b->mData == NULL){
+			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		if(matrix_distance_matrix == NULL){
+			fprintf(stderr,"Can't calculate distance on matrix Data without a distance matrix\n");
+			return NULL;
+		}
+
+		uRetVal = matrix_distance_matrix[a->mData->id][b->mData->id];
+		return &uRetVal;
+	}
+	else{
+		fprintf(stderr,"Invalid Data given on data_distance\n");
+		return NULL;
+	}
+}
+
+void data_create_distance_matrix(Data* data,unsigned int n){
+	unsigned int i,j;
+
+	if(data[0]->hData){
+		hamming_distance_matrix = malloc(n*sizeof(unsigned int*));
+		if(hamming_distance_matrix == NULL){
+			perror("Failed to allocate memory for new distance matrix");
+			return;
+		}
+
+		for(i=0;i<n;i++){
+			hamming_distance_matrix[i] = malloc(n*sizeof(unsigned int));
+			if(hamming_distance_matrix[i] == NULL){
+				perror("Failed to allocate memory for new distance matrix");
+				return;
+			}
+		}
+
+		for(i=0;i<n;i++)
+			for(j=0;j<n;j++){
+				if(i==j){
+					hamming_distance_matrix[i][j] = 0;
+					continue;
+				}
+				hamming_distance_matrix[i][j] = hamming_data_distance(data[i]->hData,data[j]->hData);
+			}
+
+		hamming_distance_matrix_size = n;
+	}
+	else if(data[0]->eData){
+		euclidean_distance_matrix = malloc(n*sizeof(double*));
+		if(euclidean_distance_matrix == NULL){
+			perror("Failed to allocate memory for new distance matrix");
+			return;
+		}
+
+		for(i=0;i<n;i++){
+			euclidean_distance_matrix[i] = malloc(n*sizeof(double));
+			if(euclidean_distance_matrix[i] == NULL){
+				perror("Failed to allocate memory for new distance matrix");
+				return;
+			}
+		}
+
+		for(i=0;i<n;i++)
+			for(j=0;j<n;j++){
+				if(i==j){
+					euclidean_distance_matrix[i][j] = 0.0;
+					continue;
+				}
+				euclidean_distance_matrix[i][j] = euclidean_data_distance(data[i]->eData,data[j]->eData);
+			}
+
+		euclidean_distance_matrix_size = n;
+	}
+	else if(data[0]->cData){
+		cosine_distance_matrix = malloc(n*sizeof(double*));
+		if(cosine_distance_matrix == NULL){
+			perror("Failed to allocate memory for new distance matrix");
+			return;
+		}
+
+		for(i=0;i<n;i++){
+			cosine_distance_matrix[i] = malloc(n*sizeof(double));
+			if(cosine_distance_matrix[i] == NULL){
+				perror("Failed to allocate memory for new distance matrix");
+				return;
+			}
+		}
+
+		for(i=0;i<n;i++)
+			for(j=0;j<n;j++){
+				if(i == j){
+					cosine_distance_matrix[i][j] = 0.0;
+					continue;
+				}
+				cosine_distance_matrix[i][j] = cosine_data_distance(data[i]->cData,data[j]->cData);
+			}
+
+		cosine_distance_matrix_size = n;
+	}
+	else{
+		fprintf(stderr,"Invalid data type given on data_create_distance_matrix\n");
+		return;
+	}
+}
+
+void data_destroy_distance_matrix(){
+	unsigned int i;
+	if(hamming_distance_matrix){
+		for(i=0;i<hamming_distance_matrix_size;i++) free(hamming_distance_matrix[i]);
+		free(hamming_distance_matrix);
+		hamming_distance_matrix = NULL;
+	}
+	else if(euclidean_distance_matrix){
+		for(i=0;i<euclidean_distance_matrix_size;i++) free(euclidean_distance_matrix[i]);
+		free(euclidean_distance_matrix);
+		euclidean_distance_matrix = NULL;
+	}
+	else if(cosine_distance_matrix){
+		for(i=0;i<cosine_distance_matrix_size;i++) free(cosine_distance_matrix[i]);
+		free(cosine_distance_matrix);
+		cosine_distance_matrix = NULL;
+	}
+	/*else if(matrix_distance_matrix){
+
+	}*/
+	else
+		fprintf(stderr,"No distance matrices were created\n");
 }
 
 unsigned int hamming_data_distance(HammingData a,HammingData b){
@@ -307,88 +547,38 @@ unsigned int hamming_data_distance(HammingData a,HammingData b){
    	return distance;
 }
 
-void hamming_data_destroy(HammingData data){
-	free(data);
-}
-
-/*------------EUCLIDEAN DATA-----------*/
-struct EucliudeanData{
-	int id;
-	double* data; /*data vector*/
-	int dim; /*dimention of data vector*/
-};
-
 double euclidean_data_distance(EuclideanData a,EuclideanData b){
 	int i;
 	double sum=0.0;
-	int d = a->dim;
-	double* x = a->data;
-	double* y = b->data;
+	double* x = a->vector;
+	double* y = b->vector;
 
-	for(i=0;i<=d-1;i++)
+	for(i=0;i<=euclidean_dim-1;i++)
 	{
 		sum+=(x[i]-y[i])*(x[i]-y[i]);
 	}
 	return sum;
 }
 
-void euclidean_data_destroy(EuclideanData data){
-	free(data);
-}
-
-/*------------COSINE DATA--------------*/
-struct CosineData{
-	double *data;
-	int dim;
-};
-
-CosineData cosine_data_create(double* p){
-	CosineData retVal = malloc(sizeof(struct CosineData));
-	if(retVal == NULL){
-		perror("Failed to allocate memory for new Cosine Data");
-		return NULL;
-	}
-
-	retVal = p;
-
-	return retVal;
-}
-
-double cosine(CosineData a,CosineData b){
+double cosine_data_distance(CosineData a,CosineData b){
 	int i;
 	double xy=0.0,xx=0.0,yy=0.0;
-	int d = a->dim;
-	double* x = a->data;
-	double* y = b->data;
+	double* x = a->vector;
+	double* y = b->vector;
 	
-	for(i=0;i<=d-1;i++)
+	for(i=0;i<=cosine_dim-1;i++)
 	{
 		xy+=x[i]*y[i];
 	}
-	for(i=0;i<=d-1;i++)
+	for(i=0;i<=cosine_dim-1;i++)
 	{
 		xx+=x[i]*x[i];
 	}
 	xx=sqrt(xx);
-	for(i=0;i<=d-1;i++)
+	for(i=0;i<=cosine_dim-1;i++)
 	{
 	    yy+=y[i]*y[i];
 	}
 	yy=sqrt(yy);
-	return (xy/(xx*yy));
-}
-
-void cosine_data_destroy(CosineData data){
-	free(data);
-}
-
-/*------------MATRIX DATA--------------*/
-static unsigned int** distance_matrix;
-
-struct MatrixData{
-
-};
-
-void matrix_data_init_matrix(unsigned int** distance_matr){
-	distance_matrix = distance_matr;
+	return 1-(xy/(xx*yy));
 }

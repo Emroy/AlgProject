@@ -9,6 +9,8 @@ Data euclidean_data_create(char* itemString);
 
 Data cosine_data_create(char* itemString);
 
+Data matrix_data_create(char* itemID);
+
 void data_destroy(Data d);
 
 void* data_distance(Data a,Data b);
