@@ -18,8 +18,8 @@ typedef struct ConfParams{
 
 void evalInput(char* inputFilePath)
 {
-	int size;
-	char symbols[100];
+	int size,i,token=0;
+	char symbols[100],*line;
     FILE* inputFile;
     
 	if((inputFile=fopen(inputFilePath,"r"))==NULL)
@@ -38,6 +38,32 @@ void evalInput(char* inputFilePath)
 		    {
 		    	if(!strcmp(symbols,"euclidean"))
 		    	{
+				    while(!feof(inputFile))
+			        {
+				        fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=malloc((size+1)*sizeof(char)))==NULL)
+				        {
+					        printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line,symbols);
+				        i=size;
+				        line[i]= ;
+				        while(getc(inputFile)!='\n')
+				        {
+						    fscanf(inputFile,"%s",symbols);
+				            size=strlen(symbols);
+				            if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				            {
+				                printf("Error: System failure.\n");
+					            return 1;
+				            }
+				            strcpy(line+i+1,symbols);
+				        }
+				        euclidean_data_create(line);
+				        free(line);
+				    }
 		    	}
 		    	else if(!strcmp(symbols,"cosine"))
 		    	{
@@ -49,6 +75,39 @@ void evalInput(char* inputFilePath)
 			}
 			else
 			{
+				while(!feof(inputFile))
+			    {
+			    	if(!token)
+			    	{
+			    		token=1;
+			    	}
+			    	else
+			    	{
+					    fscanf(inputFile,"%s",symbols);
+					}
+				    size=strlen(symbols);
+				    if((line=malloc((size+1)*sizeof(char)))==NULL)
+				    {
+					    printf("Error: System failure.\n");
+					    return 1;
+				    }
+				    strcpy(line,symbols);
+				    i=size;
+				    line[i]= ;
+				    while(getc(inputFile)!='\n')
+				    {
+						fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				        {
+				            printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line+i+1,symbols);
+				    }
+				    euclidean_data_create(line);
+				    free(line);
+				}
 			}
 		}
 		else if(!strcmp(symbols,"hamming"))
@@ -57,9 +116,30 @@ void evalInput(char* inputFilePath)
 			{
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
+<<<<<<< HEAD
 				symbols[size]= ' ';
 				fscanf(inputFile,"%s",symbols+size+1);
 				hamming_data_create(symbols);
+=======
+				if((line=malloc((size+1)*sizeof(char)))==NULL)
+				{
+					printf("Error: System failure.\n");
+					return 1;
+				}
+				strcpy(line,symbols);
+				i=size;
+				line[i]= ;
+				fscanf(inputFile,"%s",symbols);
+				size=strlen(symbols);
+				if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				{
+				    printf("Error: System failure.\n");
+					return 1;
+				}
+				strcpy(line+i+1,symbols);
+				hamming_data_create(line);
+				free(line);
+>>>>>>> deaba62bdf9855d04bf460e6b04141bf20283805
 			}
 		}
 		else if(!strcmp(symbols,"matrix"))
