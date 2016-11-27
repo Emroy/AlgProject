@@ -280,7 +280,7 @@ void evalInput(char* inputFilePath)
 				        line[i-1]= ;
 				    }
 				    line[i-1]='\0';
-				    matrix_data_create(line);
+				    data=matrix_data_create(line);
 				    free(line);
 				}
 			}
