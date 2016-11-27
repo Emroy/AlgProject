@@ -48,25 +48,57 @@ void evalInput(char* inputFilePath)
 					        return 1;
 				        }
 				        strcpy(line,symbols);
-				        i=size;
-				        line[i]= ;
+				        i=size+1;
+				        line[i-1]= ;
 				        while(getc(inputFile)!='\n')
 				        {
 						    fscanf(inputFile,"%s",symbols);
 				            size=strlen(symbols);
-				            if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
 				            {
 				                printf("Error: System failure.\n");
 					            return 1;
 				            }
-				            strcpy(line+i+1,symbols);
+				            strcpy(line+i,symbols);
+				            i+=size+1;
+				            line[i-1]= ;
 				        }
+				        line[i-1]='\0';
 				        euclidean_data_create(line);
 				        free(line);
 				    }
 		    	}
 		    	else if(!strcmp(symbols,"cosine"))
 		    	{
+				    while(!feof(inputFile))
+			        {
+				        fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=malloc((size+1)*sizeof(char)))==NULL)
+				        {
+					        printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line,symbols);
+				        i=size+1;
+				        line[i-1]= ;
+				        while(getc(inputFile)!='\n')
+				        {
+						    fscanf(inputFile,"%s",symbols);
+				            size=strlen(symbols);
+				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
+				            {
+				                printf("Error: System failure.\n");
+					            return 1;
+				            }
+				            strcpy(line+i,symbols);
+				            i+=size+1;
+				            line[i-1]= ;
+				        }
+				        line[i-1]='\0';
+				        cosine_data_create(line);
+				        free(line);
+				    }
 		    	}
 		    	else
 		    	{
@@ -92,19 +124,22 @@ void evalInput(char* inputFilePath)
 					    return 1;
 				    }
 				    strcpy(line,symbols);
-				    i=size;
-				    line[i]= ;
+				    i=size+1;
+				    line[i-1]= ;
 				    while(getc(inputFile)!='\n')
 				    {
 						fscanf(inputFile,"%s",symbols);
 				        size=strlen(symbols);
-				        if((line=realloc(line,(i+size+2)*sizeof(char)))==NULL)
+				        if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
 				        {
 				            printf("Error: System failure.\n");
 					        return 1;
 				        }
-				        strcpy(line+i+1,symbols);
+				        strcpy(line+i,symbols);
+				        i+=size+1;
+				        line[i-1]= ;
 				    }
+				    line[i-1]='\0';
 				    euclidean_data_create(line);
 				    free(line);
 				}
@@ -116,11 +151,6 @@ void evalInput(char* inputFilePath)
 			{
 				fscanf(inputFile,"%s",symbols);
 				size=strlen(symbols);
-<<<<<<< HEAD
-				symbols[size]= ' ';
-				fscanf(inputFile,"%s",symbols+size+1);
-				hamming_data_create(symbols);
-=======
 				if((line=malloc((size+1)*sizeof(char)))==NULL)
 				{
 					printf("Error: System failure.\n");
@@ -139,11 +169,47 @@ void evalInput(char* inputFilePath)
 				strcpy(line+i+1,symbols);
 				hamming_data_create(line);
 				free(line);
->>>>>>> deaba62bdf9855d04bf460e6b04141bf20283805
 			}
 		}
 		else if(!strcmp(symbols,"matrix"))
 		{
+			fscanf(inputFile,"%s",symbols);
+			if(!strcmp(symbols,"@items")
+			{
+			    while(!feof(inputFile))
+			    {
+				    fscanf(inputFile,"%s",symbols);
+				    size=strlen(symbols);
+				    if((line=malloc((size+1)*sizeof(char)))==NULL)
+				    {
+					    printf("Error: System failure.\n");
+					    return 1;
+				    }
+				    strcpy(line,symbols);
+				    i=size+1;
+				    line[i-1]= ;
+				    while(getc(inputFile)!='\n')
+				    {
+						fscanf(inputFile,"%s",symbols);
+				        size=strlen(symbols);
+				        if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
+				        {
+				            printf("Error: System failure.\n");
+					        return 1;
+				        }
+				        strcpy(line+i,symbols);
+				        i+=size+1;
+				        line[i-1]= ;
+				    }
+				    line[i-1]='\0';
+				    matrix_data_create(line);
+				    free(line);
+				}
+			}
+			else
+			{
+				printf("Wrong input file.\n");
+			}
 		}
 		else
 		{
@@ -154,7 +220,6 @@ void evalInput(char* inputFilePath)
 	{
 		printf("Wrong input file.\n");
 	}
-
 	/*find metric*/
 	/*read data to temp list*/
 	/*create array and put data from list to array*/
