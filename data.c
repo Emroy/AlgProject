@@ -196,7 +196,98 @@ Data euclidean_data_create(char* itemString){
 }
 
 Data cosine_data_create(char* itemString){
+	Data retVal = malloc(sizeof(GenericData));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for new Data");
+		return NULL;
+	}
 
+	retVal->cData = malloc(sizeof(CosineData));
+	if(retVal->cData == NULL){
+		perror("Failed to allocate memory for new Euclidean Data");
+		free(retVal);
+		return NULL;
+	}
+
+	retVal->hData = NULL;
+	retVal->eData = NULL;
+
+	char* itemID = strtok(itemString," \t\n");
+	char* vectorString = strtok(NULL," \t\n");
+
+	/*set item id*/
+	retVal->cData->id = 0;
+	unsigned short i = 0;
+	while(itemID[i]){
+		if(itemID[i] >= '0' && itemID[i] <= '9'){
+			retVal->cData->id *= 10;
+			retVal->cData->id += itemID[i]-'0';
+		}
+		i++;
+	}
+
+	if(cosine_dim == 0){
+		List l = list_create();
+		char* str;
+		while(str = strtok(NULL," \t\n")){
+			double* element = malloc(sizeof(double));
+			if(element == NULL){
+				perror("Failed to allocate memory for Euclidean Data vector");
+				free(retVal->cData);
+				free(retVal);
+				while(!list_empty(l)) free(list_pop(l));
+				list_destroy(l);
+				return NULL;
+			}
+			*element = strtod(str,NULL);
+			list_pushEnd(l,element);
+		}
+
+		cosine_dim = list_length(l);
+		retVal->cData->vector = malloc(euclidean_dim*sizeof(double));
+		if(retVal->cData->vector == NULL){
+			perror("Failed to allocate memory for Euclidean Data vector");
+			free(retVal->cData);
+			free(retVal);
+			while(!list_empty(l)) free(list_pop(l));
+			list_destroy(l);
+			return NULL;
+		}
+
+		i=0;
+		while(!list_empty(l)){
+			double* temp = (double*)list_pop(l);
+			retVal->cData->vector[i] = *temp;
+			free(temp);
+			i++;
+		}
+
+		list_destroy(l);
+		return retVal;
+	}
+
+	retVal->cData->vector = malloc(euclidean_dim*sizeof(double));
+	if(retVal->cData->vector == NULL){
+		perror("Failed to allocate memory for Euclidean Data vector");
+		free(retVal->cData);
+		free(retVal);
+		return NULL;
+	}
+
+	char* vec_element;
+	for(i=0;i<cosine_dim;i++){
+		vec_element = strtok(NULL," \t\n");
+		if(vec_element == NULL){
+			fprintf(stderr,"Inconsistent dimention given on Euclidean Data vectors\n");
+			free(retVal->cData->vector);
+			free(retVal->cData);
+			free(retVal);
+			return NULL;
+		}
+		retVal->cData->vector = strtod(vec_element,NULL);
+	}
+
+	return retVal;
 }
 
 void* data_distance(){
