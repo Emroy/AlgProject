@@ -9,21 +9,20 @@
 #include <time.h>
 #include "HashGen.h"
 #include "HashTable.h"
-#include "distances.h"
+#include "data.h"
 #define BUFFER_SIZE 512
 #define PATH_BUFFER_SIZE 100
 
 int main(int argc,char* argv[]) 
 {
-    int i=1,k=4,L=5,error,token=0,d=0,n=0,j,tk=1,counter=0;
-	char *dPath=NULL,*qPath=NULL,*oPath=NULL,bits[65],line;
-	FILE *dataset,*queryFile,*outputFile;
-	double **p;
+    int i=1,k=4,L=5,error,token=0,d=0,n,j,tk=1;
+	char *dPath=NULL,*qPath=NULL,*oPath=NULL,symbols[65],*line;
+	FILE *inputFile,*queryFile,*outputFile;
+	List list;
+    Data data,*dataP;
 	HashDescriptor *g;
 	HashTable *H;
-	long long int *x;
-	fpos_t pos;
-	unsigned int **a,*b;
+	unsigned int **x;
 	
 	/*Read command line parameters*/
 	while(i<=argc-1)
@@ -125,63 +124,81 @@ int main(int argc,char* argv[])
 
 	do
 	{
-	    if((dataset=fopen(dPath,"r"))==NULL)
+	    if((inputFile=fopen(dPath,"r"))==NULL)
 	    {
-		    perror("Failed to open dataset file");
-		    error = 1;
-		    continue;
+		    perror("Failed to open input file");
+		    error=1;
+			exit(1);
 	    }
-	    fscanf(dataset,"%64s",bits);
-		error=strcmp(bits,"@metric_space");
+	    fscanf(inputFile,"%64s",symbols);
+		error=strcmp(symbols,"@metric_space");
 		if(error)
 	    {
-		    printf("Error: Incorrect dataset file.\n");
-		    printf("Enter path name of dataset file and press [Enter]: ");
+		    printf("Error: Incorrect input file.\n");
+		    printf("Enter path name of input file and press [Enter]: ");
 			fgets(dPath,PATH_BUFFER_SIZE,stdin);
 		}
 		else
 		{
-		    fscanf(dataset,"%64s",bits);
-	        if(!strcmp(bits,"vector"))
+		    fscanf(inputFile,"%64s",symbols);
+	        if(!strcmp(symbols,"vector"))
 	        {
-			    fscanf(dataset,"%64s",bits);
-	        	if(!strcmp(bits,"@metric"))
+			    fscanf(inputFile,"%64s",symbols);
+	        	if(!strcmp(symbols,"@metric"))
 	        	{
-				    fscanf(dataset,"%64s",bits);
-					if(fgetpos(dataset,&pos))
+				    fscanf(inputFile,"%64s",symbols);
+					if(!strcmp(symbols,"euclidean"))
 					{
-						perror("Failure in fgetpos");
-		                return 1;
-				    }
-					fscanf(dataset,"%*s");
-					do
-					{
-					    fscanf(dataset,"%*f");
-					    line=getc(dataset);
-					    d++;
-					}
-					while((line!='\n')&&(line!=EOF));
-					n++;
-					while(!feof(dataset))
-					{
-						line=getc(dataset);
-					    if((line=='\n')||(line==EOF)) n++;
-					}
-					if((p=malloc(n*sizeof(double*)))==NULL)
-					{
-		                perror("Failed to allocate memory for dataset metric vectors");
-	                    return 1;
-	                }
-	                for(i=0;i<=n-1;i++)
-	                {
-					    if((p[i]=malloc(d*sizeof(double)))==NULL)
-					    {
-		                    perror("Failed to allocate memory for dataset metric vectors");
-	                        return 1;
-	                    }
-	                }
-					if(!strcmp(bits,"euclidean"))
-					{
+					    if((list=list_create())==NULL)
+		    		    {
+		    			    printf("Error: System failure.\n");
+		    			    exit(1);
+		    		    }
+				        while(!feof(inputFile))
+			            {
+						    line=NULL;
+				            i=0;
+				            do
+				            {
+						        fscanf(inputFile,"%64s",symbols);
+				                n=strlen(symbols);
+				                if((line=realloc(line,(i+n+1)*sizeof(char)))==NULL)
+				                {
+				                    printf("Error: System failure.\n");
+					                exit(1);
+				                }
+				                if(!token)
+				                {
+				                	d++;
+				                }
+				                strcpy(line+i,symbols);
+				                i+=n+1;
+				                line[i-1]= ;
+				            }
+				            while(getc(inputFile)!='\n');
+				            line[i-1]='\0';
+				            data=euclidean_data_create(line);
+				            list_pushEnd(list,data);
+				            free(line);
+				            if(!token)
+				            {
+				            	d--;
+				            	token=1;
+				            }
+				        }
+				        n=list_length(list);
+				        if((dataP=realloc(NULL,n*sizeof(Data)))==NULL)
+				        {
+				    	    printf("Error: System failure.\n");
+						    exit(1);
+				        }
+				        i=0;
+				        while(!list_isEmpty(list))
+				        {
+					        dataP[i]=list_pop(list);
+				    	    i++;
+				        }
+				        list_destroy(list);
 						for(i=0;i<=L-1;i++)
 						{
 							do
@@ -204,18 +221,11 @@ int main(int argc,char* argv[])
 		                        return 1;
 				            }
 					    }
-					    if(fsetpos(dataset,&pos))
+					    for(i=0;i<=L-1;i++)
 					    {
-						    perror("Failure on fsetpos call");
-		                    return 1;
-				        }
-					    while(!feof(dataset))
-					    {
-					    	for(i=0;i<=n-1;i++)
-					    	{
-							    fscanf(dataset,"%*s");
-						        for(j=0;j<=d-1;j++) fscanf(dataset,"%lf",&p[i][j]);
-					            for(counter=0;counter<=L-1;counter++) hashTable_insert(H[counter],euclidean_data_create(g[counter],p[i]));
+						    for(j=0;j<=n-1;j++)
+						    {
+							    hashTable_insert(H[i],dataP[j]);
 					        }
 					    }
 
@@ -310,8 +320,58 @@ int main(int argc,char* argv[])
 				    }
 				    else
 				    {
-				    	if(!strcmp(bits,"cosine"))
+				    	if(!strcmp(symbols,"cosine"))
 					    {
+					    	if((list=list_create())==NULL)
+		    		        {
+		    			        printf("Error: System failure.\n");
+		    			        exit(1);
+		    		        }
+				            while(!feof(inputFile))
+			                {
+						        line=NULL;
+				                i=0;
+				                do
+				                {
+						            fscanf(inputFile,"%64s",symbols);
+				                    n=strlen(symbols);
+				                    if((line=realloc(line,(i+n+1)*sizeof(char)))==NULL)
+				                    {
+				                        printf("Error: System failure.\n");
+					                    exit(1);
+				                    }
+				                    if(!token)
+				                    {
+				                	    d++;
+				                    }
+				                    strcpy(line+i,symbols);
+				                    i+=n+1;
+				                    line[i-1]= ;
+				                }
+				                while(getc(inputFile)!='\n');
+				                line[i-1]='\0';
+				                data=cosine_data_create(line);
+				                list_pushEnd(list,data);
+				                free(line);
+				                if(!token)
+				                {
+				             	    d--;
+				            	    token=1;
+				                }
+				            }
+				            n=list_length(list);
+				            if((dataP=realloc(NULL,n*sizeof(Data)))==NULL)
+				            {
+				    	        printf("Error: System failure.\n");
+						        exit(1);
+				            }
+				            i=0;
+				            while(!list_isEmpty(list))
+				            {
+					            dataP[i]=list_pop(list);
+				    	        i++;
+				            }
+				            list_destroy(list);
 						    for(i=1;i<=k;i++)
 						    {
 						    	tk*=2;
@@ -341,26 +401,14 @@ int main(int argc,char* argv[])
 		                            return 1;
 				                }
 					        }
-					        if(fsetpos(dataset,&pos))
+					        for(i=0;i<=L-1;i++)
 					        {
-					        	perror("Failure on fsetpos call");
-		                        return 1;
-				            }
-					        while(!feof(dataset))
-					        {
-					        	for(i=0;i<=n-1;i++)
-					        	{
-						            fscanf(dataset,"%*s");
-						            for(j=0;j<=d-1;j++)
-					                {
-					                    fscanf(dataset,"%lf",&p[i][j]);
-					                }
-					                for(counter=0;counter<=L-1;counter++)
-					                {
-					                    hashTable_insert(H[counter],p[i]);
-					                }
+						        for(j=0;j<=n-1;j++)
+					            {
+					                hashTable_insert(H[i],dataP[j]);
 					            }
 					        }
+					        
 					        queryFile = fopen(qPath,"r");
 							if(queryFile == NULL){
 								perror("Failed to open query file");
@@ -445,41 +493,74 @@ int main(int argc,char* argv[])
 								fprintf(outputFile,"%f\n",true_time);
 							}
 				        }
+				        else
+				        {
+				        	error=1;
+				        	printf("Error: Incorrect input file.\n");
+		                    printf("Enter path name of input file and press [Enter]: ");
+			                fgets(dPath,PATH_BUFFER_SIZE,stdin);
+			            }
 				    }
 				}
 			    else
 			    {
-				    if(fgetpos(dataset,&pos))
-					{
-						fprintf(stderr,"Failure on fgetpos call");
-		                return 1;
+			    	if((list=list_create())==NULL)
+		    		{
+		    			printf("Error: System failure.\n");
+		    			exit(1);
+		    		}
+				    while(!feof(inputFile))
+			        {
+						line=NULL;
+				        i=0;
+				        do
+				        {
+				        	if(!token)
+				        	{
+				        		token=1;
+				        	}
+				        	else
+				        	{
+						        fscanf(inputFile,"%64s",symbols);
+						    }
+				            n=strlen(symbols);
+				            if((line=realloc(line,(i+n+1)*sizeof(char)))==NULL)
+				            {
+				                printf("Error: System failure.\n");
+					            exit(1);
+				            }
+				            if(token==1)
+				            {
+				                d++;
+				            }
+				            strcpy(line+i,symbols);
+				            i+=n+1;
+				            line[i-1]= ;
+				        }
+				        while(getc(inputFile)!='\n');
+				        line[i-1]='\0';
+				        data=euclidean_data_create(line);
+				        list_pushEnd(list,data);
+				        free(line);
+				        if(token==1)
+				        {
+				            d--;
+				            token=2;
+				        }
 				    }
-					do
-					{
-					    fscanf(dataset,"%*f");
-					    line=getc(dataset);
-					    d++;
-					}
-					while((line!='\n')&&(line!=EOF));
-					n++;
-					while(!feof(dataset))
-					{
-						line=getc(dataset);
-					    if((line=='\n')||(line==EOF)) n++;
-					}
-					if((p=malloc(n*sizeof(double*)))==NULL)
-					{
-		                perror("Failed to allocate memory for dataset vectors");
-	                    return 1;
-	                }
-	                for(i=0;i<=n-1;i++)
-	                {
-					    if((p[i]=malloc(d*sizeof(double)))==NULL)
-					    {
-		                    perror("Failed to allocate memory for dataset vectors");
-	                        return 1;
-	                    }
-	                }
+				    n=list_length(list);
+				    if((dataP=realloc(NULL,n*sizeof(Data)))==NULL)
+				    {
+				    	printf("Error: System failure.\n");
+						exit(1);
+				    }
+				    i=0;
+				    while(!list_isEmpty(list))
+				    {
+					    dataP[i]=list_pop(list);
+				    	i++;
+				    }
+				    list_destroy(list);
 					for(i=0;i<=L-1;i++)
 					{
 						do
@@ -502,22 +583,14 @@ int main(int argc,char* argv[])
 		                    return 1;
 				        }
 					}
-					if(fsetpos(dataset,&pos))
+					for(i=1;i<=L-1;i++)
 					{
-						perror("Failure on fsetpos call");
-		                return 1;
-				    }
-		            for(i=0;i<=d-1;i++) fscanf(dataset,"%lf",&p[0][i]);
-					for(j=0;j<=L-1;j++) hashTable_insert(H[j],p[0]);
-					while(!feof(dataset))
-					{
-						for(i=1;i<=n-1;i++)
+						for(j=0;j<=n-1;j++)
 						{
-						    fscanf(dataset,"%*s");
-						    for(j=0;j<=d-1;j++) fscanf(dataset,"%lf",&p[i][j]);
-					        for(counter=0;counter<=L-1;counter++) hashTable_insert(H[counter],p[i]);
+						    hashTable_insert(H[i],dataP[j]);
 					    }
 			        }
+			        
 			        queryFile = fopen(qPath,"r");
 						if(queryFile == NULL){
 							perror("Failed to open query file");
@@ -610,73 +683,89 @@ int main(int argc,char* argv[])
 			}
 	        else
 	        {
-			    if(!strcmp(bits,"hamming"))
+			    if(!strcmp(symbols,"hamming"))
 				{
-					if(fgetpos(dataset,&pos))
-					{
-						perror("Failure on fgetpos call");
-		                return 1;
-				    }
-				    while(!feof(dataset))
-				    {
-				    	fscanf(dataset,"%*s");
-				    	fscanf(dataset,"%*s");
-				    	line=getc(dataset);
-					    if((line=='\n')||(line==EOF)) n++;
-					}
-					if((x=malloc(n*sizeof(long long int)))==NULL)
-				    {
-		                perror("Failed to allocate memory for dataset data");
-			            return 1;
+					if((list=list_create())==NULL)
+		            {
+		    	        printf("Error: System failure.\n");
+		    	        exit(1);
 		            }
-					if(fsetpos(dataset,&pos))
+			        while(!feof(inputFile))
+			        {
+				        line=NULL;
+				        i=0;
+				        do
+				        {
+				            fscanf(inputFile,"%64s",symbols);
+				            n=strlen(symbols);
+				            if((!token)&&i)
+				            {
+				            	d=n;
+				            	token=1;
+				            }
+				            if((line=realloc(line,(i+n+1)*sizeof(char)))==NULL)
+				            {
+				                printf("Error: System failure.\n");
+					            exit(1);
+				            }
+				            strcpy(line+i,symbols);
+				            i+=n+1;
+				            line[i-1]= ;
+				        }
+				        while(getc(inputFile)!='\n');
+				        line[i-1]='\0';
+				        data=hamming_data_create(line);
+				        list_pushEnd(list,data);
+				        free(line);
+			        }
+			        n=list_length(list);
+			        if((dataP=realloc(NULL,n*sizeof(Data)))==NULL)
+			        {
+				        printf("Error: System failure.\n");
+				        exit(1);
+			        }
+			        i=0;
+			        while(!list_isEmpty(list))
+			        {
+				        dataP[i]=list_pop(list);
+				        i++;
+			        }
+			        list_destroy(list);
+					for(i=1;i<=k;i++)
 					{
-						perror("Failure on fsetpos call");
-		                return 1;
-				    }
-				    while(!feof(dataset))
-				    {
-					    fscanf(dataset,"%*s");
-						fscanf(dataset,"%64s",bits);
-						if(!d)
+						tk*=2;
+					}
+					for(i=0;i<=L-1;i++)
+					{
+						do
 						{
-						    d=strlen(bits);
-						    for(i=1;i<=k;i++)
-						    {
-						    	tk*=2;
-						    }
-						    for(i=0;i<=L-1;i++)
-					        {
-						        do
-						        {
-							        if((g[i]=hamming_hash_create(d,k))==NULL)
-							        {
-								        fprintf(stderr,"Could not create hamming hash descriptor.\n");
-		                                return 1;
-				                    }
-							        for(j=0;j<=i-1;j++)
-							        {
-								        token=hamming_is_equal(g[i],g[j]);
-							            if(token)
-							            {
-							                break;
-							            }
-							        }
-					            }
-					            while(token);
-					            if((H[i]=hashTable_create(tk,g[i]))==NULL)
-					            {
-						            fprintf(stderr,"Could not create hash table.\n");
-		                            return 1;
-				                }
-					        }
-						}
-						x[counter]=strtoll(bits,NULL,2);
-						for(i=0;i<=L-1;i++)
-					    {
-					        hashTable_insert(H[i],&x[counter]);
+							if((g[i]=hamming_hash_create(d,k))==NULL)
+							{
+								fprintf(stderr,"Could not create hamming hash descriptor.\n");
+		                        return 1;
+				            }
+							for(j=0;j<=i-1;j++)
+							{
+								token=hamming_is_equal(g[i],g[j]);
+							    if(token)
+							    {
+							        break;
+							    }
+							}
 					    }
-					    counter++;
+					    while(token);
+					    if((H[i]=hashTable_create(tk,g[i]))==NULL)
+					    {
+						    fprintf(stderr,"Could not create hash table.\n");
+		                    return 1;
+				        }
+					}
+					for(i=0;i<=L-1;i++)
+					{
+						for(j=0;j<=n-1;j++)
+						{
+						    hashTable_insert(H[i],dataP[j]);
+					    }
 					}
 
 					queryFile = fopen(qPath,"r");
@@ -769,10 +858,10 @@ int main(int argc,char* argv[])
 		        }
 		        else
 		        {
-			        if(!strcmp(bits,"matrix"))
+			        if(!strcmp(symbols,"matrix"))
 		            {
-					    fscanf(dataset,"%64s",bits);
-						if(!strcmp(bits,"@items"))
+					    fscanf(dataset,"%64s",symbols);
+						if(!strcmp(symbols,"@items"))
 						{
 						    fscanf(dataset,"%*s");
 						    if(fgetpos(dataset,&pos))
@@ -933,23 +1022,17 @@ int main(int argc,char* argv[])
 						    error=1;
 						    fprintf(stderr,"Error: Incorrect dataset file.\n");
 		                    printf("Enter path name of dataset file and press [Enter]: ");
-							fgets(dPath,100,stdin);
+							fgets(dPath,PATH_BUFFER_SIZE,stdin);
 				        }
 		            }
-		            /*else
+		            else
 		            {
-				        if(!strcmp(bits,"function"))
-				        {
-				        	;
-				        }
-				        else
-				        {
-				        	error=1;
-						    printf("Error: Incorrect dataset file.\n");
-		                    printf("Enter path name of dataset file and press [Enter]: ");
-							fgets(dPath,100,stdin);
-				        }
-				    }*/
+						error=1;
+						fprintf(stderr,"Error: Incorrect dataset file.\n");
+		                printf("Enter path name of dataset file and press [Enter]: ");
+						fgets(dPath,PATH_BUFFER_SIZE,stdin);
+				    }
+		            
 				}
 			}
 		}
