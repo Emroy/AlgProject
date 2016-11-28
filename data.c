@@ -80,8 +80,8 @@ Data hamming_data_create(char* itemString){
 	retVal->cData = NULL;
 	retVal->mData = NULL;
 
-	char* itemID = strtok(itemString," \n\t");
-	char* bitString = strtok(NULL," \n\t");
+	char* itemID = strtok(itemString," \t");
+	char* bitString = strtok(NULL," \t");
 
 	retVal->hData->id = 0;
 	unsigned short int i = 0;
@@ -137,8 +137,8 @@ Data euclidean_data_create(char* itemString){
 	retVal->cData = NULL;
 	retVal->mData = NULL;
 
-	char* itemID = strtok(itemString," \t\n");
-	char* vectorString = strtok(NULL," \t\n");
+	char* itemID = strtok(itemString," \t");
+	char* vectorString = strtok(NULL," \t");
 
 	/*set item id*/
 	retVal->eData->id_flag = 0;
@@ -155,7 +155,7 @@ Data euclidean_data_create(char* itemString){
 	if(euclidean_dim == 0){
 		List l = list_create();
 		char* str;
-		while(str = strtok(NULL," \t\n")){
+		while(str = strtok(NULL," \t")){
 			double* element = malloc(sizeof(double));
 			if(element == NULL){
 				perror("Failed to allocate memory for Euclidean Data vector");
@@ -202,7 +202,7 @@ Data euclidean_data_create(char* itemString){
 
 	char* vec_element;
 	for(i=0;i<euclidean_dim;i++){
-		vec_element = strtok(NULL," \t\n");
+		vec_element = strtok(NULL," \t");
 		if(vec_element == NULL){
 			fprintf(stderr,"Inconsistent dimention given on Euclidean Data vectors\n");
 			free(retVal->eData->vector);
@@ -234,8 +234,8 @@ Data cosine_data_create(char* itemString){
 	retVal->eData = NULL;
 	retVal->mData = NULL;
 
-	char* itemID = strtok(itemString," \t\n");
-	char* vectorString = strtok(NULL," \t\n");
+	char* itemID = strtok(itemString," \t");
+	char* vectorString = strtok(NULL," \t");
 
 	/*set item id*/
 	retVal->cData->id = 0;
@@ -251,7 +251,7 @@ Data cosine_data_create(char* itemString){
 	if(cosine_dim == 0){
 		List l = list_create();
 		char* str;
-		while(str = strtok(NULL," \t\n")){
+		while(str = strtok(NULL," \t")){
 			double* element = malloc(sizeof(double));
 			if(element == NULL){
 				perror("Failed to allocate memory for Euclidean Data vector");
@@ -298,7 +298,7 @@ Data cosine_data_create(char* itemString){
 
 	char* vec_element;
 	for(i=0;i<cosine_dim;i++){
-		vec_element = strtok(NULL," \t\n");
+		vec_element = strtok(NULL," \t");
 		if(vec_element == NULL){
 			fprintf(stderr,"Inconsistent dimention given on Euclidean Data vectors\n");
 			free(retVal->cData->vector);
