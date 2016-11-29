@@ -14,6 +14,7 @@ typedef struct HammingData{
 
 static unsigned int** hamming_distance_matrix = NULL;
 static unsigned int hamming_distance_matrix_size = 0;
+static unsigned int hamming_dimention = 0;
 
 unsigned int hamming_data_distance(HammingData* a,HammingData* b);
 /*Calculate the distance between HammingData a and b*/
@@ -123,6 +124,8 @@ Data hamming_data_create(char* itemString){
 
 		i++;
 	}
+
+	if(hamming_dimention == 0) hamming_dimention = bitCount;
 
 	return retVal;
 }
@@ -589,4 +592,48 @@ double cosine_data_distance(CosineData* a,CosineData* b){
 	}
 	yy=sqrt(yy);
 	return 1-(xy/(xx*yy));
+}
+
+int is_hamming_data(Data d){
+	return d->hData != NULL;
+}
+
+int is_euclidean_data(Data d){
+	return d->eData != NULL;
+}
+
+int is_cosine_data(Data d){
+	return d->cData != NULL;
+}
+
+int is_matrix_data(Data d){
+	return d->mData != NULL;
+}
+
+uint64_t hamming_data_get_bits(Data d){
+	return d->hData->bits;
+}
+
+int euclidean_data_is_set(Data d){
+	return d->eData->id_flag != 0;
+}
+
+unsigned int euclidean_data_get_sigID(Data d){
+	return d->eData->ID;
+}
+
+void euclidean_data_set_sigID(Data d,unsigned int sigID){
+	d->eData->ID = sigID;
+}
+
+double* euclidean_data_getVector(Data d){
+	return d->eData->vector;
+}
+
+double* cosine_data_getVector(Data d){
+	return d->cData->vector;
+}
+
+unsigned int matrix_data_get_id(Data d){
+	return d->mData->id;
 }

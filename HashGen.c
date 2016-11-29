@@ -49,14 +49,6 @@ struct HashDesc{
 	MatrixDescriptor* matrix;
 };
 
-int euclidean_data_getID(EuclideanData ed){
-	return ed->id;
-}
-
-double* euclidean_data_getVector(EuclideanData ed){
-	return ed->data;
-}
-
 /*-------------------GENERAL--------------------*/
 
 unsigned int hash_apply(HashDescriptor hd,Data x){
@@ -69,11 +61,12 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 			fprintf(stderr,"Incompatible hash function and data metrics\n");
 			exit(-10);
 		}
-		long long int* data = x;
-		long long int temp=1;
+
+		uint64_t data = hamming_data_get_bits(x);
+		uint64_t temp=1;
 		for(i=0;i<hd->hamming->size;i++){
 			temp = temp << hd->hamming->g[i];
-			if((temp & *data) != 0) retVal++;
+			if((temp & data) != 0) retVal++;
 			retVal << 1;
 			temp = 1;
 		}
@@ -82,12 +75,39 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 	}
 	/*Euclidean case*/
 	else if(hd->euclidean != NULL){
-		EuclideanData data = x;
-		return data->id % hd->euclidean->n/HASH_SIZE_DIV;
+		if(!is_euclidean_data(x)){
+			fprintf(stderr,"Incompatible hash function and data metrics\n");
+			exit(-10);
+		}
+
+		unsigned int sigId = 0;
+		if(euclidean_data_is_set(x)){
+			sigId = euclidean_data_get_sigID(x);
+		}
+		else{
+			double* p = euclidean_data_getVector(x);
+			unsigned int j;
+			for(i=0;i<hd->euclidean->k;i++){
+				unsigned int h = hd->euclidean->t[i];
+				for(j=0;j<hd->euclidean->d;j++)
+					h += p[j]*hd->euclidean->v[i][j];
+				h /= W;
+				sigId += hd->euclidean->r[i]*h;
+			}
+			sigId = sigId % M;
+			euclidean_data_set_sigID(x,sigId);
+		}
+
+		return sigId % hd->euclidean->n/HASH_SIZE_DIV;
 	}
 	/*Cosine case*/
 	else if(hd->cosine != NULL){
-		double* data = x;
+		if(!is_cosine_data(x)){
+			fprintf(stderr,"Incompatible hash function and data metrics\n");
+			exit(-10);
+		}
+
+		double* data = cosine_data_getVector(x);
 		int h,j;
 		for(i=0;i<hd->cosine->k;i++){
 			h=0;
@@ -97,9 +117,14 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 		}
 		return retVal >> 1;
 	}
-	else if(hd->matrix != NULL){
 	/*Matrix case*/
-		unsigned int data = *(unsigned int*)x;
+	else if(hd->matrix != NULL){
+		if(!is_matrix_data(x)){
+			fprintf(stderr,"Incompatible hash function and data metrics\n");
+			exit(-10);
+		}
+
+		unsigned int data = matrix_data_get_id(x);
 		int i;
 		for(i=0;i<hd->matrix->k;i++){
 			unsigned long int temp = hd->matrix->distanceMatrix[data][hd->matrix->x1[i]];

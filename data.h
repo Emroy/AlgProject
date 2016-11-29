@@ -8,6 +8,18 @@ Data hamming_data_create(char* itemString);
   Returns Data cointaining a hamming element on success.
   Returns NULL on failure*/
 
+int is_hamming_data(Data d);
+/*returns 0 if d doesn't represent hamming data and
+  a value != 0 otherwise.*/
+
+unsigned int hamming_data_get_dimention();
+/*Returns dimention if it has been set, 0 otherwise*/
+
+uint64_t hamming_data_get_bits(Data d);
+/*Get a 64-bit unsigned integer with the binary representation
+  of the hamming element. Undefined Behavior if d is not a
+  hamming element. Check with is_hamming_data beforehand.*/
+
 Data euclidean_data_create(char* itemString);
 /*itemString must cointain an id and the coordinates
   of the euclidean element in that order and seperated
@@ -17,6 +29,31 @@ Data euclidean_data_create(char* itemString);
 
 unsigned int euclidean_data_get_dimention();
 /*Returns dimention if it has been set, 0 otherwise*/
+
+int is_euclidean_data(Data d);
+/*returns 0 if d doesn't represent euclidean data and
+  a value != 0 otherwise.*/
+
+int euclidean_data_is_set(Data d);
+/*returns 0 if id for this euclidean data hasn't been set
+  and a value != 0 otherwise. Undefined behavior if the
+  data pointed to by d is not an euclidean element.*/
+
+double* euclidean_data_getVector(Data d);
+/*Get the vector representation of the euclidean element d
+  on the plane. If d is not a euclidean element the
+  behavior is undefined.*/
+
+unsigned int euclidean_data_get_sigID(Data d);
+/*Get the signature ID of euclidean element represented
+  by d. If d is not a euclidean element or the signature
+  of said element is not set by a call to
+  euclidean_data_set_sigID, the behaviour is undefined.*/
+
+void euclidean_data_set_sigID(Data d,unsigned int sigID);
+/*Set the signature id of euclidean element d to value
+  sigID. This function should be called by hash_apply only.
+  If d is not an euclidean element the behavior is undefined.*/
 
 Data cosine_data_create(char* itemString);
 /*itemString must cointain an id and the coordinates
@@ -28,6 +65,15 @@ Data cosine_data_create(char* itemString);
 unsigned int cosine_data_get_dimention();
 /*Returns dimention if it has been set, 0 otherwise*/
 
+int is_cosine_data(Data d);
+/*returns 0 if d doesn't represent cosine data and
+  a value != 0 otherwise.*/
+
+double* cosine_data_getVector(Data d);
+/*Get the vector representation of the cosine element d
+  on the plane. If d is not a cosine element the
+  behavior is undefined.*/
+
 Data matrix_data_create(char* itemID);
 /*itemID must contain a number representing the id of
   the matrix element. This id must be the same as the
@@ -35,6 +81,15 @@ Data matrix_data_create(char* itemID);
   Non-numeric characters on itemID are ignored.
   Returns Data containing a matrix element on success.
   Returns NULL on failure.*/
+
+int is_matrix_data(Data d);
+/*returns 0 if d doesn't represent matrix data and
+  a value != 0 otherwise.*/
+
+unsigned int matrix_data_get_id(Data d);
+/*Returns the identifier of matrix element d that
+  represents it's position on the ditance matrix.
+  If d is not a matrix element the behavior is undefined.*/
 
 void data_destroy(Data d);
 /*Destroys a Data element created by one of the following:
