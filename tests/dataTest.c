@@ -203,7 +203,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 }
 
-Data* evalQuery(const char* queryFilePath,unsigned int* rad,unsigned int* q_num,char metric)
+Data* evalQuery(const char* queryFilePath,double *r,char metric)
 {
 	FILE *queryFile;
 	char *line,symbols[65];
@@ -301,8 +301,163 @@ Data* evalQuery(const char* queryFilePath,unsigned int* rad,unsigned int* q_num,
 	}
 }
 
-void evalOutput(const char* outputFilePath,Data* dataset,unsigned int dataSize,Data* queries,unsigned int querySize,unsigned int radius){
-
+void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,Data* data,int q,Data* queries,double r)
+{
+	FILE *outputFile;
+    int d,i,j,token=0,tk=1;
+	HashDescriptor *g;
+	HashTable *H;
+	Data current,next;
+	double *min=NULL;
+	
+	if((outputFile=fopen(outputFilePath,"w"))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	switch(metric)
+	{
+		case 'e':
+		    d=euclidean_data_get_dimention();
+	        for(i=0;i<=L-1;i++)
+	        {
+		        do
+		        {
+			        if((g[i]=euclidean_hash_create(d,k,n))==NULL)
+			        {
+				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                exit(1);
+			        }
+			        for(j=0;j<=i-1;j++)
+			        {
+				        if(token=euclidean_is_equal(g[i],g[j]))
+				        {
+				            break;
+				        }
+			        }
+		        }
+				while(token);
+		        if((H[i]=hashTable_create(n/2,g[i]))==NULL)
+        	    {
+			        fprintf(stderr,"Could not create hash table.\n");
+		            return 1;
+		        }
+	        }
+	        break;
+	    case 'c':
+	    	d=cosine_data_get_dimention();
+	    	for(i=1;i<=k;i++)
+	    	{
+	    		tk*=2;
+	    	}
+	        for(i=0;i<=L-1;i++)
+	        {
+		        do
+		        {
+			        if((g[i]=cosine_hash_create(d,k))==NULL)
+			        {
+				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                exit(1);
+			        }
+			        for(j=0;j<=i-1;j++)
+			        {
+				        if(token=cosine_is_equal(g[i],g[j]))
+				        {
+				            break;
+				        }
+			        }
+		        }
+				while(token);
+		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+        	    {
+			        fprintf(stderr,"Could not create hash table.\n");
+		            return 1;
+		        }
+	        }
+	        break;
+	    case 'h':
+	    	d=hamming_data_get_dimention();
+	    	for(i=1;i<=k;i++)
+	    	{
+	    		tk*=2;
+	    	}
+	        for(i=0;i<=L-1;i++)
+	        {
+		        do
+		        {
+			        if((g[i]=hamming_hash_create(d,k))==NULL)
+			        {
+				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                exit(1);
+			        }
+			        for(j=0;j<=i-1;j++)
+			        {
+				        if(token=hamming_is_equal(g[i],g[j]))
+				        {
+				            break;
+				        }
+			        }
+		        }
+				while(token);
+		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+        	    {
+			        fprintf(stderr,"Could not create hash table.\n");
+		            return 1;
+		        }
+	        }
+	        break;
+	    case 'm':
+	    	for(i=1;i<=k;i++)
+	    	{
+	    		tk*=2;
+	    	}
+	    	for(i=0;i<=L-1;i++)
+	        {
+		        do
+		        {
+			        if((g[i]=matrix_hash_create(k,matrix,n))==NULL)
+			        {
+				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+		                exit(1);
+			        }
+			        for(j=0;j<=i-1;j++)
+			        {
+				        if(token=matrix_is_equal(g[i],g[j]))
+				        {
+				            break;
+				        }
+			        }
+		        }
+				while(token);
+		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+        	    {
+			        fprintf(stderr,"Could not create hash table.\n");
+		            return 1;
+		        }
+	        }
+	        break;
+	    default:
+	    	printf("Error: Incorrect metric space.\n");
+	    	return;
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    for(j=0;j<=L-1;j++)
+		{
+			hashTable_insert(H[j],data[i]);
+		}
+	}
+	for(i=0;i<=q-1;i++)
+	{
+		fprintf(outputFile,"\nQuery: item%d\n",i+1);
+		fprintf(outputFile,"R-near neighbors:\n");
+		for(j=0;j<=L-1;j++)
+		{
+		    hashTable_insert(H[j],queries[i]);
+		    current=queries[i];
+		    while((next=hashTable_getNext(H[j],current))!=NULL)
+		    {
+		    	if(data_distance(current,next)<r)
 }
 
 int main(int argc,char* argv[]){
