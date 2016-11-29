@@ -36,7 +36,7 @@ char* readLine(FILE* file){
 	return buffer;
 }
 
-Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
+Data* evalInput(const char* inputFilePath,unsigned int* n){
 	FILE* inputFile = fopen(inputFilePath,"r");
 	if(inputFile == NULL){
 		perror("Failed to open input file");
@@ -59,6 +59,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
 	}
 
 	token = strtok(NULL," \t\n");
+	char metric = 0;
 	if(!strcmp(token,"hamming")) metric = 'h';
 	else if(!strcmp(token,"euclidean") || !strcmp(token,"vector")){
 		line = readLine(inputFile);
@@ -539,19 +540,36 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 	}
 }
 
-int main(int argc,char* argv[]){
+int main(int argc,char* argv[])
+{
 	if(argc != 2){
 		printf("Wrong number of arguements\n");
-		return 0;
+		return 1;
 	}
 	Data* temp;
 	unsigned int n;
-	if((temp = evalInput(argv[1],&n))!=NULL) printf("Success!\n");
-	else printf("Failure\n");
-
-	unsigned int i;
-	for(i=0;i<n;i++) data_destroy(temp[i]);
-	free(temp);
-
+	double r;
+	char metric;
+	
+	printf("Enter the value of r and press [Enter]:");
+	scanf("%lf",&r);
+	while(getc(stdin)!='\n')
+	{
+		;
+	}
+	printf("Enter the first letter of the metric space and press [Enter]:");
+	scanf("%c",&metric);
+	while(getc(stdin)!='\n')
+	{
+		;
+	}
+    if((temp=evalQuery(argv[2],&r,metric))!=NULL)
+    {
+    	printf("Success.\n");
+    }
+    else
+    {
+	    printf("Failure.\n");
+	}
 	return 0;
 }
