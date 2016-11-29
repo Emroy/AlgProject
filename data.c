@@ -18,6 +18,10 @@ static unsigned int hamming_dimention = 0;
 unsigned int hamming_data_distance(HammingData* a,HammingData* b);
 /*Calculate the distance between HammingData a and b*/
 
+unsigned int hamming_data_get_dimention(){
+	return hamming_dimention;
+}
+
 /*------------EUCLIDEAN DATA-----------*/
 typedef struct EucliudeanData{
 	uint64_t id; 		/*the number of this element*/
@@ -643,4 +647,11 @@ void data_set_distance_matrix(unsigned int** distanceMatrix){
 
 unsigned int data_getIdDistance(uint64_t a,uint64_t b){
 	return matrix_distance_matrix[a][b];
+}
+
+uint64_t data_getID(Data d){
+	if(d->hData) return d->hData->id;
+	if(d->eData) return d->eData->id;
+	if(d->cData) return d->cData->id;
+	if(d->mData) return d->mData->id;
 }
