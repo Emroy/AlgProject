@@ -524,7 +524,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		    	}
 		    	else
 		    	{
-		    		if(*distance<*dtrue)
+		    		if(*distance<*dTrue)
 		    		{
 		    			*dTrue=*distance;
 		    			idTrue=id;
