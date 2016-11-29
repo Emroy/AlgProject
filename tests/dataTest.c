@@ -358,7 +358,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        {
 			        if((g[i]=cosine_hash_create(d,k))==NULL)
 			        {
-				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+				        fprintf(stderr,"Could not create cosine hash descriptor.\n");
 		                exit(1);
 			        }
 			        for(j=0;j<=i-1;j++)
@@ -389,7 +389,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        {
 			        if((g[i]=hamming_hash_create(d,k))==NULL)
 			        {
-				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+				        fprintf(stderr,"Could not create hamming hash descriptor.\n");
 		                exit(1);
 			        }
 			        for(j=0;j<=i-1;j++)
@@ -419,7 +419,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        {
 			        if((g[i]=matrix_hash_create(k,n))==NULL)
 			        {
-				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
+				        fprintf(stderr,"Could not create matrix hash descriptor.\n");
 		                exit(1);
 			        }
 			        for(j=0;j<=i-1;j++)
@@ -535,8 +535,8 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		endTrue=time(NULL);
 		fprintf(outputFile,"Nearest neighbor(True): item%d\n",idTrue);
 		fprintf(outputFile,"distanceTrue: %f\n",*dTrue);
-		fprintf(outputFile,"tLSH: %f\n",difftime(endLSH,startLSH);
-		fprintf(outputFile,"tTrue: %f\n",difftime(endTrue,startTrue);
+		fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
+		fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
 	}
 }
 
