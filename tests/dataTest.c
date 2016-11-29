@@ -4,8 +4,8 @@
 //#include <time.h>
 //#include "HashGen.h"
 //#include "HashTable.h"
-#include "data.h"
-#include "List.h"
+#include "../data.h"
+#include "../List.h"
 #define BUFFER_BLOCK 4096  /*Block size*/
 #define PATH_BUFFER_SIZE 100
 
@@ -36,7 +36,7 @@ char* readLine(FILE* file){
 	return buffer;
 }
 
-Data* evalInput(char* inputFilePath,unsigned int* n){
+Data* evalInput(const char* inputFilePath,unsigned int* n){
 	FILE* inputFile = fopen(inputFilePath,"r");
 	if(inputFile == NULL){
 		perror("Failed to open input file");
@@ -121,11 +121,14 @@ Data* evalInput(char* inputFilePath,unsigned int* n){
 				line = NULL;
 				return NULL;
 			}
+
+			if(newData == NULL) return NULL;
+
 			list_pushEnd(l,newData);
 		}
 
-		/*unsigned int*/ n = list_length(l);
-		Data* dataArray = malloc(n*sizeof(Data));
+		*n = list_length(l);
+		Data* dataArray = malloc((*n)*sizeof(Data));
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
@@ -135,7 +138,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n){
 		}
 
 		unsigned int i;
-		for(i=0;i<n;i++){
+		for(i=0;i<(*n);i++){
 			dataArray[i] = list_pop(l);
 			if(dataArray[i] == NULL) break;
 		}
@@ -169,8 +172,8 @@ Data* evalInput(char* inputFilePath,unsigned int* n){
 			list_pushEnd(l,newData);
 		}
 
-		/*unsigned int*/ n = list_length(l);
-		Data* dataArray = malloc(n*sizeof(Data));
+		*n = list_length(l);
+		Data* dataArray = malloc((*n)*sizeof(Data));
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
@@ -180,7 +183,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n){
 		}
 
 		unsigned int i;
-		for(i=0;i<n;i++){
+		for(i=0;i<(*n);i++){
 			dataArray[i] = list_pop(l);
 			if(dataArray[i] == NULL) break;
 		}
@@ -200,13 +203,22 @@ Data* evalInput(char* inputFilePath,unsigned int* n){
 	}
 }
 
+void evalQuery(const char* queryFilePath){
+
+}
+
+void evalOutput(const char* outputFilePath){
+
+}
+
 int main(int argc,char* argv[]){
 	if(argc != 2){
 		printf("Wrong number of arguements\n");
 		return 0;
 	}
 	Data* temp;
-	if((temp = evalInput(argv[1]))!=NULL) printf("Success!\n");
+	unsigned int n;
+	if((temp = evalInput(argv[1],&n))!=NULL) printf("Success!\n");
 	else printf("Failure\n");
 
 	unsigned int i;
