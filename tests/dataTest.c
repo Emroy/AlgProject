@@ -551,13 +551,13 @@ int main(int argc,char* argv[])
 	double r;
 	char metric;
 	
-	printf("Enter the value of r and press [Enter]:");
+	printf("Enter the value of r and press [Enter]: ");
 	scanf("%lf",&r);
 	while(getc(stdin)!='\n')
 	{
 		;
 	}
-	printf("Enter the first letter of the metric space and press [Enter]:");
+	printf("Enter the first letter of the metric space and press [Enter]: ");
 	scanf("%c",&metric);
 	while(getc(stdin)!='\n')
 	{
