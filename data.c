@@ -15,7 +15,7 @@ typedef struct HammingData{
 static unsigned int** hamming_distance_matrix = NULL;
 static unsigned int hamming_distance_matrix_size = 0;
 
-unsigned int hamming_data_distance(HammingData a,HammingData b);
+unsigned int hamming_data_distance(HammingData* a,HammingData* b);
 /*Calculate the distance between HammingData a and b*/
 
 /*------------EUCLIDEAN DATA-----------*/
@@ -30,8 +30,12 @@ static unsigned short euclidean_dim = 0;
 static double** euclidean_distance_matrix = NULL;
 static unsigned int euclidean_distance_matrix_size = 0;
 
-double euclidean_data_distance(EuclideanData a,EuclideanData b);
+double euclidean_data_distance(EuclideanData* a,EuclideanData* b);
 /*Calculate the distance between EuclideanData a and b*/
+
+unsigned int euclidean_data_get_dimention(){
+	return euclidean_dim;
+}
 
 /*-----------COSINE DATA---------------*/
 typedef struct CosineData{
@@ -43,8 +47,12 @@ static unsigned short cosine_dim = 0;
 static double** cosine_distance_matrix = NULL;
 static unsigned int cosine_distance_matrix_size = 0;
 
-double cosine_data_distance(CosineData a,CosineData b);
+double cosine_data_distance(CosineData* a,CosineData* b);
 /*Calculate the distance between CosineData a and b*/
+
+unsigned int cosine_data_get_dimention(){
+	return cosine_dim;
+}
 
 /*--------------MATRIX DATA------------*/
 typedef struct MatrixData{
@@ -57,9 +65,9 @@ static unsigned int matrix_distance_matrix_size = 0;
 /*--------------GENERIC DATA-----------*/
 typedef struct GenData{
 	HammingData* hData;
-	EuclideanData eData;
-	CosineData cData;
-	MatrixData mData;
+	EuclideanData* eData;
+	CosineData* cData;
+	MatrixData* mData;
 }GenericData;
 
 Data hamming_data_create(char* itemString){
@@ -106,7 +114,7 @@ Data hamming_data_create(char* itemString){
 			retVal->hData->bits = retVal->hData->bits << 1;
 			bitCount++;
 		}
-		if(bitCount >= 64){
+		if(bitCount > 64){
 			fprintf(stderr,"hamming_data_create: Can't have hamming data longer than 64 bits\n");
 			free(retVal->hData);
 			free(retVal);
@@ -161,7 +169,7 @@ Data euclidean_data_create(char* itemString){
 				perror("Failed to allocate memory for Euclidean Data vector");
 				free(retVal->eData);
 				free(retVal);
-				while(!list_empty(l)) free(list_pop(l));
+				while(!list_isEmpty(l)) free(list_pop(l));
 				list_destroy(l);
 				return NULL;
 			}
@@ -175,13 +183,13 @@ Data euclidean_data_create(char* itemString){
 			perror("Failed to allocate memory for Euclidean Data vector");
 			free(retVal->eData);
 			free(retVal);
-			while(!list_empty(l)) free(list_pop(l));
+			while(!list_isEmpty(l)) free(list_pop(l));
 			list_destroy(l);
 			return NULL;
 		}
 
 		i=0;
-		while(!list_empty(l)){
+		while(!list_isEmpty(l)){
 			double* temp = (double*)list_pop(l);
 			retVal->eData->vector[i] = *temp;
 			free(temp);
@@ -210,7 +218,7 @@ Data euclidean_data_create(char* itemString){
 			free(retVal);
 			return NULL;
 		}
-		retVal->eData->vector = strtod(vec_element,NULL);
+		retVal->eData->vector[i] = strtod(vec_element,NULL);
 	}
 
 	return retVal;
@@ -257,7 +265,7 @@ Data cosine_data_create(char* itemString){
 				perror("Failed to allocate memory for Euclidean Data vector");
 				free(retVal->cData);
 				free(retVal);
-				while(!list_empty(l)) free(list_pop(l));
+				while(!list_isEmpty(l)) free(list_pop(l));
 				list_destroy(l);
 				return NULL;
 			}
@@ -266,18 +274,18 @@ Data cosine_data_create(char* itemString){
 		}
 
 		cosine_dim = list_length(l);
-		retVal->cData->vector = malloc(euclidean_dim*sizeof(double));
+		retVal->cData->vector = malloc(cosine_dim*sizeof(double));
 		if(retVal->cData->vector == NULL){
 			perror("Failed to allocate memory for Euclidean Data vector");
 			free(retVal->cData);
 			free(retVal);
-			while(!list_empty(l)) free(list_pop(l));
+			while(!list_isEmpty(l)) free(list_pop(l));
 			list_destroy(l);
 			return NULL;
 		}
 
 		i=0;
-		while(!list_empty(l)){
+		while(!list_isEmpty(l)){
 			double* temp = (double*)list_pop(l);
 			retVal->cData->vector[i] = *temp;
 			free(temp);
@@ -288,7 +296,7 @@ Data cosine_data_create(char* itemString){
 		return retVal;
 	}
 
-	retVal->cData->vector = malloc(euclidean_dim*sizeof(double));
+	retVal->cData->vector = malloc(cosine_dim*sizeof(double));
 	if(retVal->cData->vector == NULL){
 		perror("Failed to allocate memory for Euclidean Data vector");
 		free(retVal->cData);
@@ -306,7 +314,7 @@ Data cosine_data_create(char* itemString){
 			free(retVal);
 			return NULL;
 		}
-		retVal->cData->vector = strtod(vec_element,NULL);
+		retVal->cData->vector[i] = strtod(vec_element,NULL);
 	}
 
 	return retVal;
@@ -334,8 +342,8 @@ Data matrix_data_create(char* itemID){
 	unsigned short i = 0;
 	while(itemID[i]){
 		if(itemID[i] >= '0' && itemID[i] <= '9'){
-			retVal->cData->id *= 10;
-			retVal->cData->id += itemID[i]-'0';
+			retVal->mData->id *= 10;
+			retVal->mData->id += itemID[i]-'0';
 		}
 		i++;
 	}
@@ -359,7 +367,7 @@ void data_destroy(Data d){
 }
 
 void* data_distance(Data a,Data b){
-	static usnigned int uRetVal;
+	static unsigned int uRetVal;
 	static double dRetVal;
 
 	if(a->hData){
@@ -534,7 +542,7 @@ void data_destroy_distance_matrix(){
 		fprintf(stderr,"No distance matrices were created\n");
 }
 
-unsigned int hamming_data_distance(HammingData a,HammingData b){
+unsigned int hamming_data_distance(HammingData* a,HammingData* b){
 	unsigned int distance = 0;
 	uint64_t x = a->bits;
 	uint64_t y = b->bits;
@@ -547,7 +555,7 @@ unsigned int hamming_data_distance(HammingData a,HammingData b){
    	return distance;
 }
 
-double euclidean_data_distance(EuclideanData a,EuclideanData b){
+double euclidean_data_distance(EuclideanData* a,EuclideanData* b){
 	int i;
 	double sum=0.0;
 	double* x = a->vector;
@@ -560,7 +568,7 @@ double euclidean_data_distance(EuclideanData a,EuclideanData b){
 	return sum;
 }
 
-double cosine_data_distance(CosineData a,CosineData b){
+double cosine_data_distance(CosineData* a,CosineData* b){
 	int i;
 	double xy=0.0,xx=0.0,yy=0.0;
 	double* x = a->vector;

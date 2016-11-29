@@ -1,6 +1,6 @@
 #ifndef DATA_H
 #define DATA_H
-typedef GenericData* Data;
+typedef struct GenData *Data;
 
 Data hamming_data_create(char* itemString);
 /*itemString must cointain an id and a bitstring
@@ -54,7 +54,7 @@ void* data_distance(Data a,Data b);
   static memory and thus will CHANGE with subsequent
   calls of this function.*/
 
-void data_create_distance_matrix(Data* data,int n);
+void data_create_distance_matrix(Data* data,unsigned int n);
 /*Constructs a distance matrix so that data_distance can
   be executed faster. Works only for:
   Hamming Elements

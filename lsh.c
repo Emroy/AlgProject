@@ -10,7 +10,8 @@
 #include "HashGen.h"
 #include "HashTable.h"
 #include "data.h"
-#define BUFFER_SIZE 512
+#include "List.h"
+#define BUFFER_SIZE 4096  /*Block size*/
 #define PATH_BUFFER_SIZE 100
 
 int main(int argc,char* argv[]) 
