@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "HashGen.h"
 #include "RNG.h"
-#include "data.h"
 #define W 4
 #define M 4294967291
 
@@ -60,12 +59,16 @@ double* euclidean_data_getVector(EuclideanData ed){
 
 /*-------------------GENERAL--------------------*/
 
-int hash_apply(HashDescriptor hd,void* x){
+unsigned int hash_apply(HashDescriptor hd,Data x){
 	unsigned int retVal = 0;
 	int i;
 
-	if(hd->hamming != NULL){
 	/*Hamming case*/
+	if(hd->hamming != NULL){
+		if(!is_hamming_data(x)){
+			fprintf(stderr,"Incompatible hash function and data metrics\n");
+			exit(-10);
+		}
 		long long int* data = x;
 		long long int temp=1;
 		for(i=0;i<hd->hamming->size;i++){
@@ -77,13 +80,13 @@ int hash_apply(HashDescriptor hd,void* x){
 
 		return retVal >> 1;
 	}
-	else if(hd->euclidean != NULL){
 	/*Euclidean case*/
+	else if(hd->euclidean != NULL){
 		EuclideanData data = x;
 		return data->id % hd->euclidean->n/HASH_SIZE_DIV;
 	}
-	else if(hd->cosine != NULL){
 	/*Cosine case*/
+	else if(hd->cosine != NULL){
 		double* data = x;
 		int h,j;
 		for(i=0;i<hd->cosine->k;i++){

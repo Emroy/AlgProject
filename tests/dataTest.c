@@ -203,7 +203,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 }
 
-Data* evalQuery(const char* queryFilePath,double *r,char metric)
+Data* evalQuery(const char* queryFilePath,unsigned int* rad,unsigned int* q_num,char metric)
 {
 	FILE *queryFile;
 	char *line,symbols[65];
@@ -301,7 +301,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	}
 }
 
-void evalOutput(const char* outputFilePath){
+void evalOutput(const char* outputFilePath,Data* dataset,unsigned int dataSize,Data* queries,unsigned int querySize,unsigned int radius){
 
 }
 

@@ -2,11 +2,12 @@
 #define HASH_GEN_H
 #include <stdint.h>
 #define HASH_SIZE_DIV 2
+#include "data.h"
 
 typedef struct HashDesc *HashDescriptor;
 
 /*--------------GENERAL----------------------*/
-int hash_apply(HashDescriptor hd,void* x);
+unsigned int hash_apply(HashDescriptor hd,Data x);
 /*Aplly function described by HashDescriptor on element x and return the ouput*/
 
 
