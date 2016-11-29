@@ -301,14 +301,16 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	}
 }
 
-void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,Data* data,int q,Data* queries,double r)
+void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,int q,Data* queries,double r)
 {
 	FILE *outputFile;
-    int d,i,j,token=0,tk=1;
+    int d,i,j,token=0,counter=1,threshold=3*L;
 	HashDescriptor *g;
 	HashTable *H;
 	Data current,next;
-	double *min=NULL;
+	double *distance,*dLSH=NULL,*dTrue=NULL;
+	uint64_t idLSH,idQ,id,idTrue;
+	time_t startLSH,endLSH,startTrue,endTrue;
 	
 	if((outputFile=fopen(outputFilePath,"w"))==NULL)
 	{
@@ -348,7 +350,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 	    	d=cosine_data_get_dimention();
 	    	for(i=1;i<=k;i++)
 	    	{
-	    		tk*=2;
+	    		counter*=2;
 	    	}
 	        for(i=0;i<=L-1;i++)
 	        {
@@ -368,7 +370,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 			        }
 		        }
 				while(token);
-		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+		        if((H[i]=hashTable_create(counter,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
 		            return 1;
@@ -379,7 +381,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 	    	d=hamming_data_get_dimention();
 	    	for(i=1;i<=k;i++)
 	    	{
-	    		tk*=2;
+	    		counter*=2;
 	    	}
 	        for(i=0;i<=L-1;i++)
 	        {
@@ -399,7 +401,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 			        }
 		        }
 				while(token);
-		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+		        if((H[i]=hashTable_create(counter,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
 		            return 1;
@@ -409,13 +411,13 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 	    case 'm':
 	    	for(i=1;i<=k;i++)
 	    	{
-	    		tk*=2;
+	    		counter*=2;
 	    	}
 	    	for(i=0;i<=L-1;i++)
 	        {
 		        do
 		        {
-			        if((g[i]=matrix_hash_create(k,matrix,n))==NULL)
+			        if((g[i]=matrix_hash_create(k,n))==NULL)
 			        {
 				        fprintf(stderr,"Could not create euclidean hash descriptor.\n");
 		                exit(1);
@@ -429,10 +431,10 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 			        }
 		        }
 				while(token);
-		        if((H[i]=hashTable_create(tk,g[i]))==NULL)
+		        if((H[i]=hashTable_create(counter,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
-		            return 1;
+		            return;
 		        }
 	        }
 	        break;
@@ -451,13 +453,91 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int **matrix,int n,
 	{
 		fprintf(outputFile,"\nQuery: item%d\n",i+1);
 		fprintf(outputFile,"R-near neighbors:\n");
+		counter=0;
+		startLSH=time(NULL);
 		for(j=0;j<=L-1;j++)
 		{
 		    hashTable_insert(H[j],queries[i]);
 		    current=queries[i];
 		    while((next=hashTable_getNext(H[j],current))!=NULL)
 		    {
-		    	if(data_distance(current,next)<r)
+		    	counter++;
+		    	if((distance=data_distance(current,next))==NULL)
+		    	{
+		    		printf("Error: Failure while writing in output file.\n");
+		    		return;
+		    	}
+		    	if(*distance<r)
+		    	{
+		    		fprintf(outputFile,"item%d\n",data_getID(next));
+		    	}
+		    	if(dLSH==NULL)
+		    	{
+		    		if((dLSH=realloc(NULL,sizeof(double)))==NULL)
+		    		{
+		    			printf("Error: Failure while writing in output file.\n");
+		    		    return;
+		    	    }
+		    		*dLSH=*distance;
+		    		idLSH=data_getID(next);
+		    	}
+		    	else
+		    	{
+				    if(counter>threshold)
+		    		{
+		    			break;
+		    		}
+		    		else
+		    		{
+		    		    if(*distance<*dLSH)
+		    		    {
+		    		    	*dLSH=*distance;
+		    		    	idLSH=data_getID(next);
+		    		    }
+		    		}
+		    	}
+		    }
+		}
+		endLSH=time(NULL);
+		fprintf(outputFile,"Nearest neighbor(LSH): item%d\n",idLSH);
+		fprintf(outputFile,"distanceLSH: %f\n",*dLSH);
+		idQ=data_getID(queries[i]);
+		startTrue=time(NULL);
+		for(j=0;j<=n-1;j++)
+		{
+			if((id=data_getID(data[j]))!=idQ)
+			{
+				if((distance=data_distance(queries[i],data[j]))==NULL)
+		    	{
+		    		printf("Error: Failure while writing in output file.\n");
+		    		return;
+		    	}
+				if(dTrue==NULL)
+				{
+					if((dTrue=realloc(NULL,sizeof(double)))==NULL)
+		    		{
+		    			printf("Error: Failure while writing in output file.\n");
+		    		    return;
+		    	    }
+		    		*dTrue=*distance;
+		    		idTrue=id;
+		    	}
+		    	else
+		    	{
+		    		if(*distance<*dtrue)
+		    		{
+		    			*dTrue=*distance;
+		    			idTrue=id;
+		    		}
+		    	}
+		    }
+		}
+		endTrue=time(NULL);
+		fprintf(outputFile,"Nearest neighbor(True): item%d\n",idTrue);
+		fprintf(outputFile,"distanceTrue: %f\n",*dTrue);
+		fprintf(outputFile,"tLSH: %f\n",difftime(endLSH,startLSH);
+		fprintf(outputFile,"tTrue: %f\n",difftime(endTrue,startTrue);
+	}
 }
 
 int main(int argc,char* argv[]){
