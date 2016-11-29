@@ -1,5 +1,4 @@
 #include "data.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -636,4 +635,12 @@ double* cosine_data_getVector(Data d){
 
 unsigned int matrix_data_get_id(Data d){
 	return d->mData->id;
+}
+
+void data_set_distance_matrix(unsigned int** distanceMatrix){
+	matrix_distance_matrix = distanceMatrix;
+}
+
+unsigned int data_getIdDistance(uint64_t a,uint64_t b){
+	return matrix_distance_matrix[a][b];
 }

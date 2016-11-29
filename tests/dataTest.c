@@ -36,7 +36,7 @@ char* readLine(FILE* file){
 	return buffer;
 }
 
-Data* evalInput(const char* inputFilePath,unsigned int* n){
+Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
 	FILE* inputFile = fopen(inputFilePath,"r");
 	if(inputFile == NULL){
 		perror("Failed to open input file");
@@ -59,7 +59,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 
 	token = strtok(NULL," \t\n");
-	char metric = 0;
 	if(!strcmp(token,"hamming")) metric = 'h';
 	else if(!strcmp(token,"euclidean") || !strcmp(token,"vector")){
 		line = readLine(inputFile);

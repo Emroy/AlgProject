@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h> 
+#define BUFFER_BLOCK 4096  /*Block size*/
 
 typedef struct ConfParams{
 	int k;
@@ -16,277 +17,240 @@ typedef struct ConfParams{
 	int claransIter;
 }ConfParams;
 
-Data* evalInput(char* inputFilePath)
-{
-	int size,i,token=0;
-	char symbols[65],*line;
-    FILE *inputFile;
-    List list;
-    Data data,*dataP;
-    
-	if((inputFile=fopen(inputFilePath,"r"))==NULL)
-	{
-		perror("Failed to open input file.\n");
-		exit(1);
+/*user should free the returned pointer after use*/
+char* readLine(FILE* file){
+	static char* buffer = NULL;
+	if(buffer != NULL){
+		free(buffer);
+		buffer = NULL;
 	}
-	fscanf(inputFile,"%64s",symbols);
-	if(!strcmp(symbols,"@metric_space"))
-	{
-		fscanf(inputFile,"%64s",symbols);
-		if(!strcmp(symbols,"vector"))
-		{
-		    fscanf(inputFile,"%64s",symbols);
-		    if(!strcmp(symbols,"@metric"))
-		    {
-		    	fscanf(inputFile,"%64s",symbols);
-		    	if(!strcmp(symbols,"euclidean"))
-		    	{
-		    		if((list=list_create())==NULL)
-		    		{
-		    			printf("Error: System failure.\n");
-		    			exit(1);
-		    		}
-				    while(!feof(inputFile))
-			        {
-					    line=NULL;
-				        i=0;
-				        do
-				        {
-						    fscanf(inputFile,"%64s",symbols);
-				            size=strlen(symbols);
-				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
-				            {
-				                printf("Error: System failure.\n");
-					            exit(1);
-				            }
-				            strcpy(line+i,symbols);
-				            i+=size+1;
-				            line[i-1]= ;
-				        }
-				        while(getc(inputFile)!='\n');
-				        line[i-1]='\0';
-				        data=euclidean_data_create(line);
-				        list_pushEnd(list,data);
-				        free(line);
-				    }
-				    size=list_length(list);
-				    if((dataP=realloc(NULL,size*sizeof(Data)))==NULL)
-				    {
-				    	printf("Error: System failure.\n");
-						exit(1);
-				    }
-				    i=0;
-				    while(!list_isEmpty(list))
-				    {
-					    dataP[i]=list_pop(list);
-				    	i++;
-				    }
-				    list_destroy(list);
-				    return dataP;
-		    	}
-		    	else if(!strcmp(symbols,"cosine"))
-		    	{
-		    		if((list=list_create())==NULL)
-		    		{
-		    			printf("Error: System failure.\n");
-		    			exit(1);
-		    		}
-				    while(!feof(inputFile))
-			        {
-				        line=NULL;
-				        i=0;
-				        do
-				        {
-						    fscanf(inputFile,"%64s",symbols);
-				            size=strlen(symbols);
-				            if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
-				            {
-				                printf("Error: System failure.\n");
-					            exit(1);
-				            }
-				            strcpy(line+i,symbols);
-				            i+=size+1;
-				            line[i-1]= ;
-				        }
-				        while(getc(inputFile)!='\n');
-				        line[i-1]='\0';
-				        data=cosine_data_create(line);
-				        list_pushEnd(list,data);
-				        free(line);
-				    }
-				    size=list_length(list);
-				    if((dataP=realloc(NULL,size*sizeof(Data)))==NULL)
-				    {
-				    	printf("Error: System failure.\n");
-				    	exit(1);
-				    }
-				    i=0;
-				    while(!list_isEmpty(list))
-				    {
-					    dataP[i]=list_pop(list);
-				    	i++;
-				    }
-				    list_destroy(list);
-				    return dataP;
-		    	}
-		    	else
-		    	{
-		    		printf("Error: Incorrect input file.\n");
-		    		return NULL;
-		    	}
-			}
-			else
-			{
-				if((list=list_create())==NULL)
-		    	{
-		    		printf("Error: System failure.\n");
-		    		exit(1);
-		    	}
-				while(!feof(inputFile))
-			    {
-				    line=NULL;
-				    i=0;
-				    do
-				    {
-					    if(!token)
-			    	    {
-			    		    token=1;
-			    	    }
-			    	    else
-			    	    {
-					        fscanf(inputFile,"%64s",symbols);
-					    }
-					    size=strlen(symbols);
-				        if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
-				        {
-				            printf("Error: System failure.\n");
-					        exit(1);
-				        }
-				        strcpy(line+i,symbols);
-				        i+=size+1;
-				        line[i-1]= ;
-				    }
-				    while(getc(inputFile)!='\n');
-				    line[i-1]='\0';
-				    data=euclidean_data_create(line);
-				    list_pushEnd(list,data);
-				    free(line);
-				}
-				size=list_length(list);
-				if((dataP=realloc(NULL,size*sizeof(Data)))==NULL)
-				{
-				    printf("Error: System failure.\n");
-				    exit(1);
-				}
-				i=0;
-				while(!list_isEmpty(list))
-				{
-					dataP[i]=list_pop(list);
-				    i++;
-				}
-				list_destroy(list);
-				return dataP;
-			}
+
+	unsigned int buffer_size = 0;
+	unsigned int bytes_read = 0;
+	unsigned int i;
+
+	do{
+		buffer_size += BUFFER_BLOCK;
+
+		buffer = realloc(buffer,buffer_size);
+		if(buffer == NULL) return NULL;
+		for(i=buffer_size-BUFFER_BLOCK;i<buffer_size;i++) buffer[i] = 0;
+		
+		fgets(buffer+bytes_read,buffer_size,file);
+		bytes_read+=BUFFER_BLOCK; /*if we read less chars than that we exit the loop*/
+
+	}while(!feof(file) && !strchr(buffer+bytes_read-BUFFER_BLOCK,'\n'));
+
+	return buffer;
+}
+
+Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
+	FILE* inputFile = fopen(inputFilePath,"r");
+	if(inputFile == NULL){
+		perror("Failed to open input file");
+		exit(-1);
+	}
+
+	char* line = readLine(inputFile);
+	if(line == NULL){
+		perror("Could not allocate memory to read next line of input file");
+		fclose(inputFile);
+		return NULL;
+	}
+	char* token = strtok(line," \t\n");
+	if(strcmp("@metric_space",token)){
+		fprintf(stderr,"Invalid command \"%s\" given on input file\n",token);
+		fclose(inputFile);
+		free(line);
+		line = NULL;
+		return NULL;
+	}
+
+	token = strtok(NULL," \t\n");
+	if(!strcmp(token,"hamming")){
+		*mteric = 'h';
+	}
+	else if(!strcmp(token,"euclidean") || !strcmp(token,"vector")){
+		line = readLine(inputFile);
+		if(line == NULL){
+			perror("Could not allocate memory to read next line of input file");
+			fclose(inputFile);
+			return NULL;
 		}
-		else if(!strcmp(symbols,"hamming"))
-		{
-			if((list=list_create())==NULL)
-		    {
-		    	printf("Error: System failure.\n");
-		    	exit(1);
-		    }
-			while(!feof(inputFile))
-			{
-				line=NULL;
-				i=0;
-				do
-				{
-				    fscanf(inputFile,"%64s",symbols);
-				    size=strlen(symbols);
-				    if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
-				    {
-				        printf("Error: System failure.\n");
-					    exit(1);
-				    }
-				    strcpy(line+i,symbols);
-				    i+=size+1;
-				    line[i-1]= ;
-				}
-				while(getc(inputFile)!='\n');
-				line[i-1]='\0';
-				data=hamming_data_create(line);
-				list_pushEnd(list,data);
-				free(line);
-			}
-			size=list_length(list);
-			if((dataP=realloc(NULL,size*sizeof(Data)))==NULL)
-			{
-				printf("Error: System failure.\n");
-				exit(1);
-			}
-			i=0;
-			while(!list_isEmpty(list))
-			{
-				dataP[i]=list_pop(list);
-				i++;
-			}
-			list_destroy(list);
-			return dataP;
+		token = strtok(line," \t\n");
+		if(strcmp("@metric",token)){
+			fprintf(stderr,"Invalid command \"%s\" given for metric space euclidean on input file.\n",token);
+			fclose(inputFile);
+			free(line);
+			line = NULL;
+			return NULL;
 		}
-		else if(!strcmp(symbols,"matrix"))
-		{
-			fscanf(inputFile,"%64s",symbols);
-			if(!strcmp(symbols,"@items"))
-			{
-				line=NULL;
-				i=0;
-				while(getc(inputFile)!='\n')
-				{
-					fscanf(inputFile,"%64s",symbols);
-				    size=strlen(symbols);
-				    if((line=realloc(line,(i+size+1)*sizeof(char)))==NULL)
-				    {
-				        printf("Error: System failure.\n");
-					    exit(1);
-				    }
-				    strcpy(line+i,symbols);
-				    i+=size+1;
-				    line[i-1]= ;
-				}
-				line[i-1]='\0';
-				data=matrix_data_create(line);
-				free(line);
-				size=list_length(list);
-			    if((dataP=realloc(NULL,size*sizeof(Data)))==NULL)
-			    {
-				    printf("Error: System failure.\n");
-				    exit(1);
-			    }
-			    i=0;
-			    while(!list_isEmpty(list))
-			    {
-				    dataP[i]=list_pop(list);
-				    i++;
-			    }
-			    list_destroy(list);
-			    return dataP;
-			}
-			else
-			{
-				printf("Error: Incorrect input file.\n");
-				return NULL;
-			}
+
+		token = strtok(NULL," \t\n");
+		if(!strcmp(token,"euclidean")){
+			*metric = 'e';
 		}
-		else
-		{
-			printf("Error: Incorrect input file.\n");
+		else if(!strcmp(token,"cosine")){
+			*metric = 'c';
+		}
+		else{
+			fprintf(stderr,"Invalid metric \"%s\" given on input file.\n",token);
+			fclose(inputFile);
+			free(line);
+			line = NULL;
 			return NULL;
 		}
 	}
-	else
-	{
-		printf("Error: Incorrect input file.\n");
+	else if(!strcmp(token,"matrix")) metric = 'm';
+	else{
+		fprintf(stderr,"Invalid metric space \"%s\" given.\n",token);
+		fclose(inputFile);
+		free(line);
+		line = NULL;
 		return NULL;
+	}
+
+	/*Start reading and creating data*/
+	if(*metric != 'm'){
+		List l = list_create();
+		/*must do something if list could not be created*/
+		while(!feof(inputFile)){
+			line = readLine(inputFile);
+			if(line == NULL){
+				perror("Could not allocate memory to read next line of input file");
+				fclose(inputFile);
+				return NULL;
+			}
+			if(line[0]=='\0') break;
+
+			Data newData;
+			if(*metric == 'h') newData = hamming_data_create(line);
+			else if(*metric == 'e') newData = euclidean_data_create(line);
+			else if(*metric == 'c') newData = cosine_data_create(line);
+			else{/*This should never happen*/
+				fprintf(stderr,"Unexpected error while reading input file.\n");
+				fclose(inputFile);
+				free(line);
+				line = NULL;
+				return NULL;
+			}
+
+			if(newData == NULL) return NULL;
+
+			list_pushEnd(l,newData);
+		}
+
+		*n = list_length(l);
+		Data* dataArray = malloc((*n)*sizeof(Data));
+		if(dataArray == NULL){
+			perror("Failed to allocate memory for data array");
+			fclose(inputFile);
+			free(line);
+			line = NULL;
+			return NULL;
+		}
+
+		unsigned int i;
+		for(i=0;i<(*n);i++){
+			dataArray[i] = list_pop(l);
+			if(dataArray[i] == NULL) break;
+		}
+		list_destroy(l);
+		
+		data_create_distance_matrix(dataArray,*n);
+
+		fclose(inputFile);
+		free(line);
+		line = NULL;
+		return dataArray;
+	}
+	else{
+		line = readLine(inputFile);
+		if(line == NULL){
+			perror("Could not allocate memory to read next line of input file");
+			fclose(inputFile);
+			return NULL;
+		}
+
+		token = strtok(line," ,\t\n");
+		if(strcmp(token,"@items")){
+			fprintf(stderr,"Invalid command \"%s\" given on matrix input file\n",token);
+			fclose(inputFile);
+			free(line);
+			line = NULL;
+			return NULL;
+		}
+
+		List l = list_create();
+		while(token = strtok(NULL," ,\t\n")){
+			Data newData = matrix_data_create(token);
+			list_pushEnd(l,newData);
+		}
+
+		*n = list_length(l);
+		Data* dataArray = malloc((*n)*sizeof(Data));
+		if(dataArray == NULL){
+			perror("Failed to allocate memory for data array");
+			fclose(inputFile);
+			free(line);
+			line = NULL;
+			return NULL;
+		}
+
+		unsigned int i;
+		for(i=0;i<(*n);i++){
+			dataArray[i] = list_pop(l);
+			if(dataArray[i] == NULL) break;
+		}
+		list_destroy(l);
+
+		unsigned int** distance_matrix = malloc((*n)*sizeof(unsigned int*));
+		if(distance_matrix == NULL){
+			perror("Failed to allocate memory for matrix distance matrix");
+			fclose(inputFile);
+			free(line);
+			line=NULL;
+			return NULL;
+		}
+		for(i=0;i<(*n);i++){
+			distance_matrix[i]=malloc((*n)*sizeof(unsigned int));
+			if(distance_matrix[i]==NULL){
+				perror("Failed to allocate memory for matrix distance matrix");
+				fclose(inputFile);
+				free(line);
+				line=NULL;
+				unsigned int j;
+				for(j=i-1;j>=0;j--) free(distance_matrix[j]);
+				free(distance_matrix);
+				return NULL;
+			}
+		}
+
+		i=0;
+		while(!feof(inputFile)){
+			line = readLine(inputFile);
+			if(line == NULL){
+				perror("Could not allocate memory to read next line of input file");
+				fclose(inputFile);
+				return NULL;
+			}
+			if(line[0]=='\0') break;
+
+			token = strtok(line," \n\t");
+			unsigned int j = 0;
+			while(token){
+				distance_matrix[i][j] = atoi(token);
+				token = strtok(NULL," \t\n");
+			}
+			i++;
+		}
+
+		data_set_distance_matrix(distance_matrix);
+
+		fclose(inputFile);
+		free(line);
+		line = NULL;
+		return dataArray;
 	}
 }
 

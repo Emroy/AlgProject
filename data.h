@@ -1,5 +1,7 @@
 #ifndef DATA_H
 #define DATA_H
+#include <stdint.h>
+
 typedef struct GenData *Data;
 
 Data hamming_data_create(char* itemString);
@@ -116,12 +118,19 @@ void data_create_distance_matrix(Data* data,unsigned int n);
   Euclidean Elements
   Cosine Elements*/
 
-void data_set_distance_matrix(unsigned int** distanceMatrix,int n);
-/*Under Construction*/
+void data_set_distance_matrix(unsigned int** distanceMatrix);
+/*Set distance matrix as the distance matrix for matrix metric.
+  Work as*/
 
 void data_destroy_distance_matrix();
 /*Destroys a matrix created by data_create_distance_matrix.
   Use when a distance matrix is no longer needed.
   CAUTION: if more than one distance matrices are created, there
   is no guarantee that the first one created will be the first deleted.*/
+
+unsigned int data_getIdDistance(uint64_t a,uint64_t b);
+/*get the distance between data with id a and data with id b.
+  Currently works only for matrix data.
+  If data_set_distance_matrix was not called before this function
+  the behavior is undefined.*/
 #endif
