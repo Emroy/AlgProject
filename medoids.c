@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> 
-#define BUFFER_BLOCK 4096  /*Block size*/
+#include <time.h>
+#include "data.h"
+#include "List.h"
+#define BUFFER_BLOCK 4096*10  /*Block size*/
 
 typedef struct ConfParams{
 	int k;
@@ -36,10 +38,9 @@ char* readLine(FILE* file){
 		if(buffer == NULL) return NULL;
 		for(i=buffer_size-BUFFER_BLOCK;i<buffer_size;i++) buffer[i] = 0;
 		
-		fgets(buffer+bytes_read,buffer_size,file);
-		bytes_read+=BUFFER_BLOCK; /*if we read less chars than that we exit the loop*/
-
-	}while(!feof(file) && !strchr(buffer+bytes_read-BUFFER_BLOCK,'\n'));
+		fgets(buffer+bytes_read,BUFFER_BLOCK,file);
+		bytes_read+=BUFFER_BLOCK-1; /*if we read less chars than that we exit the loop*/
+	}while((feof(file) == 0) && (strchr(buffer,'\n') == NULL));
 
 	return buffer;
 }
@@ -68,7 +69,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 
 	token = strtok(NULL," \t\n");
 	if(!strcmp(token,"hamming")){
-		*mteric = 'h';
+		*metric = 'h';
 	}
 	else if(!strcmp(token,"euclidean") || !strcmp(token,"vector")){
 		line = readLine(inputFile);
@@ -101,7 +102,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 			return NULL;
 		}
 	}
-	else if(!strcmp(token,"matrix")) metric = 'm';
+	else if(!strcmp(token,"matrix")) *metric = 'm';
 	else{
 		fprintf(stderr,"Invalid metric space \"%s\" given.\n",token);
 		fclose(inputFile);
@@ -228,6 +229,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 
 		i=0;
 		while(!feof(inputFile)){
+			if(i>=(*n)) fprintf(stderr,"something is wrong (i)\n");
 			line = readLine(inputFile);
 			if(line == NULL){
 				perror("Could not allocate memory to read next line of input file");
@@ -239,8 +241,10 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 			token = strtok(line," \n\t");
 			unsigned int j = 0;
 			while(token){
+				if(j>=(*n)) fprintf(stderr,"something is wrong (j)\n");
 				distance_matrix[i][j] = atoi(token);
 				token = strtok(NULL," \t\n");
+				j++;
 			}
 			i++;
 		}
@@ -254,12 +258,16 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 	}
 }
 
-ConfParams* evalConf(char* confFilePath,int n)
+ConfParams* evalConf(char* confFilePath,unsigned int n)
 {
 	int k=0,f=0,L=0,s=0,i=0;
 	double max;
     FILE* confFile;
-    ConfParams *params;
+    ConfParams *params = malloc(sizeof(ConfParams));
+    if(params == NULL){
+    	perror("Failed to allocate memory for configuration parameters");
+    	return NULL;
+    }
     
 	if((confFile=fopen(confFilePath,"r"))==NULL)
 	{
@@ -357,25 +365,30 @@ int main(int argc,char* argv[])
 	char* outFilePath = NULL;
 	int complete = 0;
 	ConfParams* confParams = NULL;
+	unsigned int n;
+	char metric;
 
 	/*Read command line arguements*/
 	int i;
 	for(i = 1;i < argc;i++){
 		if(!strcmp(argv[i],"-d")){
-			evalInput(argv[i]);
+			i++;
+			evalInput(argv[i],&n,&metric);
 			/*create distance matrix*/
 		}
 		else if(!strcmp(argv[i],"-c")){
-			confParams = evalConf(argv[i]);
+			i++;
+			confParams = evalConf(argv[i],n);
 		}
 		else if(!strcmp(argv[i],"-o")){
+			i++;
 			outFilePath = argv[i];
 		}
 		else if(!strcmp(argv[i],"-complete")){
 			complete = 1;
 		}
 		else{
-			fprintf(stderr,"Invalid parameters given. Call should be:\n")
+			fprintf(stderr,"Invalid parameters given. Call should be:\n");
 			fprintf(stderr,"./medoids -d <input file> -c <configuration file> -o <output file>\n");
 			return 0;
 		}
@@ -397,6 +410,6 @@ int main(int argc,char* argv[])
 
 	outputResults(outFilePath);
 
-	/*destroy distance matrix*/
+	data_destroy_distance_matrix();
 	return 0;
 }

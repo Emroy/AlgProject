@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <time.h>
-//#include "HashGen.h"
-//#include "HashTable.h"
+#include <time.h>
+#include "../HashGen.h"
+#include "../HashTable.h"
 #include "../data.h"
 #include "../List.h"
 #define BUFFER_BLOCK 4096  /*Block size*/
@@ -27,11 +27,10 @@ char* readLine(FILE* file){
 		buffer = realloc(buffer,buffer_size);
 		if(buffer == NULL) return NULL;
 		for(i=buffer_size-BUFFER_BLOCK;i<buffer_size;i++) buffer[i] = 0;
-		
-		fgets(buffer+bytes_read,buffer_size,file);
-		bytes_read+=BUFFER_BLOCK; /*if we read less chars than that we exit the loop*/
 
-	}while(!feof(file) && !strchr(buffer+bytes_read-BUFFER_BLOCK,'\n'));
+		fgets(buffer+bytes_read,BUFFER_BLOCK,file);
+		bytes_read+=BUFFER_BLOCK-1; /*if we read less chars than that we exit the loop*/
+	}while((feof(file) == 0) && (strchr(buffer,'\n') == NULL));
 
 	return buffer;
 }
@@ -206,25 +205,27 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 Data* evalQuery(const char* queryFilePath,double *r,char metric)
 {
 	FILE *queryFile;
-	char *line,symbols[65];
+	char *line,*symbols;
 	List list;
 	Data data,*dataP;
 	unsigned int size,i;
 	
 	if((queryFile=fopen(queryFilePath,"r"))==NULL)
 	{
-		printf("Error: System failure.\n");
+		perror("Error: System failure.");
 		exit(1);
 	}
+
 	if((line=readLine(queryFile))==NULL)
 	{
 	    printf("Error: Failure while reading query file.\n");
 	    return NULL;
 	}
-	sscanf(line,"%64s",symbols);
+	symbols = strtok(line," \t\n");
 	if(!strcmp(symbols,"Radius:"))
 	{
-		sscanf(line,"%lf",r);
+		symbols = strtok(NULL," \t\n");
+		*r = atoi(symbols);
 		list=list_create();
 		switch(metric)
 		{
@@ -236,6 +237,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	                    printf("Error: Failure while reading query file.\n");
 	                    return NULL;
 	                }
+	                if(line[0]=='\0') break;
 	                data=euclidean_data_create(line);
 	                list_pushEnd(list,data);
 	            }
@@ -248,6 +250,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	                    printf("Error: Failure while reading query file.\n");
 	                    return NULL;
 	                }
+	                if(line[0]=='\0') break;
 	                data=cosine_data_create(line);
 	                list_pushEnd(list,data);
 	            }
@@ -260,6 +263,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	                    printf("Error: Failure while reading query file.\n");
 	                    return NULL;
 	                }
+	                if(line[0]=='\0') break;
 	                data=hamming_data_create(line);
 	                list_pushEnd(list,data);
 	            }
@@ -272,6 +276,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	                    printf("Error: Failure while reading query file.\n");
 	                    return NULL;
 	                }
+	                if(line[0]=='\0') break;
 	                data=hamming_data_create(line);
 	                list_pushEnd(list,data);
 	            }
@@ -342,7 +347,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        if((H[i]=hashTable_create(n/2,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
-		            return 1;
+		            return;
 		        }
 	        }
 	        break;
@@ -373,7 +378,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        if((H[i]=hashTable_create(counter,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
-		            return 1;
+		            return;
 		        }
 	        }
 	        break;
@@ -404,7 +409,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		        if((H[i]=hashTable_create(counter,g[i]))==NULL)
         	    {
 			        fprintf(stderr,"Could not create hash table.\n");
-		            return 1;
+		            return;
 		        }
 	        }
 	        break;
@@ -469,7 +474,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		    	}
 		    	if(*distance<r)
 		    	{
-		    		fprintf(outputFile,"item%d\n",data_getID(next));
+		    		fprintf(outputFile,"item%lu\n",data_getID(next));
 		    	}
 		    	if(dLSH==NULL)
 		    	{
@@ -499,7 +504,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		    }
 		}
 		endLSH=time(NULL);
-		fprintf(outputFile,"Nearest neighbor(LSH): item%d\n",idLSH);
+		fprintf(outputFile,"Nearest neighbor(LSH): item%lu\n",idLSH);
 		fprintf(outputFile,"distanceLSH: %f\n",*dLSH);
 		idQ=data_getID(queries[i]);
 		startTrue=time(NULL);
@@ -533,7 +538,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		    }
 		}
 		endTrue=time(NULL);
-		fprintf(outputFile,"Nearest neighbor(True): item%d\n",idTrue);
+		fprintf(outputFile,"Nearest neighbor(True): item%lu\n",idTrue);
 		fprintf(outputFile,"distanceTrue: %f\n",*dTrue);
 		fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
 		fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
@@ -549,21 +554,9 @@ int main(int argc,char* argv[])
 	Data* temp;
 	unsigned int n;
 	double r;
-	char metric;
-	
-	printf("Enter the value of r and press [Enter]: ");
-	scanf("%lf",&r);
-	while(getc(stdin)!='\n')
-	{
-		;
-	}
-	printf("Enter the first letter of the metric space and press [Enter]: ");
-	scanf("%c",&metric);
-	while(getc(stdin)!='\n')
-	{
-		;
-	}
-    if((temp=evalQuery(argv[2],&r,metric))!=NULL)
+	char metric = 'h';
+
+    if((temp=evalQuery(argv[1],&r,metric))!=NULL)
     {
     	printf("Success.\n");
     }

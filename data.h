@@ -133,4 +133,6 @@ unsigned int data_getIdDistance(uint64_t a,uint64_t b);
   Currently works only for matrix data.
   If data_set_distance_matrix was not called before this function
   the behavior is undefined.*/
+
+uint64_t data_getID(Data d);
 #endif
