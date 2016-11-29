@@ -203,8 +203,102 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 }
 
-void evalQuery(const char* queryFilePath){
-
+Data* evalQuery(const char* queryFilePath,double *r,char metric)
+{
+	FILE *queryFile;
+	char *line,symbols[65];
+	List list;
+	Data data,*dataP;
+	unsigned int size,i;
+	
+	if((queryFile=fopen(queryFilePath,"r"))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	if((line=readLine(queryFile))==NULL)
+	{
+	    printf("Error: Failure while reading query file.\n");
+	    return NULL;
+	}
+	sscanf(line,"%64s",symbols);
+	if(!strcmp(symbols,"Radius:"))
+	{
+		sscanf(line,"%lf",r);
+		list=list_create();
+		switch(metric)
+		{
+			case 'e':
+				while(!feof(queryFile))
+				{
+					if((line=readLine(queryFile))==NULL)
+	                {
+	                    printf("Error: Failure while reading query file.\n");
+	                    return NULL;
+	                }
+	                data=euclidean_data_create(line);
+	                list_pushEnd(list,data);
+	            }
+	            break;
+	        case 'c':
+	        	while(!feof(queryFile))
+				{
+					if((line=readLine(queryFile))==NULL)
+	                {
+	                    printf("Error: Failure while reading query file.\n");
+	                    return NULL;
+	                }
+	                data=cosine_data_create(line);
+	                list_pushEnd(list,data);
+	            }
+	            break;
+	        case 'h':
+	        	while(!feof(queryFile))
+				{
+					if((line=readLine(queryFile))==NULL)
+	                {
+	                    printf("Error: Failure while reading query file.\n");
+	                    return NULL;
+	                }
+	                data=hamming_data_create(line);
+	                list_pushEnd(list,data);
+	            }
+	            break;
+	        case 'm':
+	        	while(!feof(queryFile))
+				{
+					if((line=readLine(queryFile))==NULL)
+	                {
+	                    printf("Error: Failure while reading query file.\n");
+	                    return NULL;
+	                }
+	                data=hamming_data_create(line);
+	                list_pushEnd(list,data);
+	            }
+	            break;
+	        default:
+	        	printf("Error: Incorrect metric space.\n");
+	        	return NULL;
+	    }
+	    if((dataP=realloc(NULL,list_length(list)*sizeof(Data)))==NULL)
+	    {
+	    	printf("Error: System failure.\n");
+	    	exit(1);
+	    }
+	    i=0;
+	    while(!list_isEmpty(list))
+	    {
+	    	dataP[i]=list_pop(list);
+	    	i++;
+	    }
+	    list_destroy(list);
+	    return dataP;
+	}
+	else
+	{
+		printf("Error: Incorrect query file.\n");
+		return NULL;
+	}
 }
 
 void evalOutput(const char* outputFilePath){
