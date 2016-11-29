@@ -339,7 +339,7 @@ void cosine_hash_destroy(HashDescriptor hd){
 }
 
 /*--------------------------MATRIX-----------------------*/
-HashDescriptor matrix_hash_create(int k,unsigned int** distMatr,int n){
+HashDescriptor matrix_hash_create(int k,int n){
 	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
 	if(retVal == NULL){
 		perror("Failed to allocate memory for new matrix HashDescriptor");
@@ -387,8 +387,6 @@ HashDescriptor matrix_hash_create(int k,unsigned int** distMatr,int n){
 		return NULL;
 	}
 
-	retVal->matrix->distanceMatrix = distMatr;
-
 	int i;
 	for(i=0;i<k;i++){
 		retVal->matrix->x1[i] = integerUniform(n);
@@ -400,11 +398,11 @@ HashDescriptor matrix_hash_create(int k,unsigned int** distMatr,int n){
 	int j;
 	double temp,x1x2_dist,hsum;
 	for(i=0;i<k;i++){
-		x1x2_dist = (double)(distMatr[retVal->matrix->x1[i]][retVal->matrix->x2[i]]);
+		x1x2_dist = (double)(data_getIdDistance(retVal->matrix->x1[i],retVal->matrix->x2[i]));
 		hsum = 0.0;
 		for(j=0;j<n;j++){
-			temp = (double)(distMatr[j][retVal->matrix->x1[i]])*(double)(distMatr[j][retVal->matrix->x1[i]]);
-			temp += (double)(distMatr[j][retVal->matrix->x2[i]])*(double)(distMatr[j][retVal->matrix->x2[i]]);
+			temp = (double)(data_getIdDistance(j,retVal->matrix->x1[i]))*(double)(data_getIdDistance(j,retVal->matrix->x1[i]));
+			temp += (double)(data_getIdDistance(j,retVal->matrix->x2[i]))*(double)(data_getIdDistance(j,retVal->matrix->x2[i]));
 			temp -= x1x2_dist*x1x2_dist;
 			temp = temp / 2*x1x2_dist;
 			hsum += temp;
