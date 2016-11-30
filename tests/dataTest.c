@@ -315,7 +315,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
-	                data=hamming_data_create(line);
+	                data=matrix_data_create(line);
 	                list_pushEnd(list,data);
 	            }
 	            break;
