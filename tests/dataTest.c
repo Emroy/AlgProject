@@ -9,9 +9,17 @@
 #define BUFFER_BLOCK 4096  /*Block size*/
 #define PATH_BUFFER_SIZE 100
 
-/*user should free the returned pointer after use*/
+/*User should free the returned pointer after use.
+  Call with parameter NULL to clear allocated memory*/
 char* readLine(FILE* file){
 	static char* buffer = NULL;
+
+	if(file == NULL){
+		free(buffer);
+		buffer = NULL;
+		return NULL;
+	}
+
 	if(buffer != NULL){
 		free(buffer);
 		buffer = NULL;
@@ -52,8 +60,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	if(strcmp("@metric_space",token)){
 		fprintf(stderr,"Invalid command \"%s\" given on input file\n",token);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
 		return NULL;
 	}
 
@@ -71,8 +77,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		if(strcmp("@metric",token)){
 			fprintf(stderr,"Invalid command \"%s\" given for metric space euclidean on input file.\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
 			return NULL;
 		}
 
@@ -82,8 +86,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		else{
 			fprintf(stderr,"Invalid metric \"%s\" given on input file.\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
 			return NULL;
 		}
 	}
@@ -91,8 +93,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	else{
 		fprintf(stderr,"Invalid metric space \"%s\" given.\n",token);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
 		return NULL;
 	}
 
@@ -116,8 +116,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 			else{/*This should never happen*/
 				fprintf(stderr,"Unexpected error while reading input file.\n");
 				fclose(inputFile);
-				free(line);
-				line = NULL;
 				return NULL;
 			}
 
@@ -131,8 +129,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
-			free(line);
-			line = NULL;
 			return NULL;
 		}
 
@@ -144,8 +140,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 
 		list_destroy(l);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
 		return dataArray;
 	}
 	else if(metric == 'm'){
@@ -160,8 +154,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		if(strcmp(token,"@items")){
 			fprintf(stderr,"Invalid command \"%s\" given on matrix input file\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
 			return NULL;
 		}
 
@@ -176,8 +168,6 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
-			free(line);
-			line = NULL;
 			return NULL;
 		}
 
@@ -189,20 +179,16 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 
 		list_destroy(l);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
 		return dataArray;
 	}
 	else{/*This should never happen*/
 		fprintf(stderr,"Unexpected error while reading input file.\n");
 		fclose(inputFile);
-		free(line);
-		line = NULL;
 		return NULL;
 	}
 }
 
-Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
+Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 {
 	FILE *queryFile;
 	char *line,*symbols;
@@ -219,6 +205,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 	if((line=readLine(queryFile))==NULL)
 	{
 	    printf("Error: Failure while reading query file.\n");
+	    fclose(queryFile);
 	    return NULL;
 	}
 	symbols = strtok(line," \t\n");
@@ -235,6 +222,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 					if((line=readLine(queryFile))==NULL)
 	                {
 	                    printf("Error: Failure while reading query file.\n");
+	                    fclose(queryFile);
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
@@ -248,6 +236,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 					if((line=readLine(queryFile))==NULL)
 	                {
 	                    printf("Error: Failure while reading query file.\n");
+	                    fclose(queryFile);
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
@@ -261,6 +250,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 					if((line=readLine(queryFile))==NULL)
 	                {
 	                    printf("Error: Failure while reading query file.\n");
+	                    fclose(queryFile);
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
@@ -274,6 +264,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 					if((line=readLine(queryFile))==NULL)
 	                {
 	                    printf("Error: Failure while reading query file.\n");
+	                    fclose(queryFile);
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
@@ -283,10 +274,11 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 	            break;
 	        default:
 	        	printf("Error: Incorrect metric space.\n");
+	        	fclose(queryFile);
 	        	return NULL;
 	    }
 	    *q=list_length(list);
-	    if((dataP=realloc(NULL,q*sizeof(Data)))==NULL)
+	    if((dataP=realloc(NULL,(*q)*sizeof(Data)))==NULL)
 	    {
 	    	printf("Error: System failure.\n");
 	    	exit(1);
@@ -298,11 +290,13 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 	    	i++;
 	    }
 	    list_destroy(list);
+	    fclose(queryFile);
 	    return dataP;
 	}
 	else
 	{
 		printf("Error: Incorrect query file.\n");
+		fclose(queryFile);
 		return NULL;
 	}
 }
@@ -317,6 +311,18 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 	double *distance,*dLSH=NULL,*dTrue=NULL;
 	uint64_t idLSH,idQ,id,idTrue;
 	time_t startLSH,endLSH,startTrue,endTrue;
+
+	g = malloc(L*sizeof(HashDescriptor));
+	if(g == NULL){
+		perror("Failed to allocate memory for hash function descriptos array");
+		exit(2);
+	}
+
+	H = malloc(L*sizeof(HashTable));
+	if(H == NULL){
+		perror("Failed to allocate memory for hash table array");
+		exit(3);
+	}
 	
 	if((outputFile=fopen(outputFilePath,"w"))==NULL)
 	{
@@ -552,7 +558,8 @@ int main(int argc,char* argv[])
 		printf("Wrong number of arguements\n");
 		return 1;
 	}
-	Data* input,query;
+	Data* input;
+	Data* query;
 	unsigned int n,L=5,k=4,q;
 	double r;
 	char metric = 'h';
@@ -573,6 +580,7 @@ int main(int argc,char* argv[])
     {
 	    printf("Query failure.\n");
 	}
-	evalOutput(argv[3],metric,L,k,n,input,q,query,r); 
+	evalOutput(argv[3],metric,L,k,n,input,q,query,r);
+	readLine(NULL);
 	return 0;
 }
