@@ -495,17 +495,10 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    	}
 		    	else
 		    	{
-				    if(counter>threshold)
+		    		if(*distance<*dLSH)
 		    		{
-		    			break;
-		    		}
-		    		else
-		    		{
-		    		    if(*distance<*dLSH)
-		    		    {
-		    		    	*dLSH=*distance;
-		    		    	idLSH=data_getID(next);
-		    		    }
+		    		    *dLSH=*distance;
+		    		    idLSH=data_getID(next);
 		    		}
 		    	}
 		    }
