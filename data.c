@@ -61,6 +61,7 @@ unsigned int cosine_data_get_dimention(){
 /*--------------MATRIX DATA------------*/
 typedef struct MatrixData{
 	uint64_t id;
+	unsigned int* distances;
 }MatrixData;
 
 static unsigned int** matrix_distance_matrix = NULL;
@@ -354,6 +355,8 @@ Data matrix_data_create(char* itemID){
 		i++;
 	}
 
+	retVal->mData->distances = NULL;
+
 	return retVal;
 }
 
@@ -367,7 +370,10 @@ void data_destroy(Data d){
 		free(d->cData->vector);
 		free(d->cData);
 	}
-	else if(d->mData) free(d->mData);
+	else if(d->mData){
+		if(d->mData->distances) free(d->mData->distances);
+		free(d->mData);
+	}
 
 	free(d);
 }
@@ -378,7 +384,7 @@ void* data_distance(Data a,Data b){
 
 	if(a->hData){
 		if(b->hData == NULL){
-			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
 			return NULL;
 		}
 
@@ -391,7 +397,7 @@ void* data_distance(Data a,Data b){
 	}
 	else if(a->eData){
 		if(b->eData == NULL){
-			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
 			return NULL;
 		}
 
@@ -405,7 +411,7 @@ void* data_distance(Data a,Data b){
 	}
 	else if(a->cData){
 		if(b->cData == NULL){
-			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
 			return NULL;
 		}
 
@@ -419,7 +425,7 @@ void* data_distance(Data a,Data b){
 	}
 	else if(a->mData){
 		if(b->mData == NULL){
-			fprintf(stderr,"Could not calculate sitance: Data types of a and b are incompatible\n");
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
 			return NULL;
 		}
 
@@ -649,8 +655,30 @@ void data_set_distance_matrix(unsigned int** distanceMatrix,unsigned int n){
 	matrix_distance_matrix_size = n;
 }
 
-unsigned int data_getIdDistance(uint64_t a,uint64_t b){
-	return matrix_distance_matrix[a][b];
+void* data_getIdDistance(uint64_t a,uint64_t b){
+	static unsigned int uDist = 0;
+	static double dDist = 0.0;
+	if(hamming_distance_matrix){
+		uDist = hamming_distance_matrix[a][b];
+		return &uDist;
+	}
+	else if(euclidean_distance_matrix){
+		dDist = euclidean_distance_matrix[a][b];
+		return &dDist;
+	}
+	else if(cosine_distance_matrix){
+		dDist = cosine_distance_matrix[a][b];
+		return &dDist;
+	}
+	else if (matrix_distance_matrix){
+		uDist = matrix_distance_matrix[a][b];
+		return &uDist;
+	}
+	else{/*Should never happen*/
+		fprintf(stderr,"Unexpected error in data_getIdDistance\n");
+		fprintf(stderr,"Maybe distance matrix was not set/created\n");
+		exit(11);
+	}
 }
 
 uint64_t data_getID(Data d){
@@ -658,4 +686,99 @@ uint64_t data_getID(Data d){
 	if(d->eData) return d->eData->id;
 	if(d->cData) return d->cData->id;
 	if(d->mData) return d->mData->id;
+}
+
+Data hamming_query_create(char* itemString){
+	return hamming_data_create(itemString);
+}
+
+Data euclidean_query_create(char* itemString){
+	return euclidean_data_create(itemString);
+}
+
+Data cosine_query_create(char* itemString){
+	return cosine_data_create(itemString);
+}
+
+Data matrix_query_create(char* itemString){
+	char* itemID = strtok(itemString," \t\n");
+	Data retVal = matrix_data_create(itemID);
+	if(retVal == NULL) return NULL;
+
+	retVal->mData->distances = malloc(matrix_distance_matrix_size*sizeof(unsigned int));
+	if(retVal->mData->distances == NULL){
+		perror("Failed to allocate memory for matrix query distances");
+		data_destroy(retVal);
+		return NULL;
+	}
+
+	char* token;
+	unsigned int i;
+	for(i=0;i<matrix_distance_matrix;i++){
+		token = strtok(NULL," \t\n");
+		if(token == NULL) break;
+
+		retVal->mData->distances[i] = atoi(token);
+	}
+
+	return retVal;
+}
+
+void* general_distance(Data a,Data b){
+	static unsigned int uRetVal;
+	static double dRetVal;
+
+	if(a->hData){
+		if(b->hData == NULL){
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		uRetVal = hamming_data_distance(a->hData,b->hData);
+
+		return &uRetVal;
+	}
+	else if(a->eData){
+		if(b->eData == NULL){
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		dRetVal = euclidean_data_distance(a->eData,b->eData);
+
+		return &dRetVal;
+
+	}
+	else if(a->cData){
+		if(b->cData == NULL){
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		dRetVal = cosine_data_distance(a->cData,b->cData);
+
+		return &dRetVal;
+
+	}
+	else if(a->mData){
+		if(b->mData == NULL){
+			fprintf(stderr,"Could not calculate distance: Data types of a and b are incompatible\n");
+			return NULL;
+		}
+
+		if(matrix_distance_matrix == NULL){
+			fprintf(stderr,"Can't calculate distance on matrix Data without a distance matrix\n");
+			return NULL;
+		}
+
+		if(a->mData->distances) uRetVal = a->mData->distances[b->mData->id];
+		else if(b->mData->distances) uRetVal = b->mData->distances[a->mData->id];
+		else uRetVal = matrix_distance_matrix[a->mData->id][b->mData->id];
+
+		return &uRetVal;
+	}
+	else{
+		fprintf(stderr,"Invalid Data given on data_distance\n");
+		return NULL;
+	}
 }

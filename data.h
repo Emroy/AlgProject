@@ -128,11 +128,24 @@ void data_destroy_distance_matrix();
   CAUTION: if more than one distance matrices are created, there
   is no guarantee that the first one created will be the first deleted.*/
 
-unsigned int data_getIdDistance(uint64_t a,uint64_t b);
+void* data_getIdDistance(uint64_t a,uint64_t b);
 /*get the distance between data with id a and data with id b.
-  Currently works only for matrix data.
-  If data_set_distance_matrix was not called before this function
-  the behavior is undefined.*/
+  Returns an unsigned int* for hamming and matrix metrics
+  or a double* for euclidean and cosine metrics.
+  If data_set_distance_matrix or data_create_distance_matrix
+  were not called before this function, or multiple calls of
+  said functions were made, the behavior is undefined.*/
 
 uint64_t data_getID(Data d);
+
+Data hamming_query_create(char* itemString);
+
+Data euclidean_query_create(char* itemString);
+
+Data cosine_query_create(char* itemString);
+
+Data matrix_query_create(char* itemString);
+
+void* general_distance(Data a,Data b);
+/*Works for both queries and data*/
 #endif

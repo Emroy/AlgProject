@@ -121,17 +121,25 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 	else if(hd->matrix != NULL){
 		if(!is_matrix_data(x)){
 			fprintf(stderr,"Incompatible hash function and data metrics\n");
+			if(is_euclidean_data(x)) fprintf(stderr,"Is euclidean\n");
+			if(is_cosine_data(x)) fprintf(stderr,"Is cosine\n");
+			if(is_matrix_data(x)) fprintf(stderr, "Is matrix\n");
+			if(is_hamming_data(x)) fprintf(stderr,"Is hamming\n");
 			exit(-10);
 		}
 
-		unsigned int data = matrix_data_get_id(x);
+		unsigned int data = matrix_data_get_id(x)-1;
 		int i;
 		for(i=0;i<hd->matrix->k;i++){
-			unsigned long int temp = data_getIdDistance(data,hd->matrix->x1[i]);
+			unsigned int* dist = data_getIdDistance(data,hd->matrix->x1[i]);
+			unsigned long int temp = *dist;
 			temp = temp*temp;
-			temp += data_getIdDistance(data,hd->matrix->x2[i])*data_getIdDistance(data,hd->matrix->x2[i]);
-			temp -= data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i])*data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
-			double h = (double)temp/(2*data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]));
+			dist = data_getIdDistance(data,hd->matrix->x2[i]);
+			temp += (*dist)*(*dist);
+			dist = data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
+			temp -= (*dist)*(*dist);
+			dist = data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
+			double h = (double)temp/(2*(*dist));
 			if(h >= hd->matrix->t1[i]) retVal+=1;
 			retVal << 1;
 		}
@@ -351,9 +359,9 @@ void cosine_hash_destroy(HashDescriptor hd){
 
 /*--------------------------MATRIX-----------------------*/
 int comparator(const void* p1,const void* p2){
-	double* d1 = p1;
-	double* d2 = p2;
-	return (*d1)-(*d2);
+	if(*(unsigned int*)p1 < *(unsigned int*)p2) return -1;
+	if(*(unsigned int*)p1 == *(unsigned int*)p2) return 0;
+	if(*(unsigned int*)p1 > *(unsigned int*)p2) return 1;
 }
 
 HashDescriptor matrix_hash_create(int k,int n){
@@ -419,11 +427,15 @@ HashDescriptor matrix_hash_create(int k,int n){
 		perror("Failed to allocate memory for temporary array in matrix hash create");
 		return NULL;
 	}
+	unsigned int* dist;
 	for(i=0;i<k;i++){
-		x1x2_dist = (double)(data_getIdDistance(retVal->matrix->x1[i],retVal->matrix->x2[i]));
+		dist = data_getIdDistance(retVal->matrix->x1[i],retVal->matrix->x2[i]);
+		x1x2_dist = (double)(*dist);
 		for(j=0;j<n;j++){
-			temp = (double)(data_getIdDistance(j,retVal->matrix->x1[i]))*(double)(data_getIdDistance(j,retVal->matrix->x1[i]));
-			temp += (double)(data_getIdDistance(j,retVal->matrix->x2[i]))*(double)(data_getIdDistance(j,retVal->matrix->x2[i]));
+			dist = data_getIdDistance(j,retVal->matrix->x1[i]);
+			temp = (double)(*dist)*(double)(*dist);
+			dist = data_getIdDistance(j,retVal->matrix->x2[i]);
+			temp += (double)(*dist)*(double)(*dist);
 			temp -= x1x2_dist*x1x2_dist;
 			temp = temp / 2*x1x2_dist;
 			hsum[j] = temp;
