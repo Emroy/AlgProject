@@ -351,7 +351,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,int q,Data* queries,double r)
 {
 	FILE *outputFile;
-    int d,i,j,token=0,counter=1,*natural,*naturalLSH=NULL,*naturalTrue=NULL;
+    int d,i,j,token=0,counter=1,*natural,*naturalLSH=NULL,threshold=3*L,*naturalTrue=NULL;
 	HashDescriptor *g;
 	HashTable *H;
 	Data current,next;
@@ -519,8 +519,10 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    {
 		        hashTable_insert(H[j],queries[i]);
 		        current=queries[i];
+		        counter=0;
 		        while((next=hashTable_getNext(H[j],current))!=NULL)
 		        {
+		        	counter++;
 			        if((real=general_distance(current,next))==NULL)
 		    	    {
 		    		    printf("Error: Failure while writing in output file.\n");
@@ -542,10 +544,18 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    	    }
 		    	    else
 		    	    {
-		    		    if(*real<*realLSH)
-		    		    {
-		    		        *realLSH=*real;
-		    		        idLSH=data_getID(next);
+		    	    	if(counter>threshold)
+		    	    	{
+		    	    		j=L;
+		    	    		break;
+		    	    	}
+		    	    	else
+		    	    	{
+		    		        if(*real<*realLSH)
+		    		        {
+		    		            *realLSH=*real;
+		    		            idLSH=data_getID(next);
+		    		        }
 		    		    }
 		    	    }
 		    	    current=next;
@@ -603,8 +613,10 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    {
 		        hashTable_insert(H[j],queries[i]);
 		        current=queries[i];
+		        counter=0;
 		        while((next=hashTable_getNext(H[j],current))!=NULL)
 		        {
+		        	counter++;
 			        if((natural=general_distance(current,next))==NULL)
 		    	    {
 		    		    printf("Error: Failure while writing in output file.\n");
@@ -626,10 +638,18 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    	    }
 		    	    else
 		    	    {
-		    		    if(*natural<*naturalLSH)
-		    		    {
-		    		        *naturalLSH=*natural;
-		    		        idLSH=data_getID(next);
+		    	    	if(counter>threshold)
+		    	    	{
+		    	    		j=L;
+		    	    		break;
+		    	    	}
+		    	    	else
+		    	    	{
+		    		        if(*natural<*naturalLSH)
+		    		        {
+		    		            *naturalLSH=*natural;
+		    		            idLSH=data_getID(next);
+		    		        }
 		    		    }
 		    	    }
 		    	    current=next;
