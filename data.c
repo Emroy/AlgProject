@@ -511,9 +511,10 @@ void data_create_distance_matrix(Data* data,unsigned int n){
 			for(j=0;j<n;j++){
 				if(i == j){
 					cosine_distance_matrix[i][j] = 0.0;
-					continue;
 				}
-				cosine_distance_matrix[i][j] = cosine_data_distance(data[i]->cData,data[j]->cData);
+				else{
+					cosine_distance_matrix[i][j] = cosine_data_distance(data[i]->cData,data[j]->cData);
+				}
 			}
 
 		cosine_distance_matrix_size = n;
@@ -541,9 +542,11 @@ void data_destroy_distance_matrix(){
 		free(cosine_distance_matrix);
 		cosine_distance_matrix = NULL;
 	}
-	/*else if(matrix_distance_matrix){
-
-	}*/
+	else if(matrix_distance_matrix){
+		for(i=0;i<matrix_distance_matrix_size;i++) free(matrix_distance_matrix[i]);
+		free(matrix_distance_matrix);
+		matrix_distance_matrix = NULL;
+	}
 	else
 		fprintf(stderr,"No distance matrices were created\n");
 }
@@ -641,8 +644,9 @@ unsigned int matrix_data_get_id(Data d){
 	return d->mData->id;
 }
 
-void data_set_distance_matrix(unsigned int** distanceMatrix){
+void data_set_distance_matrix(unsigned int** distanceMatrix,unsigned int n){
 	matrix_distance_matrix = distanceMatrix;
+	matrix_distance_matrix_size = n;
 }
 
 unsigned int data_getIdDistance(uint64_t a,uint64_t b){

@@ -141,7 +141,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
 		list_destroy(l);
 
 		data_create_distance_matrix(dataArray,*n);
-		
+
 		fclose(inputFile);
 		return dataArray;
 	}
@@ -222,7 +222,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
 			i++;
 		}
 
-		data_set_distance_matrix(distance_matrix);
+		data_set_distance_matrix(distance_matrix,(*n));
 
 		list_destroy(l);
 		fclose(inputFile);
@@ -505,6 +505,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 	{
 	    for(j=0;j<=L-1;j++)
 		{
+			//if(matrix_data_get_id(input[i])>=n) fprintf(stderr,"Problem\n");
 			hashTable_insert(H[j],input[i]);
 		}
 	}

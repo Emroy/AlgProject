@@ -118,7 +118,7 @@ void data_create_distance_matrix(Data* data,unsigned int n);
   Euclidean Elements
   Cosine Elements*/
 
-void data_set_distance_matrix(unsigned int** distanceMatrix);
+void data_set_distance_matrix(unsigned int** distanceMatrix,unsigned int n);
 /*Set distance matrix as the distance matrix for matrix metric.
   Work as*/
 

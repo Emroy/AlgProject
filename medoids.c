@@ -320,36 +320,43 @@ ConfParams* evalConf(char* confFilePath,unsigned int n)
 	return params;
 }
 
-void aplly_kMedoids(int mode){
+Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n){
 	/*CLARA*/
-	if(mode & 0x8){
-		/*CLARA*/
-		return;
+	if(mode == 9){
+		 return clara(conf->k,n);
 	}
 
+	Medoids currentMedoids;
+	Medoids previousMedoids = NULL;
 	/*Initialization*/
 	if(mode & 0x4){
-		/*Concentrate(Park-Jun)*/
+		currentMedoids = park_Jun(conf->k,n);
 	}
 	else{
-		/*K-medoids++*/
+		currentMedoids = k_MedoidsPP(conf->k,n);
 	}
 
-	/*Assignment*/
-	if(mode & 0x2){
-		/*LSH/DBH*/
-	}
-	else{
-		/*PAM*/
-	}
+	do{
+		/*Assignment*/
+		if(mode & 0x2){
+			lsh_dbh(currentMedoids,n,conf->hashFuncNum,conf->hashTableNum);
+		}
+		else{
+			pam(currentMedoids,n);
+		}
 
-	/*Update*/
-	if(mode & 0x1){
-		/*CLARANS*/
-	}
-	else{
-		/*Lloyd's*/
-	}
+		if(previousMedoids) medoids_destroy(previousMedoids);
+		previousMedoids = currentMedoids
+		/*Update*/
+		if(mode & 0x1){
+			currentMedoids = clarans(currentMedoids,n,conf->claransIter,conf->claransFrac);
+		}
+		else{
+			currentMedoids = lloyds(currentMedoids,n);
+		}
+	}while(!medoids_areSame(currentMedoids,previousMedoids));
+
+	return currentMedoids;
 }
 
 void outputResults(char* outFilePath){
@@ -374,7 +381,6 @@ int main(int argc,char* argv[])
 		if(!strcmp(argv[i],"-d")){
 			i++;
 			evalInput(argv[i],&n,&metric);
-			/*create distance matrix*/
 		}
 		else if(!strcmp(argv[i],"-c")){
 			i++;
@@ -404,8 +410,9 @@ int main(int argc,char* argv[])
 		outFilePath = "./outFile";
 	}
 	
+	Medoids medoids;
 	for(i=0;i<=9;i++){
-		aplly_kMedoids(i);
+		medoids = aplly_kMedoids(i);
 	}
 
 	outputResults(outFilePath);
