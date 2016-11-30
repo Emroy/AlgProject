@@ -9,19 +9,39 @@ struct MedoidData{
 };
 
 /*INITIALIZATIONS*/
-Medoids k_MedoidsPP(unsigned int k,unsigned int n){
-	Medoids retVal = malloc(sizeof(struct MedoidData));
-	if(retVal == NULL){
+Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
+{
+	int counter=1,*Dint;
+	double *Ddouble;
+	Medoids retVal;
+	
+	if((k<=0)||(n<=0))
+	{
+	    printf("Error: Invalid data.\n");
+	    exit(1);
+	}
+	if((retVal=malloc(sizeof(struct MedoidData)))==NULL)
+	{
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
-
-	retVal->k = k;
+	retVal->k=k;
 	retVal->medoids = malloc(k*sizeof(unsigned int));
 	if(retVal->medoids == NULL){
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
+	retVal->medoids[0]=integerUniform(n);
+	if((metric=='e')||(metric=='c'))
+	{
+		if((Ddouble=malloc(n*sizeof(double)))==NULL)
+		{
+			printf("Error: System failure.\n");
+			exit(1);
+		}
+	    while(counter<=k-1)
+	    {
+	    	for
 }
 
 Medoids park_Jun(unsigned int k,unsigned int n){

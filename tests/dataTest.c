@@ -273,7 +273,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
-	                data=euclidean_data_create(line);
+	                data=euclidean_query_create(line);
 	                list_pushEnd(list,data);
 	            }
 	            break;
@@ -287,7 +287,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
-	                data=cosine_data_create(line);
+	                data=cosine_query_create(line);
 	                list_pushEnd(list,data);
 	            }
 	            break;
@@ -301,7 +301,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
-	                data=hamming_data_create(line);
+	                data=hamming_query_create(line);
 	                list_pushEnd(list,data);
 	            }
 	            break;
@@ -315,7 +315,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 	                    return NULL;
 	                }
 	                if(line[0]=='\0') break;
-	                data=matrix_data_create(line);
+	                data=matrix_query_create(line);
 	                list_pushEnd(list,data);
 	            }
 	            break;
@@ -513,7 +513,6 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 	{
 		fprintf(outputFile,"\nQuery: item%d\n",i+1);
 		fprintf(outputFile,"R-near neighbors:\n");
-		counter=0;
 		startLSH=time(NULL);
 		for(j=0;j<=L-1;j++)
 		{
@@ -521,8 +520,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    current=queries[i];
 		    while((next=hashTable_getNext(H[j],current))!=NULL)
 		    {
-		    	counter++;
-		    	if((distance=data_distance(current,next))==NULL)
+			    if((distance=general_distance(current,next))==NULL)
 		    	{
 		    		printf("Error: Failure while writing in output file.\n");
 		    		return;
@@ -560,7 +558,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		{
 			if((id=data_getID(input[j]))!=idQ)
 			{
-				if((distance=data_distance(queries[i],input[j]))==NULL)
+				if((distance=general_distance(queries[i],input[j]))==NULL)
 		    	{
 		    		printf("Error: Failure while writing in output file.\n");
 		    		return;
