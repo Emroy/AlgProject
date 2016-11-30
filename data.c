@@ -714,7 +714,7 @@ Data matrix_query_create(char* itemString){
 
 	char* token;
 	unsigned int i;
-	for(i=0;i<matrix_distance_matrix;i++){
+	for(i=0;i<matrix_distance_matrix_size;i++){
 		token = strtok(NULL," \t\n");
 		if(token == NULL) break;
 
