@@ -351,11 +351,11 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric,unsigned int *q)
 void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,int q,Data* queries,double r)
 {
 	FILE *outputFile;
-    int d,i,j,token=0,counter=1,threshold=3*L;
+    int d,i,j,token=0,counter=1,*natural,*naturalLSH=NULL,*naturalTrue=NULL;
 	HashDescriptor *g;
 	HashTable *H;
 	Data current,next;
-	double *distance,*dLSH=NULL,*dTrue=NULL;
+	double *real,*realLSH=NULL,*realTrue=NULL;
 	uint64_t idLSH,idQ,id,idTrue;
 	time_t startLSH,endLSH,startTrue,endTrue;
 
@@ -505,89 +505,176 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 	{
 	    for(j=0;j<=L-1;j++)
 		{
-			//if(matrix_data_get_id(input[i])>=n) fprintf(stderr,"Problem\n");
 			hashTable_insert(H[j],input[i]);
 		}
 	}
-	for(i=0;i<=q-1;i++)
+	if((metric=='e')||(metric=='c'))
 	{
-		fprintf(outputFile,"\nQuery: item%d\n",i+1);
-		fprintf(outputFile,"R-near neighbors:\n");
-		startLSH=time(NULL);
-		for(j=0;j<=L-1;j++)
-		{
-		    hashTable_insert(H[j],queries[i]);
-		    current=queries[i];
-		    while((next=hashTable_getNext(H[j],current))!=NULL)
+	    for(i=0;i<=q-1;i++)
+	    {
+		    fprintf(outputFile,"\nQuery: item%d\n",i+1);
+		    fprintf(outputFile,"R-near neighbors:\n");
+		    startLSH=time(NULL);
+		    for(j=0;j<=L-1;j++)
 		    {
-			    if((distance=general_distance(current,next))==NULL)
-		    	{
-		    		printf("Error: Failure while writing in output file.\n");
-		    		return;
-		    	}
-		    	if(*distance<r)
-		    	{
-		    		fprintf(outputFile,"item%lu\n",data_getID(next));
-		    	}
-		    	if(dLSH==NULL)
-		    	{
-		    		if((dLSH=realloc(NULL,sizeof(double)))==NULL)
-		    		{
-		    			printf("Error: Failure while writing in output file.\n");
+		        hashTable_insert(H[j],queries[i]);
+		        current=queries[i];
+		        while((next=hashTable_getNext(H[j],current))!=NULL)
+		        {
+			        if((real=general_distance(current,next))==NULL)
+		    	    {
+		    		    printf("Error: Failure while writing in output file.\n");
 		    		    return;
 		    	    }
-		    		*dLSH=*distance;
-		    		idLSH=data_getID(next);
-		    	}
-		    	else
-		    	{
-		    		if(*distance<*dLSH)
-		    		{
-		    		    *dLSH=*distance;
+		    	    if(*real<r)
+		    	    {
+		    		    fprintf(outputFile,"item%lu\n",data_getID(next));
+		    	    }
+		    	    if(realLSH==NULL)
+		    	    {
+		    		    if((realLSH=realloc(NULL,sizeof(double)))==NULL)
+		    		    {
+		    			    printf("Error: Failure while writing in output file.\n");
+		    		        return;
+		    	        }
+		    		    *realLSH=*real;
 		    		    idLSH=data_getID(next);
-		    		}
-		    	}
+		    	    }
+		    	    else
+		    	    {
+		    		    if(*real<*realLSH)
+		    		    {
+		    		        *realLSH=*real;
+		    		        idLSH=data_getID(next);
+		    		    }
+		    	    }
+		    	    current=next;
+		        }
 		    }
-		}
-		endLSH=time(NULL);
-		fprintf(outputFile,"Nearest neighbor(LSH): item%lu\n",idLSH);
-		fprintf(outputFile,"distanceLSH: %f\n",*dLSH);
-		idQ=data_getID(queries[i]);
-		startTrue=time(NULL);
-		for(j=0;j<=n-1;j++)
-		{
-			if((id=data_getID(input[j]))!=idQ)
-			{
-				if((distance=general_distance(queries[i],input[j]))==NULL)
-		    	{
-		    		printf("Error: Failure while writing in output file.\n");
-		    		return;
-		    	}
-				if(dTrue==NULL)
-				{
-					if((dTrue=realloc(NULL,sizeof(double)))==NULL)
-		    		{
-		    			printf("Error: Failure while writing in output file.\n");
+		    endLSH=time(NULL);
+		    fprintf(outputFile,"Nearest neighbor(LSH): item%lu\n",idLSH);
+	 	    fprintf(outputFile,"distanceLSH: %f\n",*realLSH);
+		    idQ=data_getID(queries[i]);
+		    startTrue=time(NULL);
+		    for(j=0;j<=n-1;j++)
+		    {
+			    if((id=data_getID(input[j]))!=idQ)
+			    {
+				    if((real=general_distance(queries[i],input[j]))==NULL)
+		    	    {
+		    		    printf("Error: Failure while writing in output file.\n");
 		    		    return;
 		    	    }
-		    		*dTrue=*distance;
-		    		idTrue=id;
-		    	}
-		    	else
-		    	{
-		    		if(*distance<*dTrue)
-		    		{
-		    			*dTrue=*distance;
-		    			idTrue=id;
-		    		}
-		    	}
+				    if(realTrue==NULL)
+				    {
+					    if((realTrue=realloc(NULL,sizeof(double)))==NULL)
+		    		    {
+		    			    printf("Error: Failure while writing in output file.\n");
+		    		        return;
+		    	        }
+		    		    *realTrue=*real;
+		    		    idTrue=id;
+		    	    }
+		    	    else
+		    	    {
+		    		    if(*real<*realTrue)
+		    		    {
+		    			    *realTrue=*real;
+		    			    idTrue=id;
+		    		    }
+		    	    }
+		        }
 		    }
-		}
-		endTrue=time(NULL);
-		fprintf(outputFile,"Nearest neighbor(True): item%lu\n",idTrue);
-		fprintf(outputFile,"distanceTrue: %f\n",*dTrue);
-		fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
-		fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
+		    endTrue=time(NULL);
+		    fprintf(outputFile,"Nearest neighbor(True): item%lu\n",idTrue);
+		    fprintf(outputFile,"distanceTrue: %f\n",*realTrue);
+		    fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
+		    fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
+	    }
+	}
+	else
+	{
+	    for(i=0;i<=q-1;i++)
+	    {
+		    fprintf(outputFile,"\nQuery: item%d\n",i+1);
+		    fprintf(outputFile,"R-near neighbors:\n");
+		    startLSH=time(NULL);
+		    for(j=0;j<=L-1;j++)
+		    {
+		        hashTable_insert(H[j],queries[i]);
+		        current=queries[i];
+		        while((next=hashTable_getNext(H[j],current))!=NULL)
+		        {
+			        if((natural=general_distance(current,next))==NULL)
+		    	    {
+		    		    printf("Error: Failure while writing in output file.\n");
+		    		    return;
+		    	    }
+		    	    if((double)(*natural)<r)
+		    	    {
+		    		    fprintf(outputFile,"item%lu\n",data_getID(next));
+		    	    }
+		    	    if(naturalLSH==NULL)
+		    	    {
+		    		    if((naturalLSH=realloc(NULL,sizeof(int)))==NULL)
+		    		    {
+		    			    printf("Error: Failure while writing in output file.\n");
+		    		        return;
+		    	        }
+		    		    *naturalLSH=*natural;
+		    		    idLSH=data_getID(next);
+		    	    }
+		    	    else
+		    	    {
+		    		    if(*natural<*naturalLSH)
+		    		    {
+		    		        *naturalLSH=*natural;
+		    		        idLSH=data_getID(next);
+		    		    }
+		    	    }
+		    	    current=next;
+		        }
+		    }
+		    endLSH=time(NULL);
+		    fprintf(outputFile,"Nearest neighbor(LSH): item%lu\n",idLSH);
+	 	    fprintf(outputFile,"distanceLSH: %d\n",*naturalLSH);
+		    idQ=data_getID(queries[i]);
+		    startTrue=time(NULL);
+		    for(j=0;j<=n-1;j++)
+		    {
+			    if((id=data_getID(input[j]))!=idQ)
+			    {
+				    if((natural=general_distance(queries[i],input[j]))==NULL)
+		    	    {
+		    		    printf("Error: Failure while writing in output file.\n");
+		    		    return;
+		    	    }
+				    if(naturalTrue==NULL)
+				    {
+					    if((naturalTrue=realloc(NULL,sizeof(int)))==NULL)
+		    		    {
+		    			    printf("Error: Failure while writing in output file.\n");
+		    		        return;
+		    	        }
+		    		    *naturalTrue=*natural;
+		    		    idTrue=id;
+		    	    }
+		    	    else
+		    	    {
+		    		    if(*natural<*naturalTrue)
+		    		    {
+		    			    *naturalTrue=*natural;
+		    			    idTrue=id;
+		    		    }
+		    	    }
+		        }
+		    }
+		    endTrue=time(NULL);
+		    fprintf(outputFile,"Nearest neighbor(True): item%lu\n",idTrue);
+		    fprintf(outputFile,"distanceTrue: %d\n",*naturalTrue);
+		    fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
+		    fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
+	    }
 	}
 }
 
