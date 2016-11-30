@@ -34,8 +34,8 @@ typedef struct CosineDesc{
 typedef struct MatrixDesc{
 	unsigned int** distanceMatrix;
 	int n;
-	int* x1;
-	int* x2;
+	uint64_t* x1;
+	uint64_t* x2;
 	double* t1; /*mesos apo h gia ola ta shmeia*/
 	int k;
 } MatrixDescriptor;
@@ -127,11 +127,11 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 		unsigned int data = matrix_data_get_id(x);
 		int i;
 		for(i=0;i<hd->matrix->k;i++){
-			unsigned long int temp = hd->matrix->distanceMatrix[data][hd->matrix->x1[i]];
+			unsigned long int temp = data_getIdDistance(data,hd->matrix->x1[i]);
 			temp = temp*temp;
-			temp += hd->matrix->distanceMatrix[data][hd->matrix->x2[i]]*hd->matrix->distanceMatrix[data][hd->matrix->x2[i]];
-			temp -= hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]]*hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]];
-			double h = (double)temp/(2*hd->matrix->distanceMatrix[hd->matrix->x1[i]][hd->matrix->x2[i]]);
+			temp += data_getIdDistance(data,hd->matrix->x2[i])*data_getIdDistance(data,hd->matrix->x2[i]);
+			temp -= data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i])*data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
+			double h = (double)temp/(2*data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]));
 			if(h >= hd->matrix->t1[i]) retVal+=1;
 			retVal << 1;
 		}
@@ -217,10 +217,20 @@ HashDescriptor euclidean_hash_create(int d,int k,int n){
 		return NULL;
 	}
 
+	retVal->euclidean->r = malloc(k*sizeof(int));
+	if(retVal->euclidean->r == NULL){
+		perror("Failed to allocate memory for random values for new Euclidean HashDescriptor");
+		free(retVal->euclidean->t);
+		free(retVal->euclidean);
+		free(retVal);
+		return NULL;
+	}
+
 	retVal->euclidean->v = malloc(sizeof(float*)*k);
 	if(retVal->euclidean->v == NULL){
 		perror("Failed to allocate memory for random vectors for new Euclidean HashDescriptor");
 		free(retVal->euclidean->t);
+		free(retVal->euclidean->r);
 		free(retVal->euclidean);
 		free(retVal);
 		return NULL;
@@ -270,6 +280,7 @@ void euclidean_hash_destroy(HashDescriptor hd){
 	for(i=0;i<hd->euclidean->k;i++) free(hd->euclidean->v[i]);
 	free(hd->euclidean->v);
 	free(hd->euclidean->t);
+	free(hd->euclidean->r);
 	free(hd->euclidean);
 	free(hd);
 	hd=NULL;
@@ -339,6 +350,12 @@ void cosine_hash_destroy(HashDescriptor hd){
 }
 
 /*--------------------------MATRIX-----------------------*/
+int comparator(const void* p1,const void* p2){
+	double* d1 = p1;
+	double* d2 = p2;
+	return (*d1)-(*d2);
+}
+
 HashDescriptor matrix_hash_create(int k,int n){
 	HashDescriptor retVal = malloc(sizeof(struct HashDesc));
 	if(retVal == NULL){
@@ -360,7 +377,7 @@ HashDescriptor matrix_hash_create(int k,int n){
 	retVal->matrix->n = n;
 	retVal->matrix->k = k;
 
-	retVal->matrix->x1 = malloc(sizeof(int)*k);
+	retVal->matrix->x1 = malloc(sizeof(uint64_t)*k);
 	if(retVal->matrix->x1 == NULL){
 		perror("Failed to allocate memory for random values x1 for matrix HashDescriptor");
 		free(retVal->matrix);
@@ -368,7 +385,7 @@ HashDescriptor matrix_hash_create(int k,int n){
 		return NULL;
 	}
 
-	retVal->matrix->x2 = malloc(sizeof(int)*k);
+	retVal->matrix->x2 = malloc(sizeof(uint64_t)*k);
 	if(retVal->matrix->x2 == NULL){
 		perror("Failed to allocate memory for random values x2 for matrix HashDescriptor");
 		free(retVal->matrix->x1);
@@ -389,27 +406,34 @@ HashDescriptor matrix_hash_create(int k,int n){
 
 	int i;
 	for(i=0;i<k;i++){
-		retVal->matrix->x1[i] = integerUniform(n);
+		retVal->matrix->x1[i] = (uint64_t)integerUniform(n);
 		do{
-			retVal->matrix->x2[i] = integerUniform(n);
+			retVal->matrix->x2[i] = (uint64_t)integerUniform(n);
 		}while(retVal->matrix->x1[i] == retVal->matrix->x2[i]);
 	}
 
 	int j;
-	double temp,x1x2_dist,hsum;
+	double temp,x1x2_dist;
+	double* hsum = malloc(n*sizeof(double));
+	if(hsum == NULL){
+		perror("Failed to allocate memory for temporary array in matrix hash create");
+		return NULL;
+	}
 	for(i=0;i<k;i++){
 		x1x2_dist = (double)(data_getIdDistance(retVal->matrix->x1[i],retVal->matrix->x2[i]));
-		hsum = 0.0;
 		for(j=0;j<n;j++){
 			temp = (double)(data_getIdDistance(j,retVal->matrix->x1[i]))*(double)(data_getIdDistance(j,retVal->matrix->x1[i]));
 			temp += (double)(data_getIdDistance(j,retVal->matrix->x2[i]))*(double)(data_getIdDistance(j,retVal->matrix->x2[i]));
 			temp -= x1x2_dist*x1x2_dist;
 			temp = temp / 2*x1x2_dist;
-			hsum += temp;
+			hsum[j] = temp;
 		}
-		retVal->matrix->t1[i] = hsum / n;
+		qsort(hsum,k,sizeof(double),comparator);
+
+		retVal->matrix->t1[i] = hsum[n/2];
 	}
 
+	free(hsum);
 	return retVal;
 }
 

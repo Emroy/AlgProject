@@ -43,7 +43,7 @@ char* readLine(FILE* file){
 	return buffer;
 }
 
-Data* evalInput(const char* inputFilePath,unsigned int* n){
+Data* evalInput(const char* inputFilePath,unsigned int* n,char* metric){
 	FILE* inputFile = fopen(inputFilePath,"r");
 	if(inputFile == NULL){
 		perror("Failed to open input file");
@@ -64,8 +64,8 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 
 	token = strtok(NULL," \t\n");
-	char metric = 0;
-	if(!strcmp(token,"hamming")) metric = 'h';
+	*metric = 0;
+	if(!strcmp(token,"hamming")) *metric = 'h';
 	else if(!strcmp(token,"euclidean") || !strcmp(token,"vector")){
 		line = readLine(inputFile);
 		if(line == NULL){
@@ -81,15 +81,15 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		}
 
 		token = strtok(NULL," \t\n");
-		if(!strcmp(token,"euclidean")) metric = 'e';
-		else if(!strcmp(token,"cosine")) metric = 'c';
+		if(!strcmp(token,"euclidean")) *metric = 'e';
+		else if(!strcmp(token,"cosine")) *metric = 'c';
 		else{
 			fprintf(stderr,"Invalid metric \"%s\" given on input file.\n",token);
 			fclose(inputFile);
 			return NULL;
 		}
 	}
-	else if(!strcmp(token,"matrix")) metric = 'm';
+	else if(!strcmp(token,"matrix")) *metric = 'm';
 	else{
 		fprintf(stderr,"Invalid metric space \"%s\" given.\n",token);
 		fclose(inputFile);
@@ -97,7 +97,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 
 	/*Start reading and creating data*/
-	if(metric != 'm'){
+	if(*metric != 'm'){
 		List l = list_create();
 		/*must do something if list could not be created*/
 		while(!feof(inputFile)){
@@ -110,9 +110,9 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 			if(line[0]=='\0') break;
 
 			Data newData;
-			if(metric == 'h') newData = hamming_data_create(line);
-			else if(metric == 'e') newData = euclidean_data_create(line);
-			else if(metric == 'c') newData = cosine_data_create(line);
+			if(*metric == 'h') newData = hamming_data_create(line);
+			else if(*metric == 'e') newData = euclidean_data_create(line);
+			else if(*metric == 'c') newData = cosine_data_create(line);
 			else{/*This should never happen*/
 				fprintf(stderr,"Unexpected error while reading input file.\n");
 				fclose(inputFile);
@@ -139,10 +139,13 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 		}
 
 		list_destroy(l);
+
+		data_create_distance_matrix(dataArray,*n);
+		
 		fclose(inputFile);
 		return dataArray;
 	}
-	else if(metric == 'm'){
+	else if(*metric == 'm'){
 		line = readLine(inputFile);
 		if(line == NULL){
 			perror("Could not allocate memory to read next line of input file");
@@ -176,6 +179,50 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 			dataArray[i] = list_pop(l);
 			if(dataArray[i] == NULL) break;
 		}
+
+		unsigned int** distance_matrix = malloc((*n)*sizeof(unsigned int*));
+		if(distance_matrix == NULL){
+			perror("Failed to allocate memory for matrix distance matrix");
+			fclose(inputFile);
+			free(line);
+			line=NULL;
+			return NULL;
+		}
+		for(i=0;i<(*n);i++){
+			distance_matrix[i]=malloc((*n)*sizeof(unsigned int));
+			if(distance_matrix[i]==NULL){
+				perror("Failed to allocate memory for matrix distance matrix");
+				fclose(inputFile);
+				free(line);
+				line=NULL;
+				unsigned int j;
+				for(j=i-1;j>=0;j--) free(distance_matrix[j]);
+				free(distance_matrix);
+				return NULL;
+			}
+		}
+
+		i=0;
+		while(!feof(inputFile)){
+			line = readLine(inputFile);
+			if(line == NULL){
+				perror("Could not allocate memory to read next line of input file");
+				fclose(inputFile);
+				return NULL;
+			}
+			if(line[0]=='\0') break;
+
+			token = strtok(line," \n\t");
+			unsigned int j = 0;
+			while(token){
+				distance_matrix[i][j] = atoi(token);
+				token = strtok(NULL," \t\n");
+				j++;
+			}
+			i++;
+		}
+
+		data_set_distance_matrix(distance_matrix);
 
 		list_destroy(l);
 		fclose(inputFile);
@@ -555,9 +602,9 @@ int main(int argc,char* argv[])
 	Data* query;
 	unsigned int n,L=5,k=4,q;
 	double r;
-	char metric = 'h';
+	char metric;
 	
-    if((input=evalInput(argv[1],&n))!=NULL)
+    if((input=evalInput(argv[1],&n,&metric))!=NULL)
     {
     	printf("Input success.\n");
     }
