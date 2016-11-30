@@ -202,7 +202,7 @@ Data* evalInput(const char* inputFilePath,unsigned int* n){
 	}
 }
 
-Data* evalQuery(const char* queryFilePath,double *r,char metric)
+Data* evalQuery(const char* queryFilePath,double *r,char metric,int *q)
 {
 	FILE *queryFile;
 	char *line,*symbols;
@@ -225,7 +225,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	if(!strcmp(symbols,"Radius:"))
 	{
 		symbols = strtok(NULL," \t\n");
-		*r = atoi(symbols);
+		*r = atof(symbols);
 		list=list_create();
 		switch(metric)
 		{
@@ -285,7 +285,8 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	        	printf("Error: Incorrect metric space.\n");
 	        	return NULL;
 	    }
-	    if((dataP=realloc(NULL,list_length(list)*sizeof(Data)))==NULL)
+	    *q=list_length(list);
+	    if((dataP=realloc(NULL,q*sizeof(Data)))==NULL)
 	    {
 	    	printf("Error: System failure.\n");
 	    	exit(1);
@@ -306,7 +307,7 @@ Data* evalQuery(const char* queryFilePath,double *r,char metric)
 	}
 }
 
-void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,int q,Data* queries,double r)
+void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,int q,Data* queries,double r)
 {
 	FILE *outputFile;
     int d,i,j,token=0,counter=1,threshold=3*L;
@@ -451,7 +452,7 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 	{
 	    for(j=0;j<=L-1;j++)
 		{
-			hashTable_insert(H[j],data[i]);
+			hashTable_insert(H[j],input[i]);
 		}
 	}
 	for(i=0;i<=q-1;i++)
@@ -510,9 +511,9 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 		startTrue=time(NULL);
 		for(j=0;j<=n-1;j++)
 		{
-			if((id=data_getID(data[j]))!=idQ)
+			if((id=data_getID(input[j]))!=idQ)
 			{
-				if((distance=data_distance(queries[i],data[j]))==NULL)
+				if((distance=data_distance(queries[i],input[j]))==NULL)
 		    	{
 		    		printf("Error: Failure while writing in output file.\n");
 		    		return;
@@ -547,22 +548,31 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* data,in
 
 int main(int argc,char* argv[])
 {
-	if(argc != 2){
+	if(argc != 4){
 		printf("Wrong number of arguements\n");
 		return 1;
 	}
-	Data* temp;
-	unsigned int n;
+	Data* input,query;
+	unsigned int n,L=5,k=4,q;
 	double r;
 	char metric = 'h';
-
-    if((temp=evalQuery(argv[1],&r,metric))!=NULL)
+	
+    if((input=evalInput(argv[1],&n))!=NULL)
     {
-    	printf("Success.\n");
+    	printf("Input success.\n");
     }
     else
     {
-	    printf("Failure.\n");
+	    printf("Input failure.\n");
 	}
+    if((query=evalQuery(argv[2],&r,metric,&q))!=NULL)
+    {
+    	printf("Query success.\n");
+    }
+    else
+    {
+	    printf("Query failure.\n");
+	}
+	evalOutput(argv[3],metric,L,k,n,input,q,query,r); 
 	return 0;
 }
