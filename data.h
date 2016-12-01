@@ -1,6 +1,7 @@
 #ifndef DATA_H
 #define DATA_H
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct GenData *Data;
 
@@ -148,4 +149,7 @@ Data matrix_query_create(char* itemString);
 
 void* general_distance(Data a,Data b);
 /*Works for both queries and data*/
+
+/*FOR DEBUG PURPOSES*/
+void data_print_distances(Data d,FILE* file);
 #endif

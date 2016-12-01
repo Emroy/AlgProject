@@ -22,6 +22,15 @@ typedef struct ConfParams{
 /*user should free the returned pointer after use*/
 char* readLine(FILE* file){
 	static char* buffer = NULL;
+
+	if(file == NULL){
+		if(buffer){
+			free(buffer);
+			buffer = NULL;
+		}
+		return NULL;
+	}
+
 	if(buffer != NULL){
 		free(buffer);
 		buffer = NULL;
@@ -62,8 +71,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 	if(strcmp("@metric_space",token)){
 		fprintf(stderr,"Invalid command \"%s\" given on input file\n",token);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
+		readLine(NULL);
 		return NULL;
 	}
 
@@ -82,8 +90,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		if(strcmp("@metric",token)){
 			fprintf(stderr,"Invalid command \"%s\" given for metric space euclidean on input file.\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
+			readLine(NULL);
 			return NULL;
 		}
 
@@ -97,8 +104,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		else{
 			fprintf(stderr,"Invalid metric \"%s\" given on input file.\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
+			readLine(NULL);
 			return NULL;
 		}
 	}
@@ -106,8 +112,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 	else{
 		fprintf(stderr,"Invalid metric space \"%s\" given.\n",token);
 		fclose(inputFile);
-		free(line);
-		line = NULL;
+		readLine(NULL);
 		return NULL;
 	}
 
@@ -131,8 +136,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 			else{/*This should never happen*/
 				fprintf(stderr,"Unexpected error while reading input file.\n");
 				fclose(inputFile);
-				free(line);
-				line = NULL;
+				readLine(NULL);
 				return NULL;
 			}
 
@@ -146,8 +150,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
-			free(line);
-			line = NULL;
+			readLine(NULL);
 			return NULL;
 		}
 
@@ -161,8 +164,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		data_create_distance_matrix(dataArray,*n);
 
 		fclose(inputFile);
-		free(line);
-		line = NULL;
+		readLine(NULL);
 		return dataArray;
 	}
 	else{
@@ -177,8 +179,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		if(strcmp(token,"@items")){
 			fprintf(stderr,"Invalid command \"%s\" given on matrix input file\n",token);
 			fclose(inputFile);
-			free(line);
-			line = NULL;
+			readLine(NULL);
 			return NULL;
 		}
 
@@ -193,8 +194,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		if(dataArray == NULL){
 			perror("Failed to allocate memory for data array");
 			fclose(inputFile);
-			free(line);
-			line = NULL;
+			readLine(NULL);
 			return NULL;
 		}
 
@@ -209,8 +209,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		if(distance_matrix == NULL){
 			perror("Failed to allocate memory for matrix distance matrix");
 			fclose(inputFile);
-			free(line);
-			line=NULL;
+			readLine(NULL);
 			return NULL;
 		}
 		for(i=0;i<(*n);i++){
@@ -218,8 +217,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 			if(distance_matrix[i]==NULL){
 				perror("Failed to allocate memory for matrix distance matrix");
 				fclose(inputFile);
-				free(line);
-				line=NULL;
+				readLine(NULL);
 				unsigned int j;
 				for(j=i-1;j>=0;j--) free(distance_matrix[j]);
 				free(distance_matrix);
@@ -252,8 +250,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 		data_set_distance_matrix(distance_matrix);
 
 		fclose(inputFile);
-		free(line);
-		line = NULL;
+		readLine(NULL);
 		return dataArray;
 	}
 }
@@ -263,22 +260,20 @@ ConfParams* evalConf(char* confFilePath,unsigned int n)
 	int k=0,f=0,L=0,s=0,i=0;
 	double max;
     FILE* confFile;
-    ConfParams *params = malloc(sizeof(ConfParams));
-    if(params == NULL){
-    	perror("Failed to allocate memory for configuration parameters");
-    	return NULL;
-    }
+    ConfParams *params;
     
 	if((confFile=fopen(confFilePath,"r"))==NULL)
 	{
 		perror("Failed to open configuration file");
 		exit(-2);
 	}
+
 	if((params=malloc(sizeof(ConfParams)))==NULL)
 	{
 		perror("Failed to allocate memory for configuration parameters");
 		return NULL;
 	}
+
 	fscanf(confFile,"number_of_clusters:%d",&k);
 	if(!k)
 	{
@@ -317,17 +312,20 @@ ConfParams* evalConf(char* confFilePath,unsigned int n)
 	params->hashTableNum=L;
 	params->claransFrac=s;
 	params->claransIter=i;
+	fclose(confFile);
 	return params;
 }
 
-Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n){
+Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time){
 	/*CLARA*/
-	if(mode == 9){
+	if(mode & 0x8){
 		 return clara(conf->k,n);
 	}
 
 	Medoids currentMedoids;
 	Medoids previousMedoids = NULL;
+
+	clock_t begin = clock();
 	/*Initialization*/
 	if(mode & 0x4){
 		currentMedoids = park_Jun(conf->k,n);
@@ -356,15 +354,59 @@ Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n){
 		}
 	}while(!medoids_areSame(currentMedoids,previousMedoids));
 
+	clock_t end = clock();
+	*time = (double)(end-begin)/CLOCKS_PER_SEC;
+
 	return currentMedoids;
 }
 
-void outputResults(char* outFilePath){
+void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* times){
 	FILE* outFile = fopen(outFilePath,"w");
 	if(outFile == NULL){
 		perror("Failed to open/create output file");
 		exit(-3);
 	}
+
+	unsigned int i;
+	for(i=0;i<9;i++){
+		fprintf(outFile,"Algorithm: ");
+
+		if(i==8){
+			fprintf(outFile,"CLARA\n")
+		}
+		else{
+			if(i & 0x4){
+				fprintf(outFile,"I2");
+			}
+			else{
+				fprintf(outFile,"I1");
+			}
+
+			if(i & 0x2){
+				fprintf(outFile,"A2");
+			}
+			else{
+				fprintf(outFile,"A1");
+			}
+
+			if(i & 0x1){
+				fprintf(outFile,"U2\n");
+			}
+			else{
+				fprintf(outFile,"U1\n");
+			}
+		}
+
+		medoids_printCluster(medoidsArray[i],outFile,complete);
+
+		fprintf(outFile,"clustering_time: %f",times[i]);
+
+		fprintf(outFile,"Silhouette: ");
+
+		medoids_printSilhouette(medoidsArray[i],outFile);
+	}
+
+	fclose(outFile);
 }
 
 int main(int argc,char* argv[]) 
@@ -396,13 +438,13 @@ int main(int argc,char* argv[])
 		else{
 			fprintf(stderr,"Invalid parameters given. Call should be:\n");
 			fprintf(stderr,"./medoids -d <input file> -c <configuration file> -o <output file>\n");
-			return 0;
+			return 1;
 		}
 	}
 
 	if(confParams == NULL){
 		fprintf(stderr,"Configuration data were not set.\nTerminating program.\n");
-		return 0;
+		return 1;
 	}
 	if(outFilePath == NULL){
 		printf("Path for output file was not given.\n");
@@ -410,13 +452,26 @@ int main(int argc,char* argv[])
 		outFilePath = "./outFile";
 	}
 	
-	Medoids medoids;
-	for(i=0;i<=9;i++){
-		medoids = aplly_kMedoids(i);
+	Medoids* medoidsArray = malloc(9*sizeof(Medoids));
+	if(medoidsArray == NULL){
+		perror("Failed to allocate memory for medoids array");
+		return 1;
+	}
+	double* times = malloc(9*sizeof(double));
+	if(times == NULL){
+		perror("Failed to allocate memory for executions times array");
+		return 1;
+	}
+	for(i=0;i<=8;i++){
+		medoids[i] = aplly_kMedoids(i,confParams,n,&times[i]);
 	}
 
-	outputResults(outFilePath);
+	outputResults(outFilePath,medoidsArray,complete,times);
 
 	data_destroy_distance_matrix();
+	readLine(NULL);
+	free(medoidsArray);
+	free(times);
+	free(confParams);
 	return 0;
 }
