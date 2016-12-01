@@ -121,10 +121,6 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 	else if(hd->matrix != NULL){
 		if(!is_matrix_data(x)){
 			fprintf(stderr,"Incompatible hash function and data metrics\n");
-			if(is_euclidean_data(x)) fprintf(stderr,"Is euclidean\n");
-			if(is_cosine_data(x)) fprintf(stderr,"Is cosine\n");
-			if(is_matrix_data(x)) fprintf(stderr, "Is matrix\n");
-			if(is_hamming_data(x)) fprintf(stderr,"Is hamming\n");
 			exit(-10);
 		}
 
@@ -138,7 +134,6 @@ unsigned int hash_apply(HashDescriptor hd,Data x){
 			temp += (*dist)*(*dist);
 			dist = data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
 			temp -= (*dist)*(*dist);
-			dist = data_getIdDistance(hd->matrix->x1[i],hd->matrix->x2[i]);
 			double h = (double)temp/(2*(*dist));
 			if(h >= hd->matrix->t1[i]) retVal+=1;
 			retVal << 1;
@@ -442,7 +437,12 @@ HashDescriptor matrix_hash_create(int k,int n){
 		}
 		qsort(hsum,k,sizeof(double),comparator);
 
-		retVal->matrix->t1[i] = hsum[n/2];
+		if(n%2){
+			retVal->matrix->t1[i] = (hsum[n/2-1]+hsum[n/2])/2;
+		}
+		else{
+			retVal->matrix->t1[i] = hsum[n/2];
+		}
 	}
 
 	free(hsum);

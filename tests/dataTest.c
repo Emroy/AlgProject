@@ -518,12 +518,11 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    for(j=0;j<=L-1;j++)
 		    {
 		        hashTable_insert(H[j],queries[i]);
-		        current=queries[i];
 		        counter=0;
-		        while((next=hashTable_getNext(H[j],current))!=NULL)
+		        while((next=hashTable_getNext(H[j],queries[i]))!=NULL)
 		        {
 		        	counter++;
-			        if((real=general_distance(current,next))==NULL)
+			        if((real=general_distance(queries[i],next))==NULL)
 		    	    {
 		    		    printf("Error: Failure while writing in output file.\n");
 		    		    return;
@@ -558,7 +557,6 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    		        }
 		    		    }
 		    	    }
-		    	    current=next;
 		        }
 		    }
 		    endLSH=time(NULL);
@@ -600,6 +598,10 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    fprintf(outputFile,"distanceTrue: %f\n",*realTrue);
 		    fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
 		    fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
+		    free(realLSH);
+		    realLSH = NULL;
+		    free(naturalTrue);
+		    realTrue = NULL;
 	    }
 	}
 	else
@@ -611,13 +613,11 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    startLSH=time(NULL);
 		    for(j=0;j<=L-1;j++)
 		    {
-		        hashTable_insert(H[j],queries[i]);
-		        current=queries[i];
 		        counter=0;
-		        while((next=hashTable_getNext(H[j],current))!=NULL)
+		        while((next=hashTable_getNext(H[j],queries[i]))!=NULL)
 		        {
 		        	counter++;
-			        if((natural=general_distance(current,next))==NULL)
+			        if((natural=general_distance(queries[i],next))==NULL)
 		    	    {
 		    		    printf("Error: Failure while writing in output file.\n");
 		    		    return;
@@ -652,48 +652,48 @@ void evalOutput(char* outputFilePath,char metric,int L,int k,int n,Data* input,i
 		    		        }
 		    		    }
 		    	    }
-		    	    current=next;
 		        }
 		    }
 		    endLSH=time(NULL);
 		    fprintf(outputFile,"Nearest neighbor(LSH): item%lu\n",idLSH);
 	 	    fprintf(outputFile,"distanceLSH: %d\n",*naturalLSH);
-		    idQ=data_getID(queries[i]);
 		    startTrue=time(NULL);
 		    for(j=0;j<=n-1;j++)
 		    {
-			    if((id=data_getID(input[j]))!=idQ)
+		    	id=data_getID(input[j]);
+			    if((natural=general_distance(queries[i],input[j]))==NULL)
+	    	    {
+	    		    printf("Error: Failure while writing in output file.\n");
+	    		    return;
+	    	    }
+			    if(naturalTrue==NULL)
 			    {
-				    if((natural=general_distance(queries[i],input[j]))==NULL)
-		    	    {
-		    		    printf("Error: Failure while writing in output file.\n");
-		    		    return;
-		    	    }
-				    if(naturalTrue==NULL)
-				    {
-					    if((naturalTrue=realloc(NULL,sizeof(int)))==NULL)
-		    		    {
-		    			    printf("Error: Failure while writing in output file.\n");
-		    		        return;
-		    	        }
-		    		    *naturalTrue=*natural;
-		    		    idTrue=id;
-		    	    }
-		    	    else
-		    	    {
-		    		    if(*natural<*naturalTrue)
-		    		    {
-		    			    *naturalTrue=*natural;
-		    			    idTrue=id;
-		    		    }
-		    	    }
-		        }
+				    if((naturalTrue=realloc(NULL,sizeof(int)))==NULL)
+	    		    {
+	    			    printf("Error: Failure while writing in output file.\n");
+	    		        return;
+	    	        }
+	    		    *naturalTrue=*natural;
+	    		    idTrue=id;
+	    	    }
+	    	    else
+	    	    {
+	    		    if(*natural<*naturalTrue)
+	    		    {
+	    			    *naturalTrue=*natural;
+	    			    idTrue=id;
+	    		    }
+	    	    }
 		    }
 		    endTrue=time(NULL);
 		    fprintf(outputFile,"Nearest neighbor(True): item%lu\n",idTrue);
 		    fprintf(outputFile,"distanceTrue: %d\n",*naturalTrue);
 		    fprintf(outputFile,"tLSH: %f second(s)\n",difftime(endLSH,startLSH));
 		    fprintf(outputFile,"tTrue: %f second(s)\n",difftime(endTrue,startTrue));
+		    free(naturalLSH);
+		    naturalLSH = NULL;
+		    free(naturalTrue);
+		    naturalTrue = NULL;
 	    }
 	}
 }

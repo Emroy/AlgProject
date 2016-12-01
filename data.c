@@ -713,12 +713,10 @@ Data matrix_query_create(char* itemString){
 	}
 
 	char* token;
-	unsigned int i;
-	for(i=0;i<matrix_distance_matrix_size;i++){
-		token = strtok(NULL," \t\n");
-		if(token == NULL) break;
-
+	unsigned int i = 0;
+	while(token = strtok(NULL," \t\n")){
 		retVal->mData->distances[i] = atoi(token);
+		i++;
 	}
 
 	return retVal;
@@ -780,5 +778,13 @@ void* general_distance(Data a,Data b){
 	else{
 		fprintf(stderr,"Invalid Data given on data_distance\n");
 		return NULL;
+	}
+}
+
+void data_print_distances(Data d,FILE* file){
+	if(d->mData){
+		unsigned int i;
+		for(i=0;i<matrix_distance_matrix_size;i++)
+			fprintf(file,"%u ",d->mData->distances[i]);
 	}
 }
