@@ -14,36 +14,57 @@ typedef struct Assignment{
 }Assignment;
 
 static Assignment* currentAssignment = NULL;
-
+typedef struct Values
+{
+	double v;
+	int index;
+}Values;
+int compF(const void* a,const void* b)
+{
+	const Values* A=(const Values*)a;
+	const Values* B=(const Values*)b;
+	if((A->v)>(B->v))
+	{
+		return 1;
+	}
+	if((valA->v)==(valB->v))
+	{
+		return 0;
+	}
+	if((valA->v)<(valB->v))
+	{
+		return -1;
+	}
+}
 /*INITIALIZATIONS*/
 Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 {
-	int counter=1,*map,i,j,token,l,*Dnatural,*natural,start,end,middle;
+	unsigned int counter=1,*map,i,j,token,l,*Dnatural,*natural,start,end,middle;
 	float *Dreal,*real,*P,x;
-	Medoids medoid;
+	Medoids medoids;
 	
 	if((k<=0)||(n<=0))
 	{
 	    printf("Error: Invalid data.\n");
 	    exit(1);
 	}
-	if((medoid=realloc(NULL,sizeof(struct MedoidData)))==NULL)
+	if((medoids=realloc(NULL,sizeof(struct MedoidData)))==NULL)
 	{
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
-	medoid->k=k;
-	if((medoid->m=malloc(k*sizeof(unsigned int)))==NULL)
+	medoids->k=k;
+	if((medoids->m=malloc(k*sizeof(unsigned int)))==NULL)
 	{
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
-	medoid->m[0]=integerUniform(n);
+	medoids->m[0]=integerUniform(n);
 	if((metric=='e')||(metric=='c'))
 	{
 	    while(counter<=k-1)
 	    {
-	    	if((map=realloc(NULL,(n-counter)*sizeof(int)))==NULL)
+	    	if((map=realloc(NULL,(n-counter)*sizeof(unsigned int)))==NULL)
 	    	{
 			    printf("Error: System failure.\n");
 			    exit(1);
@@ -142,7 +163,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 	{
 	    while(counter<=k-1)
 	    {
-	    	if((map=realloc(NULL,(n-counter)*sizeof(int)))==NULL)
+	    	if((map=realloc(NULL,(n-counter)*sizeof(unsigned int)))==NULL)
 	    	{
 			    printf("Error: System failure.\n");
 			    exit(1);
@@ -165,7 +186,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 		    		i++;
 		    	}
 		    }
-	    	if((Dnatural=realloc(NULL,(n-counter)*sizeof(int)))==NULL)
+	    	if((Dnatural=realloc(NULL,(n-counter)*sizeof(unsigned int)))==NULL)
 		    {
 			    printf("Error: System failure.\n");
 			    exit(1);
@@ -237,26 +258,121 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 			free(P);
 		}
 	}
-	return medoid;
+	return medoids;
 }
 	
 
-Medoids Park_Jun(unsigned int k,unsigned int n)
+Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 {
-	Medoids medoid;
+	Medoids medoids;
+	Values *values;
+	unsigned int i,j,t,**dNatural,*natural,sumNatural;
+	double **dReal,*real,sumReal;
 	
-	if((medoid=realloc(NULL,sizeof(struct MedoidData)))==NULL)
+	if((medoids=realloc(NULL,sizeof(struct MedoidData)))==NULL)
 	{
-		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
+		perror("Failed to allocate memory for medoids on Park-Jun initialization");
 		return NULL;
 	}
 
-	medoid->k=k;
-	if((medoid->m=realloc(NULL,k*sizeof(unsigned int)))== NULL)
+	medoids->k=k;
+	if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))== NULL)
 	{
-		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
+		perror("Failed to allocate memory for medoids on Park-Jun initialization");
 		return NULL;
 	}
+	if((values=realloc(NULL,n*sizeof(Values)))==NULL)
+	{
+		perror("Failed to allocate memory for medoids on Park-Jun initialization");
+		return NULL;
+	}
+	if((metric=='e')||(metric=='c'))
+	{
+		if((dReal=realloc(NULL,sizeof(double*)))==NULL)
+		{
+		    perror("Failed to allocate memory for medoids on Park-Jun initialization");
+		    return NULL;
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	if((dReal[i]=realloc(NULL,sizeof(double)))==NULL)
+		    {
+		        perror("Failed to allocate memory for medoids on Park-Jun initialization");
+		        return NULL;
+	        }
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	for(j=0;j<=n-1;j++)
+	    	{
+	    		real=data_getIdDistance(i,j);
+	    		dReal[i][j]=*real;
+	    	}
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	values[i]->v=0.0;
+	    	values[i]->index=i;
+	    	for(j=0;j<=n-1;j++)
+	    	{
+			    sumReal=0.0;
+	    		for(t=0;t<=n-1;t++)
+	    		{
+	    			sumReal+=Dreal[j][t];
+	    		}
+	    		values[i]->v+=dReal[i][j]/sumReal;
+	    	}
+	    }
+	    qsort(values,n,sizeof(Values)compF);
+	    for(i=0;i<=k-1;i++)
+	    {
+	    	medoid->m[i]=values[i]->index;
+	    }
+	}
+	else
+	{
+		if((dNatural=realloc(NULL,sizeof(unsigned int*)))==NULL)
+		{
+		    perror("Failed to allocate memory for medoids on Park-Jun initialization");
+		    return NULL;
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	if((dNatural[i]=realloc(NULL,sizeof(unsigned int)))==NULL)
+		    {
+		        perror("Failed to allocate memory for medoids on Park-Jun initialization");
+		        return NULL;
+	        }
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	for(j=0;j<=n-1;j++)
+	    	{
+	    		natural=data_getIdDistance(i,j);
+	    		dNatural[i][j]=*natural;
+	    	}
+	    }
+	    for(i=0;i<=n-1;i++)
+	    {
+	    	values[i]->v=0.0;
+	    	values[i]->index=i;
+	    	for(j=0;j<=n-1;j++)
+	    	{
+			    sumNatural=0;
+	    		for(t=0;t<=n-1;t++)
+	    		{
+	    			sumNatural+=Dnatural[j][t];
+	    		}
+	    		values[i]->v+=(double)dNatural[i][j]/sumNatural;
+	    	}
+	    }
+	    qsort(values,n,sizeof(Values)compF);
+	    for(i=0;i<=k-1;i++)
+	    {
+	    	medoids->m[i]=values[i]->index;
+	    }
+	}
+	return medoids;
 }
 
 /*ASSIGNMENTS*/
