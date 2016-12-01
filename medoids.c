@@ -401,8 +401,6 @@ void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* 
 
 		fprintf(outFile,"clustering_time: %f",times[i]);
 
-		fprintf(outFile,"Silhouette: ");
-
 		medoids_printSilhouette(medoidsArray[i],outFile);
 	}
 
