@@ -8,7 +8,7 @@ Medoids clara(unsigned int k,unsigned int n);
 /*INITIALIZATIONS*/
 Medoids k_MedoidsPP(unsigned int k,unsigned int n);
 
-Medoids park_Jun(unsigned int k,unsigned int n);
+Medoids Park_Jun(unsigned int k,unsigned int n);
 
 /*ASSIGNMENTS*/
 void pam(Medoids medoids,unsigned int n);
