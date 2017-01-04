@@ -9,6 +9,7 @@
 #include <time.h>
 #include "data.h"
 #include "List.h"
+#include "Algorithms.h"
 #define BUFFER_BLOCK 4096*10  /*Block size*/
 
 typedef struct ConfParams{
@@ -247,7 +248,7 @@ Data* evalInput(char* inputFilePath,unsigned int* n,char* metric){
 			i++;
 		}
 
-		data_set_distance_matrix(distance_matrix);
+		data_set_distance_matrix(distance_matrix,(*n));
 
 		fclose(inputFile);
 		readLine(NULL);
@@ -316,7 +317,7 @@ ConfParams* evalConf(char* confFilePath,unsigned int n)
 	return params;
 }
 
-Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time){
+Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time,char metric){
 	/*CLARA*/
 	if(mode & 0x8){
 		 return clara(conf->k,n);
@@ -328,10 +329,10 @@ Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time){
 	clock_t begin = clock();
 	/*Initialization*/
 	if(mode & 0x4){
-		currentMedoids = park_Jun(conf->k,n);
+		currentMedoids = Park_Jun(conf->k,n,metric);
 	}
 	else{
-		currentMedoids = k_MedoidsPP(conf->k,n);
+		currentMedoids = k_MedoidsPP(conf->k,n,metric);
 	}
 
 	do{
@@ -340,11 +341,11 @@ Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time){
 			lsh_dbh(currentMedoids,n,conf->hashFuncNum,conf->hashTableNum);
 		}
 		else{
-			pam(currentMedoids,n);
+			pam(currentMedoids,n,metric);
 		}
 
 		if(previousMedoids) medoids_destroy(previousMedoids);
-		previousMedoids = currentMedoids
+		previousMedoids = currentMedoids;
 		/*Update*/
 		if(mode & 0x1){
 			currentMedoids = clarans(currentMedoids,n,conf->claransIter,conf->claransFrac);
@@ -360,7 +361,7 @@ Medoids aplly_kMedoids(int mode,ConfParams* conf,unsigned int n,double* time){
 	return currentMedoids;
 }
 
-void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* times){
+void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* times,char metric){
 	FILE* outFile = fopen(outFilePath,"w");
 	if(outFile == NULL){
 		perror("Failed to open/create output file");
@@ -372,7 +373,7 @@ void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* 
 		fprintf(outFile,"Algorithm: ");
 
 		if(i==8){
-			fprintf(outFile,"CLARA\n")
+			fprintf(outFile,"CLARA\n");
 		}
 		else{
 			if(i & 0x4){
@@ -401,7 +402,7 @@ void outputResults(char* outFilePath,Medoids* medoidsArray,int complete,double* 
 
 		fprintf(outFile,"clustering_time: %f",times[i]);
 
-		medoids_printSilhouette(medoidsArray[i],outFile);
+		medoids_printSilhouette(medoidsArray[i],outFile,metric);
 	}
 
 	fclose(outFile);
@@ -461,10 +462,10 @@ int main(int argc,char* argv[])
 		return 1;
 	}
 	for(i=0;i<=8;i++){
-		medoids[i] = aplly_kMedoids(i,confParams,n,&times[i]);
+		medoidsArray[i] = aplly_kMedoids(i,confParams,n,&times[i],metric);
 	}
 
-	outputResults(outFilePath,medoidsArray,complete,times);
+	outputResults(outFilePath,medoidsArray,complete,times,metric);
 
 	data_destroy_distance_matrix();
 	readLine(NULL);

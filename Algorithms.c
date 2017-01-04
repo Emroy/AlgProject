@@ -1,5 +1,6 @@
 #include "Algorithms.h"
 #include "data.h"
+#include "RNG.h"
 #include <stdlib.h>
 
 struct MedoidData{
@@ -27,11 +28,11 @@ int compF(const void* a,const void* b)
 	{
 		return 1;
 	}
-	if((valA->v)==(valB->v))
+	if((A->v)==(B->v))
 	{
 		return 0;
 	}
-	if((valA->v)<(valB->v))
+	if((A->v)<(B->v))
 	{
 		return -1;
 	}
@@ -75,7 +76,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 		    	token=0;
 		    	for(l=0;l<=counter-1;l++)
 		    	{
-		    		if(j==medoid->m[l])
+		    		if(j==medoids->m[l])
 		    		{
 		    			token=1;
 		    			break;
@@ -94,11 +95,11 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 		    }
 	    	for(i=0;i<=n-counter-1;i++)
 	    	{
-			    real=data_getIdDistance(map[i],medoid->m[0]);
+			    real=data_getIdDistance(map[i],medoids->m[0]);
 			    Dreal[i]=*real;
 			    for(j=1;j<=counter-1;j++)
 			    {
-			    	real=data_getIdDistance(map[i],medoid->m[j]);
+			    	real=data_getIdDistance(map[i],medoids->m[j]);
 			    	if(*real<Dreal[i])
 			    	{
 			    		Dreal[i]=*real;
@@ -126,7 +127,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 			{
 				if(P[middle]==x)
 				{
-					medoid->m[counter]=map[middle];
+					medoids->m[counter]=map[middle];
 					break;
 				}
 				else
@@ -136,7 +137,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 						start=middle+1;
 						if(start>end)
 						{
-							medoid->m[counter]=map[middle+1];
+							medoids->m[counter]=map[middle+1];
 					        break;
 					    }
 					    middle=(start+end)/2;
@@ -146,7 +147,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 						end=middle-1;
 						if(start>end)
 						{
-							medoid->m[counter]=map[middle];
+							medoids->m[counter]=map[middle];
 					        break;
 					    }
 					    middle=(start+end)/2;
@@ -174,7 +175,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 		    	token=0;
 		    	for(l=0;l<=counter-1;l++)
 		    	{
-		    		if(j==medoid->m[l])
+		    		if(j==medoids->m[l])
 		    		{
 		    			token=1;
 		    			break;
@@ -193,11 +194,11 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 		    }
 	    	for(i=0;i<=n-counter-1;i++)
 	    	{
-			    natural=data_getIdDistance(map[i],medoid->m[0]);
+			    natural=data_getIdDistance(map[i],medoids->m[0]);
 			    Dnatural[i]=*natural;
 			    for(j=1;j<=counter-1;j++)
 			    {
-			    	natural=data_getIdDistance(map[i],medoid->m[j]);
+			    	natural=data_getIdDistance(map[i],medoids->m[j]);
 			    	if(*natural<Dnatural[i])
 			    	{
 			    		Dnatural[i]=*natural;
@@ -225,7 +226,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 			{
 				if(P[middle]==x)
 				{
-					medoid->m[counter]=map[middle];
+					medoids->m[counter]=map[middle];
 					break;
 				}
 				else
@@ -235,7 +236,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 						start=middle+1;
 						if(start>end)
 						{
-							medoid->m[counter]=map[middle+1];
+							medoids->m[counter]=map[middle+1];
 					        break;
 					    }
 					    middle=(start+end)/2;
@@ -245,7 +246,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 						end=middle-1;
 						if(start>end)
 						{
-							medoid->m[counter]=map[middle];
+							medoids->m[counter]=map[middle];
 					        break;
 					    }
 					    middle=(start+end)/2;
@@ -311,22 +312,22 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 	    }
 	    for(i=0;i<=n-1;i++)
 	    {
-	    	values[i]->v=0.0;
-	    	values[i]->index=i;
+	    	values[i].v=0.0;
+	    	values[i].index=i;
 	    	for(j=0;j<=n-1;j++)
 	    	{
 			    sumReal=0.0;
 	    		for(t=0;t<=n-1;t++)
 	    		{
-	    			sumReal+=Dreal[j][t];
+	    			sumReal+=dReal[j][t];
 	    		}
-	    		values[i]->v+=dReal[i][j]/sumReal;
+	    		values[i].v+=dReal[i][j]/sumReal;
 	    	}
 	    }
-	    qsort(values,n,sizeof(Values)compF);
+	    qsort(values,n,sizeof(Values),compF);
 	    for(i=0;i<=k-1;i++)
 	    {
-	    	medoid->m[i]=values[i]->index;
+	    	medoids->m[i]=values[i].index;
 	    }
 	}
 	else
@@ -354,22 +355,22 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 	    }
 	    for(i=0;i<=n-1;i++)
 	    {
-	    	values[i]->v=0.0;
-	    	values[i]->index=i;
+	    	values[i].v=0.0;
+	    	values[i].index=i;
 	    	for(j=0;j<=n-1;j++)
 	    	{
 			    sumNatural=0;
 	    		for(t=0;t<=n-1;t++)
 	    		{
-	    			sumNatural+=Dnatural[j][t];
+	    			sumNatural+=dNatural[j][t];
 	    		}
-	    		values[i]->v+=(double)dNatural[i][j]/sumNatural;
+	    		values[i].v+=(double)dNatural[i][j]/sumNatural;
 	    	}
 	    }
-	    qsort(values,n,sizeof(Values)compF);
+	    qsort(values,n,sizeof(Values),compF);
 	    for(i=0;i<=k-1;i++)
 	    {
-	    	medoids->m[i]=values[i]->index;
+	    	medoids->m[i]=values[i].index;
 	    }
 	}
 	return medoids;
@@ -407,49 +408,49 @@ void pam(Medoids medoids,unsigned int n,char metric){
 	for(i=0;i<n;i++){
 		/*Initialize min_Dist and minDist2*/
 		if(metric == 'h'||metric == 'm'){
-			uDist = data_getIdDistance(i,medoids->medoids[0]);
+			uDist = data_getIdDistance(i,medoids->m[0]);
 			min_uDist = *uDist;
-			currentAssignment->nearest[i] = medoids->medoids[0];
+			currentAssignment->nearest[i] = medoids->m[0];
 
-			uDist = data_getIdDistance(i,medoids->medoids[1]);
+			uDist = data_getIdDistance(i,medoids->m[1]);
 			if(min_uDist > *uDist){
 				min_uDist2 = min_uDist;
 				currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 				min_uDist = *uDist;
-				currentAssignment->nearest[i] = medoids->medoids[1];
+				currentAssignment->nearest[i] = medoids->m[1];
 			}
 		}
 		else{
-			dDist = data_getIdDistance(i,medoids->medoids[0]);
+			dDist = data_getIdDistance(i,medoids->m[0]);
 			min_dDist = *dDist;
-			currentAssignment->nearest[i] = medoids->medoids[0];
+			currentAssignment->nearest[i] = medoids->m[0];
 
-			dDist = data_getIdDistance(i,medoids->medoids[1]);
+			dDist = data_getIdDistance(i,medoids->m[1]);
 			if(min_dDist > *dDist){
 				min_dDist2 = min_dDist;
 				currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 				min_dDist = *dDist;
-				currentAssignment->nearest[i] = medoids->medoids[1];
+				currentAssignment->nearest[i] = medoids->m[1];
 			}
 		}
 
 		for(j=2;j<medoids->k;j++){
 			if(metric == 'h'||metric == 'm'){
-				uDist = data_getIdDistance(i,medoids->medoids[j]);
+				uDist = data_getIdDistance(i,medoids->m[j]);
 				if(min_uDist > *uDist){
 					min_uDist2 = min_uDist;
 					currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 					min_uDist = *uDist;
-					currentAssignment->nearest[i] = medoids->medoids[j];
+					currentAssignment->nearest[i] = medoids->m[j];
 				}
 			}
 			else{
-				dDist = data_getIdDistance(i,medoids->medoids[j]);
+				dDist = data_getIdDistance(i,medoids->m[j]);
 				if(min_dDist > *dDist){
 					min_dDist2 = min_dDist;
 					currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 					min_dDist = *dDist;
-					currentAssignment->nearest[i] = medoids->medoids[j];
+					currentAssignment->nearest[i] = medoids->m[j];
 				}
 			}
 		}
@@ -489,8 +490,8 @@ Medoids lloyds(Medoids prevMedoids,unsigned int n){
 	}
 
 	retVal->k = prevMedoids->k;
-	retVal->medoids = malloc(retVal->k*sizeof(unsigned int));
-	if(retVal->medoids == NULL){
+	retVal->m = malloc(retVal->k*sizeof(unsigned int));
+	if(retVal->m == NULL){
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
@@ -509,8 +510,8 @@ Medoids clarans(Medoids prevMedoids,unsigned int n,int iter,int frac){
 	}
 
 	retVal->k = prevMedoids->k;
-	retVal->medoids = malloc(retVal->k*sizeof(unsigned int));
-	if(retVal->medoids == NULL){
+	retVal->m = malloc(retVal->k*sizeof(unsigned int));
+	if(retVal->m == NULL){
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
 	}
@@ -520,14 +521,14 @@ Medoids clarans(Medoids prevMedoids,unsigned int n,int iter,int frac){
 int medoids_areSame(Medoids a,Medoids b){
 	unsigned int i;
 	for(i=0;i<a->k;i++){
-		if(a->medoids[i] != b->medoids[i]) return 0;
+		if(a->m[i] != b->m[i]) return 0;
 	}
 
 	return 1;
 }
 
 void medoids_destroy(Medoids m){
-	free(m->medoids);
+	free(m->m);
 	free(m);
 }
 
@@ -536,13 +537,13 @@ void medoids_printCluster(Medoids m,FILE* file,int complete){
 	for(i=0;i<m->k;i++){
 		fprintf(file,"CLUSTER-%u {",i);
 		for(j=0;j<currentAssignment->n;j++){
-			if(currentAssignment->nearest[j] == m->medoids[i]){
+			if(currentAssignment->nearest[j] == m->m[i]){
 				if(complete) fprintf(file,"item_id%u,",j);
 				else size++;
 			}
 		}
 		if(complete) fprintf(file,"}\n");
-		else fprintf(file,"size: %u, medoid: %u}\n",size,m->medoids[i]);
+		else fprintf(file,"size: %u, medoid: %u}\n",size,m->m[i]);
 	}
 }
 
@@ -593,7 +594,7 @@ void medoids_printSilhouette(Medoids m,FILE* file,char metric){
 			bi /= countb;
 
 
-			if(currentAssignment->nearest[j] == m->medoids[i]){
+			if(currentAssignment->nearest[j] == m->m[i]){
 				if(ai < bi) si += 1-ai/bi;
 				else if(ai > bi) si += bi/ai-1;
 			}
@@ -613,4 +614,8 @@ void medoids_printSilhouette(Medoids m,FILE* file,char metric){
 	free(currentAssignment->nearest);
 	free(currentAssignment->secondNearest);
 	free(currentAssignment);
+}
+
+Medoids clara(unsigned int k,unsigned int n){
+	return NULL;
 }

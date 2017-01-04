@@ -1,7 +1,7 @@
 CC=gcc
 FLAGS=-g
-SOURCES = HashGen.c HashTable.c RNG.c medoids.c data.c List.c
-HEADERS = HashGen.h HashTable.h RNG.h data.h List.h
+SOURCES = HashGen.c Algorithms.c HashTable.c RNG.c medoids.c data.c List.c
+HEADERS = HashGen.h HashTable.h RNG.h data.h List.h Algorithms.h
 OBJECTS = HashGen.o HashTable.o RNG.o data.o List.o
 LIBRARIES=-lm
 medoids: ${SOURCES} ${HEADERS}
@@ -24,6 +24,9 @@ data.o: data.c data.h
 
 List.o: List.c List.h
 	${CC} ${FLAGS} -c List.c
+
+Algorithms.o: Algorithms.c Algorithms.h
+	${CC} ${FLAGS} -c Algorithms.c
 
 clean:
 	rm -f *.o lsh

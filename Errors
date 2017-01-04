@@ -1,0 +1,1 @@
+gcc -g -o medoids HashGen.c Algorithms.c HashTable.c RNG.c medoids.c data.c List.c -lm
