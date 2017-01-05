@@ -16,8 +16,8 @@ struct Cluster{
 
 void lsh_init(Ratings ratings,char metric)
 {
-	int i;
-	int8_t mask=
+	int i,j;
+	int8_t mask;
 	User currentUser;
 
 	switch(metric)
@@ -36,10 +36,24 @@ void lsh_init(Ratings ratings,char metric)
 					perror("Failed to allocate memory for hammingData");
 					exit(-2);
 				}
+				for(i=0;i<=hammingDataSize-1;i++)
+				{
+					hammingData[i]=0;
+				}
+				j=0;
+				mask=1;
 				for(i=0;i<=numOfItems-1;i++)
 				{
 				    if(vector[i])
 				    {
+				    	hammingData[j]|=mask;
+				    }
+				    if(!(mask<<=1))
+				    {
+				    	mask=1;
+				    	j++;
+				    }
+				}
 			}
 			
 }
