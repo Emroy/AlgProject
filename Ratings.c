@@ -38,20 +38,27 @@ char* readLine(FILE* file){
 	return buffer;
 }
 
-typedef struct UserRatings{
+struct UserStruct{
+	unsigned int id;
 	int8_t* ratings;
 	int8_t* flags; //flag in position i is true if rating in position i is not from input
-} UserRatings;
+};
 
 struct RateData{
 	uint8_t P; //number of nearest neighbors
-	UserRatings* userRatings;
+	User* userRatings;
 	unsigned int n; //number of users;
 	unsigned int m; //number of items;
 };
 
 Ratings readRatings(char* inputFilePath){
-	//search for max item id
+	FILE* inputFile = fopen(inputFilePath,"r");
+	if(inputFile == NULL){
+		perror("Failed to open input file");
+		return NULL;
+	}
+
+	
 }
 
 void normalizeRatings(Ratings ratingData,char metric){
