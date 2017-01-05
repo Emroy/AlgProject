@@ -1,7 +1,6 @@
 #include "Ratings.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #define BUFFER_BLOCK 4096
 
@@ -101,7 +100,7 @@ Ratings readRatings(char* inputFilePath){
 
 	retVal->P = atoi(token);
 
-	
+
 }
 
 void normalizeRatings(Ratings ratingData,char metric){
