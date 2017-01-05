@@ -14,7 +14,11 @@ struct Cluster{
 
 /*NN-LSH*/
 
-void lsh_init(Ratings ratings,char metric){
-
+void lsh_init(Ratings ratings,char metric)
+{
+	switch(metric)
+	{
+		case 'h':
+			
 }
 
