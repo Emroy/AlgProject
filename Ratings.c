@@ -1,4 +1,5 @@
 #include "Ratings.h"
+#include "List.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,13 @@ struct RateData{
 	unsigned int m; //number of items;
 };
 
+typedef struct RatingStruct* Rating;
+struct RatingStruct{
+	unsigned int userID;
+	unsigned int itemID;
+	int8_t rating;
+};
+
 Ratings readRatings(char* inputFilePath){
 	FILE* inputFile = fopen(inputFilePath,"r");
 	if(inputFile == NULL){
@@ -99,8 +107,127 @@ Ratings readRatings(char* inputFilePath){
 	}
 
 	retVal->P = atoi(token);
+	retVal->n = 0;
+	retVal->m = 0;
 
+	List l = list_create();
+	unsigned int prevUser = 0;
+	while(line = readLine(inputFile)){
+		Rating newRating = malloc(sizeof(struct RatingStruct));
+		if(newRating == NULL){
+			perror("Failed to allocate memory for new User");
+			readLine(NULL);
+			fclose(inputFile);
+			free(retVal);
+			while(!list_isEmpty(l)) free(list_pop(l));
+			list_destroy(l);
+			return NULL;
+		}
 
+		token = strtok(line," \t\n");
+		if(token == NULL){
+			fprintf(stderr,"Unexpected input encountered on input file line %d\n",retVal->n+1);
+			readLine(NULL);
+			fclose(inputFile);
+			free(retVal);
+			while(!list_isEmpty(l)) free(list_pop(l));
+			list_destroy(l);
+			free(newRating);
+			return NULL;
+		}
+
+		newRating->UserID = atoi(token);
+		if(prevUser != newRating->userID){
+			retVal->n++;
+			prevUser = newRating->userID;
+		}
+
+		token = strtok(NULL," \t\n");
+		if(token == NULL){
+			fprintf(stderr,"Unexpected input encountered on input file line %d\n",retVal->n+1);
+			readLine(NULL);
+			fclose(inputFile);
+			free(retVal);
+			while(!list_isEmpty(l)) free(list_pop(l));
+			list_destroy(l);
+			free(newRating);
+			return NULL;
+		}
+
+		newRating->itemID = atoi(token);
+		if(newRating->itemID > retVal->m) retVal->m = newRating->itemID;
+
+		token = strtok(NULL," \t\n");
+		if(token == NULL){
+			fprintf(stderr,"Unexpected input encountered on input file line %d\n",retVal->n+1);
+			readLine(NULL);
+			fclose(inputFile);
+			free(retVal);
+			while(!list_isEmpty(l)) free(list_pop(l));
+			list_destroy(l);
+			free(newRating);
+			return NULL;
+		}
+
+		newRating->rating = atoi(token);
+		list_pushEnd(l,newRating);
+	}
+
+	readLine(NULL);
+	fclose(inputFile);
+
+	retVal->userRatings = malloc(sizeof(User)*retVal->n);
+	if(retVal->userRatings == NULL){
+		perror("Failed to allocate memory for userRatings on ratings");
+		free(retVal);
+		while(!list_isEmpty(l)) free(list_pop());
+		list_destroy(l);
+		return NULL;
+	}
+	unsigned int i;
+	for(i=0;i<retVal->n;i++) retVal->userRatings[i] = NULL;
+
+	while(!list_isEmpty(l)){
+		Rating currentRating = list_pop(l);
+		User currentUser = retVal->userRatings[currentRating->userID-1];
+
+		/*if user doesn't exist create one*/
+		if(currentUser == NULL){
+			currentUser = malloc(sizeof(struct UserStruct));
+			if(retVal->userRatings[currentRating->userID-1] == NULL){
+				perror("Failed to allocate memory for new user");
+				for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
+					free(retVal->userRatings[i]->ratings);
+					free(retVal->userRatings[i]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				while(!list_isEmpty(l)) free(list_pop(l));
+				list_destroy(l);
+				return NULL;
+			}
+
+			currentUser->ratings = malloc(sizeof(int8_t)*retVal->m);
+			if(currentUser->ratings == NULL){
+				perror("Failed to allocate memory for new user ratings");
+				for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
+					free(retVal->userRatings[i]->ratings);
+					free(retVal->userRatings[i]);
+				}
+				free(currentUser);
+				free(retVal->userRatings);
+				free(retVal);
+				while(!list_isEmpty(l)) free(list_pop(l));
+				list_destroy(l);
+				return NULL;
+			}
+		}
+
+		currentUser->ratings[currentRating->itemID-1] = currentRating->rating;
+		free(currentRating);
+	}
+
+	list_destroy(l);
 }
 
 void normalizeRatings(Ratings ratingData,char metric){
