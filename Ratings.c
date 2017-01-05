@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#define BUFFER_BLOCK 4096
 
 /*user should free the returned pointer after use*/
 char* readLine(FILE* file){
@@ -57,6 +59,47 @@ Ratings readRatings(char* inputFilePath){
 		perror("Failed to open input file");
 		return NULL;
 	}
+
+	char* line = readLine(inputFile);
+	if(line == NULL){
+		perror("Failed to read first line from input file");
+		readLine(NULL);
+		fclose(inputFile);
+		return NULL;
+	}
+
+	char* token = strtok(line," \t\n");
+	if(token == NULL){
+		fprintf(stderr,"Unexpected input encountered on input file first line\n");
+		readLine(NULL);
+		fclose(inputFile);
+		return NULL;
+	}
+
+	if(strcmp(token,"P:")){
+		fprintf(stderr,"Unexpected input encountered on input file first line\n");
+		readLine(NULL);
+		fclose(inputFile);
+		return NULL;
+	}
+
+	Ratings retVal = malloc(sizeof(struct RateData));
+	if(retVal == NULL){
+		perror("Failed to allocate memory for ratings");
+		readLine(NULL);
+		fclose(inputFile);
+		return NULL;
+	}
+
+	token = strtok(NULL," \t\n");
+	if(token == NULL){
+		fprintf(stderr,"Unexpected input encountered on input file first line\n");
+		readLine(NULL);
+		fclose(inputFile);
+		return NULL;
+	}
+
+	retVal->P = atoi(token);
 
 	
 }
