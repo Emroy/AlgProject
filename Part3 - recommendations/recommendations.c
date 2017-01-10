@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "Ratings.h"
+#include "Clustering.h"
 
 int main(int argc,char* argv[]){
 	int i = 0;

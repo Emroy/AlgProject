@@ -4,6 +4,16 @@
 #define LSH_L 5
 #define LSH_K 4
 
+/*calculates 2^num*/
+unsigned int two_pow(unsigned int num){
+	unsigned int i;
+	unsigned int retVal = 1;
+	for(i=0;i<num;i++) retVal*=2;
+	return retVal;
+}
+
+static unsigned short range;
+
 struct NearestNeighbors{
 
 };
@@ -58,3 +68,10 @@ void lsh_init(Ratings ratings,char metric)
 			
 }
 
+Neighbors lsh_getNeighbors(User user){
+
+}
+
+void lsh_terminate(){
+
+}

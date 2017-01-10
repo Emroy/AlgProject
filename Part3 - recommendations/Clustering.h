@@ -6,6 +6,7 @@
 typedef struct NearestNeighbors* Neighbors;
 
 void lsh_init(Ratings ratings,char metric);
+/*Creates hash tables for lsh and inserts ratings in them*/
 
 Neighbors lsh_getNeighbors(User user);
 

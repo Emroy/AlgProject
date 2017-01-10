@@ -246,3 +246,11 @@ void normalizeRatings(Ratings ratingData,char metric){
 void destroyRatings(Ratings ratings){
 
 }
+
+User getNextUser(Ratings ratingData){
+
+}
+
+int8_t* getUserVector(User user){
+	
+}
