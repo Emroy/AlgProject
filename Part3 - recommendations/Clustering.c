@@ -15,11 +15,7 @@ unsigned int two_pow(unsigned int num){
 static unsigned short range;
 
 struct NearestNeighbors{
-
-};
-
-struct Cluster{
-
+	User* users;
 };
 
 /*NN-LSH*/
@@ -73,5 +69,17 @@ Neighbors lsh_getNeighbors(User user){
 }
 
 void lsh_terminate(){
+
+}
+
+void clustering_init(Ratings ratings,char metric){
+
+}
+
+Neighbors clustering_getNeighbors(User user){
+
+}
+
+void clustering_terminate(){
 
 }
