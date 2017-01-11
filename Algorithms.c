@@ -3,12 +3,14 @@
 #include "RNG.h"
 #include <stdlib.h>
 
-struct MedoidData{
+struct MedoidData
+{
 	unsigned int k;
 	unsigned int* m;
 };
 
-typedef struct Assignment{
+typedef struct Assignment
+{
 	unsigned int* nearest;
 	unsigned int* secondNearest;
 	unsigned int n;
@@ -377,22 +379,27 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 }
 
 /*ASSIGNMENTS*/
-void pam(Medoids medoids,unsigned int n,char metric){
-	if(currentAssignment == NULL){
+void PAM(Medoids medoids,unsigned int n,char metric)
+{
+	if(currentAssignment == NULL)
+	{
 		currentAssignment = malloc(sizeof(Assignment));
-		if(currentAssignment == NULL){
+		if(currentAssignment == NULL)
+		{
 			perror("Failed to allocate memory for internal Assignment struct");
 			exit(1);
 		}
 
 		currentAssignment->nearest = malloc(n*sizeof(unsigned int));
-		if(currentAssignment->nearest == NULL){
+		if(currentAssignment->nearest == NULL)
+		{
 			perror("Failed to allocate memory for internal Assignment struct nearest");
 			exit(2);
 		}
 
 		currentAssignment->secondNearest = malloc(n*sizeof(unsigned int));
-		if(currentAssignment->nearest == NULL){
+		if(currentAssignment->nearest == NULL)
+		{
 			perror("Failed to allocate memory for internal Assignment struct secondNearest");
 			exit(3);
 		}
@@ -402,18 +409,31 @@ void pam(Medoids medoids,unsigned int n,char metric){
 
 	unsigned int* uDist;
 	double* dDist;
-	unsigned int min_uDist,min_uDist2;
-	double min_dDist,min_dDist2;
-	unsigned int i,j;
-	for(i=0;i<n;i++){
+	unsigned int min_uDist=0,min_uDist2;
+	double min_dDist=0.0,min_dDist2;
+	unsigned int i,j,min,min2;
+	
+	for(i=0;i<=n-1;i++)
+	{
 		/*Initialize min_Dist and minDist2*/
-		if(metric == 'h'||metric == 'm'){
-			uDist = data_getIdDistance(i,medoids->m[0]);
-			min_uDist = *uDist;
-			currentAssignment->nearest[i] = medoids->m[0];
-
-			uDist = data_getIdDistance(i,medoids->m[1]);
-			if(min_uDist > *uDist){
+		if(metric == 'h'||metric == 'm')
+		{
+		    for(j=0;j<=medoids->k-2;j++)
+			{
+			    uDist = data_getIdDistance(i,medoids->m[j]);
+				if(*uDist)
+				{
+					min_uDist=*uDist;
+					min=j;
+			        currentAssignment->nearest[i] = medoids->m[min];
+			    }
+				uDist = data_getIdDistance(i,medoids->m[j+1]);
+				if(*uDist)
+				{
+					if(min_uDist)
+					{
+					    if(min_uDist > *uDist)
+						{
 				min_uDist2 = min_uDist;
 				currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 				min_uDist = *uDist;

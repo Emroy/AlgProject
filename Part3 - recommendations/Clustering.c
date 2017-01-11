@@ -72,8 +72,13 @@ void lsh_terminate(){
 
 }
 
-void clustering_init(Ratings ratings,char metric){
-
+void clustering_init(Ratings ratings,char metric)
+{
+	unsigned int n=ratings_getNumberOfUsers(ratings);
+	unsigned short k=n/ratings_getNumberOfNeighbors(ratings);
+	Medoids medoids=Park_Jun(k,n,metric);
+	
+	pam(medoids,n,metric);
 }
 
 Neighbors clustering_getNeighbors(User user){

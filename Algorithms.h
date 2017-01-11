@@ -12,7 +12,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric);
 Medoids Park_Jun(unsigned int k,unsigned int n,char metric);
 
 /*ASSIGNMENTS*/
-void pam(Medoids medoids,unsigned int n,char metric);
+void PAM(Medoids medoids,unsigned int n,char metric);
 
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L);
 
