@@ -278,6 +278,8 @@ Ratings readRatings(char* inputFilePath){
 	n = retVal->n;
 	m = retVal->m;
 
+	users = retVal->userRatings;
+
 	return retVal;
 }
 
@@ -355,7 +357,12 @@ User getNextUser(Ratings ratingData){
 	return ratingData->userRatings[currentUser-1];
 }
 
-unsigned int user_hammingDistance(User user1,User user2){
+static User* users;
+
+unsigned int user_hammingDistance(unsigned int uid1,unsigned int uid2){
+	User user1 = users[uid1];
+	User user2 = users[uid2];
+	
 	unsigned int distance = 0;
 	
 	unsigned int i;
@@ -366,7 +373,10 @@ unsigned int user_hammingDistance(User user1,User user2){
    	return distance;
 }
 
-double user_euclideanDistance(User user1,User user2){
+double user_euclideanDistance(unsigned int uid1,unsigned int uid2){
+	User user1 = users[uid1];
+	User user2 = users[uid2];
+
 	unsigned int i;
 	double sum=0.0;
 	int8_t* x = user1->ratings;
@@ -379,7 +389,10 @@ double user_euclideanDistance(User user1,User user2){
 	return sum;
 }
 
-double user_cosineDistance(User user1,User user2){
+double user_cosineDistance(unsigned int uid1,unsigned int uid2){
+	User user1 = users[uid1];
+	User user2 = users[uid2];
+
 	unsigned int i;
 	double xy=0.0,xx=0.0,yy=0.0;
 	int8_t* x = user1->ratings;

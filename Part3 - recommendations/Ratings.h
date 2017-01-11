@@ -20,11 +20,11 @@ unsigned short ratings_getNumberOfNeighbors(Ratings ratings);
 User getNextUser(Ratings ratingData);
 /*returns the next user. If no more users, returns NULL*/
 
-unsigned int user_hammingDistance(User user1,User user2);
+unsigned int user_hammingDistance(unsigned int uid1,unsigned int uid2);
 
-double user_euclideanDistance(User user1,User user2);
+double user_euclideanDistance(unsigned int uid1,unsigned int uid2);
 
-double user_cosineDistance(User user1,User user2);
+double user_cosineDistance(unsigned int uid1,unsigned int uid2);
 
 typedef struct HammingData* HammingData;
 HammingData user_createHammingData(User user);
