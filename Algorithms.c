@@ -375,7 +375,7 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	unsigned int i,j,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF;
+	unsigned int i,j,k,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF,index;
 	double x_d,*min_dDist=NULL,*min_dDist2=NULL,dF;
 	
 	if(currentAssignment==NULL)
@@ -408,21 +408,21 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 		case 'h':
 	        for(j=1;j<=n;j++)
 	        {
-	        	for(l=0;l<=medoids->k-1;l++)
+	        	for(k=0;k<=medoids->k-1;k++)
 	        	{
-	        		if(j==medoids->m[l])
+	        		if(j==medoids->m[k])
 	        		{
-	        			l=medoids->k+1;
+	        			k=medoids->k+1;
 	        			break;
 	        		}
 	        	}
-	        	if(l==medoids->k+1)
+	        	if(k==medoids->k+1)
 	        	{
 	        		continue;
 	        	}
-	            for(l=0;l<=medoids->k-1;l++)
+	            for(k=0;k<=medoids->k-1;k++)
 		        {
-		        	x_u=user_hammingDistance(j,medoids->m[l]);
+		        	x_u=user_hammingDistance(j,medoids->m[k]);
 			        if(min_uDist==NULL)
 			        {
 			            if((min_uDist=realloc(NULL,sizeof(unsigned int)))==NULL)
@@ -432,7 +432,7 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			            }
 				        *min_uDist=x_u;
 				        currentAssignment->map[i]=j;
-				        currentAssignment->nearest[i]=medoids->m[l];
+				        currentAssignment->nearest[i]=medoids->m[k];
 			        }
 			        else
 			        {
@@ -449,7 +449,7 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 					        *min_uDist2=*min_uDist;
 					        *min_uDist=x_u;
 					        currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-			                currentAssignment->nearest[i]=medoids->m[l];
+			                currentAssignment->nearest[i]=medoids->m[k];
 			            }
 			            else
 			            {
@@ -461,14 +461,14 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			                        exit(1);
 			                    }
 			                    *min_uDist2=x_u;
-				                currentAssignment->secondNearest[i]=medoids->m[l];
+				                currentAssignment->secondNearest[i]=medoids->m[k];
 			                }
 			                else
 			                {
 			                    if(x_u<*min_uDist2)
 					            {
 						            *min_uDist2=x_u;
-						            currentAssignment->secondNearest[i]=medoids->m[l];
+						            currentAssignment->secondNearest[i]=medoids->m[k];
 			                    }
 			                }
 			            }
@@ -485,22 +485,37 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 		    {
 		    	for(j=1;j<=n;j++)
 	            {
-	        	    for(l=0;l<=medoids->k-1;l++)
+	        	    for(k=0;k<=medoids->k-1;k++)
 	        	    {
-	        		    if(j==medoids->m[l])
+	        		    if(j==medoids->m[k])
 	        		    {
-	        			    l=medoids->k+1;
+	        			    k=medoids->k+1;
 	        			    break;
+	        		    }
+	        	    }
+	        	    if(k==medoids->k+1)
+	        	    {
+	        		    continue;
+	        	    }
+	        	    index=j;
+	        	    x_u=medoids->m[i];
+	        	    medoids->m[i]=index;
+	        	    index=x_u;
+	        	    for(k=1;k<=n;k++)
+	        	    {
+	        	    	for(l=0;l<=medoids->k-1;l++)
+	        	        {
+	        		        if(k==medoids->m[l])
+	        		        {
+	        			        l=medoids->k+1;
+	        			        break;
+	        			    }
 	        		    }
 	        	    }
 	        	    if(l==medoids->k+1)
 	        	    {
 	        		    continue;
 	        	    }
-	        	    l=j;
-	        	    x_u=medoids->m[i];
-	        	    medoids->m[i]=l;
-	        	    l=x_u;
 			    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
