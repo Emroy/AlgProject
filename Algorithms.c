@@ -375,9 +375,8 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	int i,j,l;
-	unsigned int uDist,*min_uDist=NULL,*min_uDist2=NULL,uF;
-	double dDist,*min_dDist=NULL,*min_dDist2=NULL,dF;
+	unsigned int i,j,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF;
+	double x_d,*min_dDist=NULL,*min_dDist2=NULL,dF;
 	
 	if(currentAssignment==NULL)
 	{
@@ -413,17 +412,17 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 	        	{
 	        		if(j==medoids->m[l])
 	        		{
-	        			l=-1;
+	        			l=medoids->k+1;
 	        			break;
 	        		}
 	        	}
-	        	if(l==-1)
+	        	if(l==medoids->k+1)
 	        	{
 	        		continue;
 	        	}
 	            for(l=0;l<=medoids->k-1;l++)
 		        {
-		        	uDist=user_hammingDistance(j,medoids->m[l]);
+		        	x_u=user_hammingDistance(j,medoids->m[l]);
 			        if(min_uDist==NULL)
 			        {
 			            if((min_uDist=realloc(NULL,sizeof(unsigned int)))==NULL)
@@ -431,13 +430,13 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			                printf("Error: System failure.\n");
 			                exit(1);
 			            }
-				        *min_uDist=uDist;
+				        *min_uDist=x_u;
 				        currentAssignment->map[i]=j;
 				        currentAssignment->nearest[i]=medoids->m[l];
 			        }
 			        else
 			        {
-				        if(uDist<*min_uDist)
+				        if(x_u<*min_uDist)
 				        {
 				        	if(min_uDist2==NULL)
 			                {
@@ -448,7 +447,7 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			                    }
 			                }
 					        *min_uDist2=*min_uDist;
-					        *min_uDist=uDist;
+					        *min_uDist=x_u;
 					        currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
 			                currentAssignment->nearest[i]=medoids->m[l];
 			            }
@@ -461,14 +460,14 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			                        printf("Error: System failure.\n");
 			                        exit(1);
 			                    }
-			                    *min_uDist2=uDist;
+			                    *min_uDist2=x_u;
 				                currentAssignment->secondNearest[i]=medoids->m[l];
 			                }
 			                else
 			                {
-			                    if(uDist<*min_uDist2)
+			                    if(x_u<*min_uDist2)
 					            {
-						            *min_uDist2=uDist;
+						            *min_uDist2=x_u;
 						            currentAssignment->secondNearest[i]=medoids->m[l];
 			                    }
 			                }
@@ -482,6 +481,26 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 		    {
 		    	uF+=user_hammingDistance(currentAssignment->map[i],currentAssignment->nearest[i]);
 		    }
+		    for(i=0;i<=medoids->k-1;i++)
+		    {
+		    	for(j=1;j<=n;j++)
+	            {
+	        	    for(l=0;l<=medoids->k-1;l++)
+	        	    {
+	        		    if(j==medoids->m[l])
+	        		    {
+	        			    l=medoids->k+1;
+	        			    break;
+	        		    }
+	        	    }
+	        	    if(l==medoids->k+1)
+	        	    {
+	        		    continue;
+	        	    }
+	        	    l=j;
+	        	    x_u=medoids->m[i];
+	        	    medoids->m[i]=l;
+	        	    l=x_u;
 			    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
