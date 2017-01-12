@@ -5,18 +5,13 @@
 
 struct MedoidData
 {
-	unsigned int k;
-	unsigned int* m;
+	unsigned int k,*m;
 };
-
 typedef struct Assignment
 {
-	unsigned int* nearest;
-	unsigned int* secondNearest;
-	unsigned int n;
+	unsigned int n_k,*map,*nearest,*secondNearest;
 }Assignment;
-
-static Assignment* currentAssignment = NULL;
+static Assignment* currentAssignment=NULL;
 typedef struct Values
 {
 	double v;
@@ -277,9 +272,8 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 		perror("Failed to allocate memory for medoids on Park-Jun initialization");
 		return NULL;
 	}
-
 	medoids->k=k;
-	if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))== NULL)
+	if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
 	{
 		perror("Failed to allocate memory for medoids on Park-Jun initialization");
 		return NULL;
@@ -381,102 +375,114 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	if(currentAssignment == NULL)
+	int i,j,l;
+	unsigned int uDist,*min_uDist=NULL,*min_uDist2=NULL,uF;
+	double dDist,*min_dDist=NULL,*min_dDist2=NULL,dF;
+	
+	if(currentAssignment==NULL)
 	{
-		currentAssignment = malloc(sizeof(Assignment));
-		if(currentAssignment == NULL)
+	    if((currentAssignment=realloc(NULL,sizeof(Assignment)))==NULL)
 		{
-			perror("Failed to allocate memory for internal Assignment struct");
+			printf("Error: System failure.\n");
 			exit(1);
 		}
-
-		currentAssignment->nearest = malloc(n*sizeof(unsigned int));
-		if(currentAssignment->nearest == NULL)
+		currentAssignment->n_k=n-medoids->k;
+		if((currentAssignment->map=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
 		{
-			perror("Failed to allocate memory for internal Assignment struct nearest");
-			exit(2);
+			printf("Error: System failure.\n");
+			exit(1);
 		}
-
-		currentAssignment->secondNearest = malloc(n*sizeof(unsigned int));
-		if(currentAssignment->nearest == NULL)
+		if((currentAssignment->nearest=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
 		{
-			perror("Failed to allocate memory for internal Assignment struct secondNearest");
-			exit(3);
+			printf("Error: System failure.\n");
+			exit(1);
 		}
-
-		currentAssignment->n = n;
+		if((currentAssignment->secondNearest=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
+		{
+			printf("Error: System failure.\n");
+			exit(1);
+		}
 	}
-
-	unsigned int* uDist;
-	double* dDist;
-	unsigned int min_uDist=0,min_uDist2;
-	double min_dDist=0.0,min_dDist2;
-	unsigned int i,j,min,min2;
-	
-	for(i=0;i<=n-1;i++)
+	i=0;
+	switch(metric)
 	{
-		/*Initialize min_Dist and minDist2*/
-		if(metric == 'h'||metric == 'm')
-		{
-		    for(j=0;j<=medoids->k-2;j++)
-			{
-			    uDist = data_getIdDistance(i,medoids->m[j]);
-				if(*uDist)
-				{
-					min_uDist=*uDist;
-					min=j;
-			        currentAssignment->nearest[i] = medoids->m[min];
-			    }
-				uDist = data_getIdDistance(i,medoids->m[j+1]);
-				if(*uDist)
-				{
-					if(min_uDist)
-					{
-					    if(min_uDist > *uDist)
-						{
-				min_uDist2 = min_uDist;
-				currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-				min_uDist = *uDist;
-				currentAssignment->nearest[i] = medoids->m[1];
-			}
-		}
-		else{
-			dDist = data_getIdDistance(i,medoids->m[0]);
-			min_dDist = *dDist;
-			currentAssignment->nearest[i] = medoids->m[0];
-
-			dDist = data_getIdDistance(i,medoids->m[1]);
-			if(min_dDist > *dDist){
-				min_dDist2 = min_dDist;
-				currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-				min_dDist = *dDist;
-				currentAssignment->nearest[i] = medoids->m[1];
-			}
-		}
-
-		for(j=2;j<medoids->k;j++){
-			if(metric == 'h'||metric == 'm'){
-				uDist = data_getIdDistance(i,medoids->m[j]);
-				if(min_uDist > *uDist){
-					min_uDist2 = min_uDist;
-					currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-					min_uDist = *uDist;
-					currentAssignment->nearest[i] = medoids->m[j];
-				}
-			}
-			else{
-				dDist = data_getIdDistance(i,medoids->m[j]);
-				if(min_dDist > *dDist){
-					min_dDist2 = min_dDist;
-					currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-					min_dDist = *dDist;
-					currentAssignment->nearest[i] = medoids->m[j];
-				}
-			}
-		}
-	}
-}
-
+		case 'h':
+	        for(j=1;j<=n;j++)
+	        {
+	        	for(l=0;l<=medoids->k-1;l++)
+	        	{
+	        		if(j==medoids->m[l])
+	        		{
+	        			l=-1;
+	        			break;
+	        		}
+	        	}
+	        	if(l==-1)
+	        	{
+	        		continue;
+	        	}
+	            for(l=0;l<=medoids->k-1;l++)
+		        {
+		        	uDist=user_hammingDistance(j,medoids->m[l]);
+			        if(min_uDist==NULL)
+			        {
+			            if((min_uDist=realloc(NULL,sizeof(unsigned int)))==NULL)
+			            {
+			                printf("Error: System failure.\n");
+			                exit(1);
+			            }
+				        *min_uDist=uDist;
+				        currentAssignment->map[i]=j;
+				        currentAssignment->nearest[i]=medoids->m[l];
+			        }
+			        else
+			        {
+				        if(uDist<*min_uDist)
+				        {
+				        	if(min_uDist2==NULL)
+			                {
+			                    if((min_uDist2=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                    {
+			                        printf("Error: System failure.\n");
+			                        exit(1);
+			                    }
+			                }
+					        *min_uDist2=*min_uDist;
+					        *min_uDist=uDist;
+					        currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
+			                currentAssignment->nearest[i]=medoids->m[l];
+			            }
+			            else
+			            {
+			            	if(min_uDist2==NULL)
+			                {
+			                    if((min_uDist2=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                    {
+			                        printf("Error: System failure.\n");
+			                        exit(1);
+			                    }
+			                    *min_uDist2=uDist;
+				                currentAssignment->secondNearest[i]=medoids->m[l];
+			                }
+			                else
+			                {
+			                    if(uDist<*min_uDist2)
+					            {
+						            *min_uDist2=uDist;
+						            currentAssignment->secondNearest[i]=medoids->m[l];
+			                    }
+			                }
+			            }
+			        }
+		        }
+		        i++;
+		    }
+		    uF=0;
+		    for(i=0;i<=currentAssignment->n_k-1;i++)
+		    {
+		    	uF+=user_hammingDistance(currentAssignment->map[i],currentAssignment->nearest[i]);
+		    }
+			    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
 		currentAssignment = malloc(sizeof(Assignment));

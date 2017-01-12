@@ -76,9 +76,9 @@ void clustering_init(Ratings ratings,char metric)
 {
 	unsigned int n=ratings_getNumberOfUsers(ratings);
 	unsigned short k=n/ratings_getNumberOfNeighbors(ratings);
-	Medoids medoids=Park_Jun(k,n,metric);
+	Medoids medoids;
 	
-	pam(medoids,n,metric);
+	PAM(medoids,n,metric);
 }
 
 Neighbors clustering_getNeighbors(User user){
