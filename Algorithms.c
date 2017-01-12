@@ -375,7 +375,7 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	unsigned int i,j,k,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF,index;
+	unsigned int i,j,k,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF;
 	double x_d,*min_dDist=NULL,*min_dDist2=NULL,dF;
 	
 	if(currentAssignment==NULL)
@@ -497,10 +497,6 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 	        	    {
 	        		    continue;
 	        	    }
-	        	    index=j;
-	        	    x_u=medoids->m[i];
-	        	    medoids->m[i]=index;
-	        	    index=x_u;
 	        	    for(k=1;k<=n;k++)
 	        	    {
 	        	    	for(l=0;l<=medoids->k-1;l++)
@@ -511,11 +507,10 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 	        			        break;
 	        			    }
 	        		    }
-	        	    }
-	        	    if(l==medoids->k+1)
-	        	    {
-	        		    continue;
-	        	    }
+	        	        if(l==medoids->k+1)
+	        	        {
+	        		        continue;
+	        	        }
 			    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
