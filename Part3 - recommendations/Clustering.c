@@ -74,10 +74,37 @@ void lsh_terminate(){
 
 void clustering_init(Ratings ratings,char metric)
 {
-	unsigned int n=ratings_getNumberOfUsers(ratings);
+	unsigned int i,j,n=ratings_getNumberOfUsers(ratings);
 	unsigned short k=n/ratings_getNumberOfNeighbors(ratings);
 	Medoids medoids;
 	
+	if((medoids=realloc(NULL,sizeof(MedoiodData)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	medoids->k=k;
+	for(i=0;i<=k-1;i++)
+	{
+		do
+		{
+		    medoids->m[i]=integerUniform(n)+1;
+		    for(j=0;j<=i-1;j++)
+		    {
+		    	if(medoids->m[i]==medoids->m[j])
+		    	{
+		    		j=i+1;
+		    		break;
+		    	}
+		    }
+		}
+		while(j==i+1);
+	}
 	PAM(medoids,n,metric);
 }
 

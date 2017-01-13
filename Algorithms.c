@@ -3,10 +3,10 @@
 #include "RNG.h"
 #include <stdlib.h>
 
-struct MedoidData
+typedef struct MedoidData
 {
 	unsigned int k,*m;
-};
+}MedoidData;
 typedef struct Assignment
 {
 	unsigned int n,*first,*second,*swap;
