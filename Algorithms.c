@@ -9,9 +9,9 @@ struct MedoidData
 };
 typedef struct Assignment
 {
-	unsigned int n_k,*map,*nearest,*secondNearest;
+	unsigned int n,*first,*second,*swap;
 }Assignment;
-static Assignment* currentAssignment=NULL;
+static Assignment *currentAssignment=NULL;
 typedef struct Values
 {
 	double v;
@@ -375,8 +375,8 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	unsigned int i,j,k,l,x_u,*min_uDist=NULL,*min_uDist2=NULL,uF;
-	double x_d,*min_dDist=NULL,*min_dDist2=NULL,dF;
+	unsigned int i,j,k,l,natural,*firstNatural=NULL,*secondNatural=NULL,fNatural;
+	double real,*firstReal=NULL,*secondReal=NULL,fReal;
 	
 	if(currentAssignment==NULL)
 	{
@@ -385,132 +385,101 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			printf("Error: System failure.\n");
 			exit(1);
 		}
-		currentAssignment->n_k=n-medoids->k;
-		if((currentAssignment->map=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
+		if((currentAssignment->first=realloc(NULL,n*sizeof(unsigned int)))==NULL)
 		{
 			printf("Error: System failure.\n");
 			exit(1);
 		}
-		if((currentAssignment->nearest=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
+		if((currentAssignment->second=realloc(NULL,n*sizeof(unsigned int)))==NULL)
 		{
 			printf("Error: System failure.\n");
 			exit(1);
 		}
-		if((currentAssignment->secondNearest=realloc(NULL,currentAssignment->n_k*sizeof(unsigned int)))==NULL)
+		if((currentAssignment->swap=realloc(NULL,n*sizeof(unsigned int)))==NULL)
 		{
 			printf("Error: System failure.\n");
 			exit(1);
 		}
+		currentAssignment->n=n;
 	}
-	i=0;
 	switch(metric)
 	{
 		case 'h':
-	        for(j=1;j<=n;j++)
-	        {
-	        	for(k=0;k<=medoids->k-1;k++)
-	        	{
-	        		if(j==medoids->m[k])
-	        		{
-	        			k=medoids->k+1;
-	        			break;
-	        		}
-	        	}
-	        	if(k==medoids->k+1)
-	        	{
-	        		continue;
-	        	}
-	            for(k=0;k<=medoids->k-1;k++)
-		        {
-		        	x_u=user_hammingDistance(j,medoids->m[k]);
-			        if(min_uDist==NULL)
-			        {
-			            if((min_uDist=realloc(NULL,sizeof(unsigned int)))==NULL)
+			do
+			{
+			    for(i=0;i<=n-1;i++)
+	            {
+				    for(j=0;j<=medoids->k-1;j++)
+		            {
+		        	    natural=user_hammingDistance(i+1,medoids->m[j]);
+			            if(firstNatural==NULL)
 			            {
-			                printf("Error: System failure.\n");
-			                exit(1);
-			            }
-				        *min_uDist=x_u;
-				        currentAssignment->map[i]=j;
-				        currentAssignment->nearest[i]=medoids->m[k];
-			        }
-			        else
-			        {
-				        if(x_u<*min_uDist)
-				        {
-				        	if(min_uDist2==NULL)
+						    if((firstNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                {
-			                    if((min_uDist2=realloc(NULL,sizeof(unsigned int)))==NULL)
-			                    {
-			                        printf("Error: System failure.\n");
-			                        exit(1);
-			                    }
+			                    printf("Error: System failure.\n");
+			                    exit(1);
 			                }
-					        *min_uDist2=*min_uDist;
-					        *min_uDist=x_u;
-					        currentAssignment->secondNearest[i]=currentAssignment->nearest[i];
-			                currentAssignment->nearest[i]=medoids->m[k];
+				            *firstNatural=natural;
+				            currentAssignment->nearest[i]=medoids->m[j];
 			            }
 			            else
 			            {
-			            	if(min_uDist2==NULL)
-			                {
-			                    if((min_uDist2=realloc(NULL,sizeof(unsigned int)))==NULL)
+				            if(natural<*firstNatural)
+				            {
+				        	    if(secondNatural==NULL)
 			                    {
-			                        printf("Error: System failure.\n");
-			                        exit(1);
+			                        if((secondNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
 			                    }
-			                    *min_uDist2=x_u;
-				                currentAssignment->secondNearest[i]=medoids->m[k];
+					            *secondNatural=*firstNatural;
+					            *firstNatural=natural;
+					            currentAssignment->second[i]=currentAssignment->first[i];
+			                    currentAssignment->first[i]=medoids->m[j];
 			                }
 			                else
 			                {
-			                    if(x_u<*min_uDist2)
-					            {
-						            *min_uDist2=x_u;
-						            currentAssignment->secondNearest[i]=medoids->m[k];
+			            	    if(secondNatural==NULL)
+			                    {
+			                        if((secondNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
+			                        *secondNatural=natural;
+				                    currentAssignment->second[i]=medoids->m[j];
+			                    }
+			                    else
+			                    {
+			                        if(natural<*secondNatural)
+					                {
+						                *secondNatural=natural;
+						                currentAssignment->second[i]=medoids->m[j];
+			                        }
 			                    }
 			                }
 			            }
-			        }
+		            }
 		        }
-		        i++;
-		    }
-		    uF=0;
-		    for(i=0;i<=currentAssignment->n_k-1;i++)
-		    {
-		    	uF+=user_hammingDistance(currentAssignment->map[i],currentAssignment->nearest[i]);
-		    }
-		    for(i=0;i<=medoids->k-1;i++)
-		    {
-		    	for(j=1;j<=n;j++)
-	            {
-	        	    for(k=0;k<=medoids->k-1;k++)
-	        	    {
-	        		    if(j==medoids->m[k])
-	        		    {
-	        			    k=medoids->k+1;
-	        			    break;
-	        		    }
-	        	    }
-	        	    if(k==medoids->k+1)
-	        	    {
-	        		    continue;
-	        	    }
-	        	    for(k=1;k<=n;k++)
-	        	    {
-	        	    	for(l=0;l<=medoids->k-1;l++)
-	        	        {
-	        		        if(k==medoids->m[l])
-	        		        {
-	        			        l=medoids->k+1;
-	        			        break;
-	        			    }
-	        		    }
-	        	        if(l==medoids->k+1)
-	        	        {
-	        		        continue;
-	        	        }
+		        fNatural=0;
+		        for(i=0;i<=n-1;i++)
+		        {
+		    	    fNatural+=user_hammingDistance(i+1,currentAssignment->first[i]);
+		        }
+		        for(i=0;i<=medoids->k-1;i++)
+		        {
+		    	    for(j=0;j<=n-1;j++)
+	                {
+	                	if(j+1!=currentAssignment->first[j])
+	                	{
+	                		for(k=0;k<=n-1;k++)
+	                		{
+	                			if(currentAssignment->first[k]==medoids->m[i])
+	                			{
+	                				if(user_hammingDistance(k+1,j+1)>user_hammingDistance(k+1,currentAssignment->second[k]))
+	                				{
 			    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
