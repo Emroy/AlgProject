@@ -375,8 +375,8 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 /*ASSIGNMENTS*/
 void PAM(Medoids medoids,unsigned int n,char metric)
 {
-	unsigned int i,j,k,l,natural,*firstNatural=NULL,*secondNatural=NULL,fNatural;
-	double real,*firstReal=NULL,*secondReal=NULL,fReal;
+	unsigned int i,j,k,natural,*firstNatural=NULL,*secondNatural=NULL,fNatural=0;
+	double real,*firstReal=NULL,*secondReal=NULL,fReal=0.0;
 	
 	if(currentAssignment==NULL)
 	{
@@ -420,7 +420,7 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			                    exit(1);
 			                }
 				            *firstNatural=natural;
-				            currentAssignment->nearest[i]=medoids->m[j];
+				            currentAssignment->first[i]=medoids->m[j];
 			            }
 			            else
 			            {
@@ -463,10 +463,12 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 			            }
 		            }
 		        }
-		        fNatural=0;
-		        for(i=0;i<=n-1;i++)
+		        if(!fNatural)
 		        {
-		    	    fNatural+=user_hammingDistance(i+1,currentAssignment->first[i]);
+				    for(i=0;i<=n-1;i++)
+		            {
+		    	        fNatural+=user_hammingDistance(i+1,currentAssignment->first[i]);
+		            }
 		        }
 		        for(i=0;i<=medoids->k-1;i++)
 		        {
@@ -478,9 +480,281 @@ void PAM(Medoids medoids,unsigned int n,char metric)
 	                		{
 	                			if(currentAssignment->first[k]==medoids->m[i])
 	                			{
-	                				if(user_hammingDistance(k+1,j+1)>user_hammingDistance(k+1,currentAssignment->second[k]))
+	                				if(user_hammingDistance(k+1,j+1)<=user_hammingDistance(k+1,currentAssignment->second[k]))
 	                				{
-			    
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->second[k];
+	                				}
+	                			}
+	                			else
+	                			{
+	                				if(user_hammingDistance(k+1,j+1)>=user_hammingDistance(k+1,currentAssignment->first[k]))
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->first[k];
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                			}
+	                		}
+	                		natural=0;
+	                		for(i=0;i<=n-1;i++)
+		                    {
+		    	                natural+=user_hammingDistance(i+1,currentAssignment->swap[i]);
+		                    }
+		                    if(natural<fNatural)
+		                    {
+		                    	fNatural=natural;
+		                    	medoids->m[i]=j+1;
+		                    	i=medoids->k+1;
+		                    	break;
+		                    }
+		                }
+		            }
+		        }
+		    }
+		    while(i>=medoids->k+1);
+		    break;
+		case 'e':
+			do
+			{
+			    for(i=0;i<=n-1;i++)
+	            {
+				    for(j=0;j<=medoids->k-1;j++)
+		            {
+		        	    real=user_euclideanDistance(i+1,medoids->m[j]);
+			            if(firstReal==NULL)
+			            {
+						    if((firstReal=realloc(NULL,sizeof(double)))==NULL)
+			                {
+			                    printf("Error: System failure.\n");
+			                    exit(1);
+			                }
+				            *firstReal=real;
+				            currentAssignment->first[i]=medoids->m[j];
+			            }
+			            else
+			            {
+				            if(real<*firstReal)
+				            {
+				        	    if(secondReal==NULL)
+			                    {
+			                        if((secondReal=realloc(NULL,sizeof(double)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
+			                    }
+					            *secondReal=*firstReal;
+					            *firstReal=real;
+					            currentAssignment->second[i]=currentAssignment->first[i];
+			                    currentAssignment->first[i]=medoids->m[j];
+			                }
+			                else
+			                {
+			            	    if(secondReal==NULL)
+			                    {
+			                        if((secondReal=realloc(NULL,sizeof(double)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
+			                        *secondReal=real;
+				                    currentAssignment->second[i]=medoids->m[j];
+			                    }
+			                    else
+			                    {
+			                        if(real<*secondReal)
+					                {
+						                *secondReal=real;
+						                currentAssignment->second[i]=medoids->m[j];
+			                        }
+			                    }
+			                }
+			            }
+		            }
+		        }
+		        if(fReal==0.0)
+		        {
+				    for(i=0;i<=n-1;i++)
+		            {
+		    	        fReal+=user_euclideanDistance(i+1,currentAssignment->first[i]);
+		            }
+		        }
+		        for(i=0;i<=medoids->k-1;i++)
+		        {
+		    	    for(j=0;j<=n-1;j++)
+	                {
+	                	if(j+1!=currentAssignment->first[j])
+	                	{
+	                		for(k=0;k<=n-1;k++)
+	                		{
+	                			if(currentAssignment->first[k]==medoids->m[i])
+	                			{
+	                				if(user_euclideanDistance(k+1,j+1)<=user_euclideanDistance(k+1,currentAssignment->second[k]))
+	                				{
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->second[k];
+	                				}
+	                			}
+	                			else
+	                			{
+	                				if(user_euclideanDistance(k+1,j+1)>=user_euclideanDistance(k+1,currentAssignment->first[k]))
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->first[k];
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                			}
+	                		}
+	                		real=0.0;
+	                		for(i=0;i<=n-1;i++)
+		                    {
+		    	                real+=user_euclideanDistance(i+1,currentAssignment->swap[i]);
+		                    }
+		                    if(real<fReal)
+		                    {
+		                    	fReal=real;
+		                    	medoids->m[i]=j+1;
+		                    	i=medoids->k+1;
+		                    	break;
+		                    }
+		                }
+		            }
+		        }
+		    }
+		    while(i>=medoids->k+1);
+		    break;
+		case 'c':
+			do
+			{
+			    for(i=0;i<=n-1;i++)
+	            {
+				    for(j=0;j<=medoids->k-1;j++)
+		            {
+		        	    real=user_cosineDistance(i+1,medoids->m[j]);
+			            if(firstReal==NULL)
+			            {
+						    if((firstReal=realloc(NULL,sizeof(double)))==NULL)
+			                {
+			                    printf("Error: System failure.\n");
+			                    exit(1);
+			                }
+				            *firstReal=real;
+				            currentAssignment->first[i]=medoids->m[j];
+			            }
+			            else
+			            {
+				            if(real<*firstReal)
+				            {
+				        	    if(secondReal==NULL)
+			                    {
+			                        if((secondReal=realloc(NULL,sizeof(double)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
+			                    }
+					            *secondReal=*firstReal;
+					            *firstReal=real;
+					            currentAssignment->second[i]=currentAssignment->first[i];
+			                    currentAssignment->first[i]=medoids->m[j];
+			                }
+			                else
+			                {
+			            	    if(secondReal==NULL)
+			                    {
+			                        if((secondReal=realloc(NULL,sizeof(double)))==NULL)
+			                        {
+			                            printf("Error: System failure.\n");
+			                            exit(1);
+			                        }
+			                        *secondReal=real;
+				                    currentAssignment->second[i]=medoids->m[j];
+			                    }
+			                    else
+			                    {
+			                        if(real<*secondReal)
+					                {
+						                *secondReal=real;
+						                currentAssignment->second[i]=medoids->m[j];
+			                        }
+			                    }
+			                }
+			            }
+		            }
+		        }
+		        if(fReal==0.0)
+		        {
+				    for(i=0;i<=n-1;i++)
+		            {
+		    	        fReal+=user_cosineDistance(i+1,currentAssignment->first[i]);
+		            }
+		        }
+		        for(i=0;i<=medoids->k-1;i++)
+		        {
+		    	    for(j=0;j<=n-1;j++)
+	                {
+	                	if(j+1!=currentAssignment->first[j])
+	                	{
+	                		for(k=0;k<=n-1;k++)
+	                		{
+	                			if(currentAssignment->first[k]==medoids->m[i])
+	                			{
+	                				if(user_cosineDistance(k+1,j+1)<=user_cosineDistance(k+1,currentAssignment->second[k]))
+	                				{
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->second[k];
+	                				}
+	                			}
+	                			else
+	                			{
+	                				if(user_cosineDistance(k+1,j+1)>=user_cosineDistance(k+1,currentAssignment->first[k]))
+	                				{
+	                					currentAssignment->swap[k]=currentAssignment->first[k];
+	                				}
+	                				else
+	                				{
+	                					currentAssignment->swap[k]=j+1;
+	                				}
+	                			}
+	                		}
+	                		real=0.0;
+	                		for(i=0;i<=n-1;i++)
+		                    {
+		    	                real+=user_cosineDistance(i+1,currentAssignment->swap[i]);
+		                    }
+		                    if(real<fReal)
+		                    {
+		                    	fReal=real;
+		                    	medoids->m[i]=j+1;
+		                    	i=medoids->k+1;
+		                    	break;
+		                    }
+		                }
+		            }
+		        }
+		    }
+		    while(i>=medoids->k+1);
+		    break;
+		default:
+			printf("Error: Unknown metric.\n");
+			exit(1);
+	}
+}
+	    
 void lsh_dbh(Medoids medoids,unsigned int n,int k,int L){
 	if(currentAssignment == NULL){
 		currentAssignment = malloc(sizeof(Assignment));
