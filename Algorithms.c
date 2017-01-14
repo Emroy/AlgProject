@@ -817,6 +817,158 @@ Medoids clarans(Medoids prevMedoids,unsigned int n,int iter,int frac){
 }
 
 /*UTILITY FUNCTIONS*/
+double silhouette(char metric,unsigned int n)
+{
+	double *a,*b,*s,sum=0.0;
+	unsigned int *aCounter,*bCounter,i,j;
+	
+	if((a=realloc(NULL,n*sizeof(double)))==NULL)
+	{
+	    printf("Error: System failure.\n");
+	    exit(1);
+	}
+	if((b=realloc(NULL,n*sizeof(double)))==NULL)
+	{
+	    printf("Error: System failure.\n");
+	    exit(1);
+	}
+	if((s=realloc(NULL,n*sizeof(double)))==NULL)
+	{
+	    printf("Error: System failure.\n");
+	    exit(1);
+	}
+	if((aCounter=realloc(NULL,n*sizeof(unsigned int)))==NULL)
+	{
+	    printf("Error: System failure.\n");
+	    exit(1);
+	}
+	if((bCounter=realloc(NULL,n*sizeof(unsigned int)))==NULL)
+	{
+	    printf("Error: System failure.\n");
+	    exit(1);
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    a[i]=0.0;
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    b[i]=0.0;
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    aCounter[i]=0;
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    bCounter[i]=0;
+	}
+	switch(metric)
+	{
+		case 'h':
+	        for(i=0;i<=n-1;i++)
+	        {
+		        for(j=0;j<=n-1;j++)
+		        {
+			        if(j!=i)
+			        {
+				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        {
+				        	a[i]+=user_hammingDistance(i+1,j+1);
+				        	aCounter[i]++;
+				        }
+				        else
+				        {
+				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				            {
+				        	    b[i]+=user_hammingDistance(i+1,j+1);
+				        	    bCounter[i]++;
+				            }
+				        }
+				    }
+				}
+			}
+			break;
+		case 'e':
+			for(i=0;i<=n-1;i++)
+	        {
+		        for(j=0;j<=n-1;j++)
+		        {
+			        if(j!=i)
+			        {
+				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        {
+				        	a[i]+=user_euclideanDistance(i+1,j+1);
+				        	aCounter[i]++;
+				        }
+				        else
+				        {
+				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				            {
+				        	    b[i]+=user_euclideanDistance(i+1,j+1);
+				        	    bCounter[i]++;
+				            }
+				        }
+				    }
+				}
+			}
+			break;
+		case 'c':
+			for(i=0;i<=n-1;i++)
+	        {
+		        for(j=0;j<=n-1;j++)
+		        {
+			        if(j!=i)
+			        {
+				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        {
+				        	a[i]+=user_cosineDistance(i+1,j+1);
+				        	aCounter[i]++;
+				        }
+				        else
+				        {
+				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				            {
+				        	    b[i]+=user_cosineDistance(i+1,j+1);
+				        	    bCounter[i]++;
+				            }
+				        }
+				    }
+				}
+			}
+			break;
+		default:
+			printf("Error: Unknown metric.\n");
+			exit(1);
+	}
+	for(i=0;i<=n-1;i++)
+	{
+		a[i]/=aCounter[i];
+		b[i]/=bCounter[i];
+	}
+	for(i=0;i<=n-1;i++)
+	{
+		if(a[i]>b[i])
+		{
+			s[i]=(b[i]-a[i])/a[i];
+		}
+		else
+		{
+			s[i]=(b[i]-a[i])/a[i];
+		}
+	}
+	for(i=0;i<=n-1;i++)
+	{
+	    sum+=s[i];
+	}
+	free(a);
+	free(b);
+	free(s);
+	free(aCounter);
+	free(bCounter);
+	return sum/n;
+}
+
 int medoids_areSame(Medoids a,Medoids b){
 	unsigned int i;
 	for(i=0;i<a->k;i++){

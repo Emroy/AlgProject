@@ -83,29 +83,32 @@ void clustering_init(Ratings ratings,char metric)
 		printf("Error: System failure.\n");
 		exit(1);
 	}
-	if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
+	do
 	{
-		printf("Error: System failure.\n");
-		exit(1);
-	}
-	medoids->k=k;
-	for(i=0;i<=k-1;i++)
-	{
-		do
-		{
-		    medoids->m[i]=integerUniform(n)+1;
-		    for(j=0;j<=i-1;j++)
+	    if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
+	    {
+		    printf("Error: System failure.\n");
+		    exit(1);
+	    }
+	    medoids->k=k;
+	    for(i=0;i<=k-1;i++)
+	    {
+		    do
 		    {
-		    	if(medoids->m[i]==medoids->m[j])
-		    	{
-		    		j=i+1;
-		    		break;
-		    	}
+		        medoids->m[i]=integerUniform(n)+1;
+		        for(j=0;j<=i-1;j++)
+		        {
+		    	    if(medoids->m[i]==medoids->m[j])
+		    	    {
+		    		    j=i+1;
+		    		    break;
+		    	    }
+		        }
 		    }
-		}
-		while(j==i+1);
-	}
-	PAM(medoids,n,metric);
+		    while(j==i+1);
+	    }
+	    PAM(medoids,n,metric);
+	    silhouette(metric,n);
 }
 
 Neighbors clustering_getNeighbors(User user){

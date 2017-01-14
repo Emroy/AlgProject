@@ -22,6 +22,8 @@ Medoids lloyds(Medoids prevMedoids,unsigned int n);
 Medoids clarans(Medoids prevMedoids,unsigned int n,int iter,int frac);
 
 /*UTILITY FUNCTIONS*/
+double silhouette(char metric,unsigned int n);
+
 int medoids_areSame(Medoids a,Medoids b);
 
 void medoids_destroy(Medoids m);
