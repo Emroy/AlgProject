@@ -3,15 +3,14 @@
 #include "RNG.h"
 #include <stdlib.h>
 
-typedef struct MedoidData
+typedef struct MedoidsData
 {
 	unsigned int k,*m;
-}MedoidData;
-typedef struct Assignment
+}MedoidsData;
+typedef struct AssignmentData
 {
 	unsigned int n,*first,*second,*swap;
-}Assignment;
-static Assignment *currentAssignment=NULL;
+}AssignmentData;
 typedef struct Values
 {
 	double v;
@@ -46,7 +45,7 @@ Medoids k_MedoidsPP(unsigned int k,unsigned int n,char metric)
 	    printf("Error: Invalid data.\n");
 	    exit(1);
 	}
-	if((medoids=realloc(NULL,sizeof(struct MedoidData)))==NULL)
+	if((medoids=realloc(NULL,sizeof(struct MedoidsData)))==NULL)
 	{
 		perror("Failed to allocate memory for medoids on k_MedoidsPP initialization");
 		return NULL;
@@ -267,7 +266,7 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 	unsigned int i,j,t,**dNatural,*natural,sumNatural;
 	double **dReal,*real,sumReal;
 	
-	if((medoids=realloc(NULL,sizeof(struct MedoidData)))==NULL)
+	if((medoids=realloc(NULL,sizeof(struct MedoidsData)))==NULL)
 	{
 		perror("Failed to allocate memory for medoids on Park-Jun initialization");
 		return NULL;
@@ -373,36 +372,34 @@ Medoids Park_Jun(unsigned int k,unsigned int n,char metric)
 }
 
 /*ASSIGNMENTS*/
-void PAM(Medoids medoids,unsigned int n,char metric)
+Assignment PAM(Medoids medoids,unsigned int n,char metric)
 {
 	void *first=NULL,*second=NULL;
 	unsigned int i,j,k,natural,fNatural=0;
 	double real,fReal=0.0;
+	Assignment currentAssignment;
 	
-	if(currentAssignment==NULL)
+	if((currentAssignment=realloc(NULL,sizeof(AssignmentData)))==NULL)
 	{
-	    if((currentAssignment=realloc(NULL,sizeof(Assignment)))==NULL)
-		{
-			printf("Error: System failure.\n");
-			exit(1);
-		}
-		if((currentAssignment->first=realloc(NULL,n*sizeof(unsigned int)))==NULL)
-		{
-			printf("Error: System failure.\n");
-			exit(1);
-		}
-		if((currentAssignment->second=realloc(NULL,n*sizeof(unsigned int)))==NULL)
-		{
-			printf("Error: System failure.\n");
-			exit(1);
-		}
-		if((currentAssignment->swap=realloc(NULL,n*sizeof(unsigned int)))==NULL)
-		{
-			printf("Error: System failure.\n");
-			exit(1);
-		}
-		currentAssignment->n=n;
+		printf("Error: System failure.\n");
+		exit(1);
 	}
+	if((currentAssignment->first=realloc(NULL,n*sizeof(unsigned int)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	if((currentAssignment->second=realloc(NULL,n*sizeof(unsigned int)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	if((currentAssignment->swap=realloc(NULL,n*sizeof(unsigned int)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	currentAssignment->n=n;
 	switch(metric)
 	{
 		case 'h':
@@ -817,7 +814,7 @@ Medoids clarans(Medoids prevMedoids,unsigned int n,int iter,int frac){
 }
 
 /*UTILITY FUNCTIONS*/
-double silhouette(char metric,unsigned int n)
+double silhouette(char metric,unsigned int n,Assignment *assignment)
 {
 	double *a,*b,*s,sum=0.0;
 	unsigned int *aCounter,*bCounter,i,j;

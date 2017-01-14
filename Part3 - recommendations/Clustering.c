@@ -76,29 +76,30 @@ void clustering_init(Ratings ratings,char metric)
 {
 	unsigned int i,j,n=ratings_getNumberOfUsers(ratings);
 	unsigned short k=n/ratings_getNumberOfNeighbors(ratings);
-	Medoids medoids;
+	Medoids medoids[2];
+	Assignments *assignment[2];
 	
-	if((medoids=realloc(NULL,sizeof(MedoiodData)))==NULL)
+	if((medoids[0]=realloc(NULL,sizeof(MedoiodsData)))==NULL)
 	{
 		printf("Error: System failure.\n");
 		exit(1);
 	}
 	do
 	{
-	    if((medoids->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
+	    if((medoids[0]->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
 	    {
 		    printf("Error: System failure.\n");
 		    exit(1);
 	    }
-	    medoids->k=k;
+	    medoids[0]->k=k;
 	    for(i=0;i<=k-1;i++)
 	    {
 		    do
 		    {
-		        medoids->m[i]=integerUniform(n)+1;
+		        medoids[0]->m[i]=integerUniform(n)+1;
 		        for(j=0;j<=i-1;j++)
 		        {
-		    	    if(medoids->m[i]==medoids->m[j])
+		    	    if(medoids[0]->m[i]==medoids->m[j])
 		    	    {
 		    		    j=i+1;
 		    		    break;
@@ -107,8 +108,8 @@ void clustering_init(Ratings ratings,char metric)
 		    }
 		    while(j==i+1);
 	    }
-	    PAM(medoids,n,metric);
-	    silhouette(metric,n);
+	    assignment[0]=PAM(medoids[0],n,metric);
+	    silhouette(metric,n,assignment[0]);
 }
 
 Neighbors clustering_getNeighbors(User user){
