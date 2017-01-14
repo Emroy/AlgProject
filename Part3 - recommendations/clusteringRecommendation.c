@@ -2,6 +2,7 @@ typedef struct Medoids
 {
 	unsigned int k,*m;
 }Medoids;
+
 typedef struct Assignment
 {
 	unsigned int n,*first,*second,*swap;
@@ -386,6 +387,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 			printf("Error: Unknown metric.\n");
 			exit(1);
 	}
+	return assignment;
 }
 
 double silhouette(char metric,unsigned int n,Assignment *assignment)
@@ -443,14 +445,14 @@ double silhouette(char metric,unsigned int n,Assignment *assignment)
 		        {
 			        if(j!=i)
 			        {
-				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        if(assignment->first[i]==assignment->first[j])
 				        {
 				        	a[i]+=user_hammingDistance(i+1,j+1);
 				        	aCounter[i]++;
 				        }
 				        else
 				        {
-				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				        	if(assignment->second[i]==assignment->first[j])
 				            {
 				        	    b[i]+=user_hammingDistance(i+1,j+1);
 				        	    bCounter[i]++;
@@ -467,14 +469,14 @@ double silhouette(char metric,unsigned int n,Assignment *assignment)
 		        {
 			        if(j!=i)
 			        {
-				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        if(assignment->first[i]==assignment->first[j])
 				        {
 				        	a[i]+=user_euclideanDistance(i+1,j+1);
 				        	aCounter[i]++;
 				        }
 				        else
 				        {
-				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				        	if(assignment->second[i]==assignment->first[j])
 				            {
 				        	    b[i]+=user_euclideanDistance(i+1,j+1);
 				        	    bCounter[i]++;
@@ -491,14 +493,14 @@ double silhouette(char metric,unsigned int n,Assignment *assignment)
 		        {
 			        if(j!=i)
 			        {
-				        if(currentAssignment->first[i]==currentAssignment->first[j])
+				        if(assignment->first[i]==assignment->first[j])
 				        {
 				        	a[i]+=user_cosineDistance(i+1,j+1);
 				        	aCounter[i]++;
 				        }
 				        else
 				        {
-				        	if(currentAssignment->second[i]==currentAssignment->first[j])
+				        	if(assignment->second[i]==assignment->first[j])
 				            {
 				        	    b[i]+=user_cosineDistance(i+1,j+1);
 				        	    bCounter[i]++;

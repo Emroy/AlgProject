@@ -74,32 +74,64 @@ void lsh_terminate(){
 
 void clustering_init(Ratings ratings,char metric)
 {
-	unsigned int i,j,n=ratings_getNumberOfUsers(ratings);
-	unsigned short k=n/ratings_getNumberOfNeighbors(ratings),kStart,kEnd;
-	Medoids medoids[2];
-	Assignment assignment[2];
+	unsigned int i,j,n=ratings_getNumberOfUsers(ratings),start=1,end=n;
+	unsigned short k[2],token=0;
+	double s[2];
+	Medoids *medoids[2];
+	Assignment *assignment[2];
 	
-	if((medoids[0]=realloc(NULL,sizeof(MedoiodsData)))==NULL)
+	if((medoids[0]=realloc(NULL,sizeof(Medoids)))==NULL)
 	{
 		printf("Error: System failure.\n");
 		exit(1);
 	}
+	k[0]=n/ratings_getNumberOfNeighbors(ratings);
+	k[1]=(start+k[0])/2;
+	if((medoids[0]->m=realloc(NULL,k[0]*sizeof(unsigned int)))==NULL)
+	{
+		printf("Error: System failure.\n");
+		exit(1);
+	}
+	medoids[0]->k=k[0];
+	for(i=0;i<=k[0]-1;i++)
+	{
+		do
+		{
+		    medoids[0]->m[i]=integerUniform(n)+1;
+		    for(j=0;j<=i-1;j++)
+		    {
+		    	if(medoids[0]->m[i]==medoids[0]->m[j])
+		    	{
+		    		j=i+1;
+		    		break;
+		    	}
+		    }
+		}
+		while(j==i+1);
+	}
+	assignment[0]=PAM(medoids[0],n,metric);
+	s[0]=silhouette(metric,n,assignment[0]);
 	do
 	{
-	    if((medoids[0]->m=realloc(NULL,k*sizeof(unsigned int)))==NULL)
+	    if((medoids[1]=realloc(NULL,sizeof(Medoids)))==NULL)
 	    {
 		    printf("Error: System failure.\n");
 		    exit(1);
 	    }
-	    medoids[0]->k=k;
-	    for(i=0;i<=k-1;i++)
+	    if((medoids[1]->m=realloc(NULL,k[1]*sizeof(unsigned int)))==NULL)
+	    {
+		    printf("Error: System failure.\n");
+		    exit(1);
+	    }
+	    medoids[1]->k=k[1];
+	    for(i=0;i<=k[1]-1;i++)
 	    {
 		    do
 		    {
-		        medoids[0]->m[i]=integerUniform(n)+1;
+		        medoids[1]->m[i]=integerUniform(n)+1;
 		        for(j=0;j<=i-1;j++)
 		        {
-		    	    if(medoids[0]->m[i]==medoids->m[j])
+		    	    if(medoids[1]->m[i]==medoids[1]->m[j])
 		    	    {
 		    		    j=i+1;
 		    		    break;
@@ -108,8 +140,44 @@ void clustering_init(Ratings ratings,char metric)
 		    }
 		    while(j==i+1);
 	    }
-	    assignment[0]=PAM(medoids[0],n,metric);
-	    silhouette(metric,n,assignment[0]);
+	    assignment[1]=PAM(medoids[1],n,metric);
+	    s[1]=silhouette(metric,n,assignment[1]);
+	    if(s[1]>s[0])
+	    {
+	    	if(!token)
+	    	{
+			    end=k[0];
+			}
+			else
+			{
+				start=k[0];
+				token=0;
+			}
+	    	k[0]=k[1];
+	    	k[1]=(start+k[0])/2;
+	    	free(medoids[0]->m);
+	    	free(medoids[0]);
+	    	free(assignment[0]);
+	    	medoids[0]=medoids[1];
+	    	assignment[0]=assignment[1];
+	    }
+	    else
+	    {
+		    free(medoids[1]->m);
+	    	free(medoids[1]);
+	    	free(assignment[1]);
+	    	if(!token)
+	    	{
+	    	    k[1]=(k[0]+end)/2;
+	    	    token=1;
+	    	}
+	    	else
+	    	{
+	    		break;
+	    	}
+	    }
+	}
+	while((k[1]!=start)&&(k[1]!=end));
 }
 
 Neighbors clustering_getNeighbors(User user){
