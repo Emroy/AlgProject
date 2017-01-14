@@ -75,9 +75,9 @@ void lsh_terminate(){
 void clustering_init(Ratings ratings,char metric)
 {
 	unsigned int i,j,n=ratings_getNumberOfUsers(ratings);
-	unsigned short k=n/ratings_getNumberOfNeighbors(ratings);
+	unsigned short k=n/ratings_getNumberOfNeighbors(ratings),kStart,kEnd;
 	Medoids medoids[2];
-	Assignments *assignment[2];
+	Assignment assignment[2];
 	
 	if((medoids[0]=realloc(NULL,sizeof(MedoiodsData)))==NULL)
 	{
