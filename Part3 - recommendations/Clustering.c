@@ -177,7 +177,7 @@ void clustering_init(Ratings ratings,char metric)
 	    	}
 	    }
 	}
-	while((k[1]!=start)&&(k[1]!=end));
+	while(start<=end+1);
 }
 
 Neighbors clustering_getNeighbors(User user){
