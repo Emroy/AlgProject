@@ -120,14 +120,14 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 	                				}
 	                				else
 	                				{
-	                					assignment->swap[k]=currentAssignment->second[k];
+	                					assignment->swap[k]=assignment->second[k];
 	                				}
 	                			}
 	                			else
 	                			{
 	                				if(user_hammingDistance(k+1,j+1)>=user_hammingDistance(k+1,assignment->first[k]))
 	                				{
-	                					assignment->swap[k]=currentAssignment->first[k];
+	                					assignment->swap[k]=assignment->first[k];
 	                				}
 	                				else
 	                				{
@@ -357,7 +357,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 	                			{
 	                				if(user_cosineDistance(k+1,j+1)>=user_cosineDistance(k+1,assignment->first[k]))
 	                				{
-	                					assignment->swap[k]=currentAssignment->first[k];
+	                					assignment->swap[k]=assignment->first[k];
 	                				}
 	                				else
 	                				{
