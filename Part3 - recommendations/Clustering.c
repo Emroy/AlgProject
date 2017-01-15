@@ -134,19 +134,22 @@ void lsh_terminate(){
 
 void clustering_init(Ratings ratings,char metric)
 {
-	unsigned int i,j,n=ratings_getNumberOfUsers(ratings),start=1,end=n;
+	unsigned int n,i,j,start=2,end=n/2,m,*recommended;
 	unsigned short k[2],token=0;
-	double s[2];
+	double s[2],sim,sum=0.0,z=0.0;
 	Medoids *medoids[2];
 	Assignment *assignment[2];
+	User user;
+	int8_t *vector,*flags;
 	
+	normalizeRatings(ratings,metric);
 	if((medoids[0]=realloc(NULL,sizeof(Medoids)))==NULL)
 	{
 		printf("Error: System failure.\n");
 		exit(1);
 	}
+	n=ratings_getNumberOfUsers(ratings);
 	k[0]=n/ratings_getNumberOfNeighbors(ratings);
-	k[1]=(start+k[0])/2;
 	if((medoids[0]->m=realloc(NULL,k[0]*sizeof(unsigned int)))==NULL)
 	{
 		printf("Error: System failure.\n");
@@ -171,6 +174,7 @@ void clustering_init(Ratings ratings,char metric)
 	}
 	assignment[0]=PAM(medoids[0],n,metric);
 	s[0]=silhouette(metric,n,assignment[0]);
+	k[1]=(start+k[0])/2;
 	do
 	{
 	    if((medoids[1]=realloc(NULL,sizeof(Medoids)))==NULL)
@@ -238,6 +242,38 @@ void clustering_init(Ratings ratings,char metric)
 	    }
 	}
 	while(start<=end+1);
+	for(i=0;i<=n-1;i++)
+	{
+		user=ratings_getUser(ratings,i+1);
+		vector=user_getRatingsVector(user);
+		flags=user_getRatingFlags(user);
+		m=ratings_getNumberOfItems(ratings);
+		for(j=0;j<=m-1;j++)
+		{
+			if(flags[j])
+			{
+				for(start=0;start<=n-1;start++)
+				{
+					if(assignment[0]->first[i]==assignment[0]->first[start])
+					{
+						sim=1-user_cosineDistance(i+1,start+1);
+						sum+=sim*vector[j];
+						if(sim>=0)
+						{
+							z+=sim;
+						}
+						else
+						{
+							z+=-sim;
+						}
+					}
+				}
+				z=1/z;
+				vector[j]=z*sum;
+			}
+		}
+		recommended=clustering_getRecommendedItems(user);
+	}
 }
 
 unsigned int* clustering_getRecommendedItems(User user){
