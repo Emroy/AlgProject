@@ -5,7 +5,6 @@
 #include <string.h>
 #include <math.h>
 #define BUFFER_BLOCK 4096
-#define NUM_OF_FOLDS 10
 
 static unsigned int n; /*number of users*/
 static unsigned int m; /*number of items*/

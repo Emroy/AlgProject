@@ -2,6 +2,7 @@
 #define RATINGS_H
 #include <stdint.h>
 #define RATINGS_END -10
+#define NUM_OF_FOLDS 10
 typedef struct RateData* Ratings;
 
 typedef struct UserStruct* User;
