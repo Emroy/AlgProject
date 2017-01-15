@@ -29,9 +29,8 @@ void deletion(char token,void *structure)
 
 Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 {
-	void *first=NULL,*second=NULL;
-	unsigned int i,j,k,natural,fNatural=0;
-	double real,fReal=0.0;
+	unsigned int i,j,natural,*firstNatural=NULL,*secondNatural=NULL,fNatural=0,k;
+	double real,*firstDouble=NULL,*secondDouble=NULL,fReal=0.0;
 	Assignment *assignment;
 	
 	if((assignment=realloc(NULL,sizeof(Assignment)))==NULL)
@@ -65,56 +64,60 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				    for(j=0;j<=medoids->k-1;j++)
 		            {
 		        	    natural=user_hammingDistance(i+1,medoids->m[j]);
-			            if(first==NULL)
+			            if(firstNatural==NULL)
 			            {
-						    if(((unsigned int*)first=realloc(NULL,sizeof(unsigned int)))==NULL)
+						    if((firstNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
 			                }
-				            *first=natural;
+				            *firstNatural=natural;
 				            assignment->first[i]=medoids->m[j];
 			            }
 			            else
 			            {
-				            if(natural<*first)
+				            if(natural<*firstNatural)
 				            {
-				        	    if(second==NULL)
+				        	    if(secondNatural==NULL)
 			                    {
-			                        if(((unsigned int*)second=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        if((secondNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
 			                    }
-					            *second=*first;
-					            *first=natural;
+					            *secondNatural=*firstNatural;
+					            *firstNatural=natural;
 					            assignment->second[i]=assignment->first[i];
 			                    assignment->first[i]=medoids->m[j];
 			                }
 			                else
 			                {
-			            	    if(second==NULL)
+			            	    if(secondNatural==NULL)
 			                    {
-			                        if(((unsigned int*)second=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        if((secondNatural=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
-			                        *second=natural;
+			                        *secondNatural=natural;
 				                    assignment->second[i]=medoids->m[j];
 			                    }
 			                    else
 			                    {
-			                        if(natural<*second)
+			                        if(natural<*secondNatural)
 					                {
-						                *second=natural;
+						                *secondNatural=natural;
 						                assignment->second[i]=medoids->m[j];
 			                        }
 			                    }
 			                }
 			            }
 		            }
+		            free(firstNatural);
+		            free(secondNatural);
+		            firstNatural=NULL;
+		            secondNatural=NULL;
 		        }
 		        if(!fNatural)
 		        {
@@ -180,56 +183,60 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				    for(j=0;j<=medoids->k-1;j++)
 		            {
 		        	    real=user_euclideanDistance(i+1,medoids->m[j]);
-			            if(first==NULL)
+			            if(firstDouble==NULL)
 			            {
-						    if(((double*)first=realloc(NULL,sizeof(double)))==NULL)
+						    if((firstDouble=realloc(NULL,sizeof(double)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
 			                }
-				            *first=real;
+				            *firstDouble=real;
 				            assignment->first[i]=medoids->m[j];
 			            }
 			            else
 			            {
-				            if(real<*first)
+				            if(real<*firstDouble)
 				            {
-				        	    if(second==NULL)
+				        	    if(secondDouble==NULL)
 			                    {
-			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
+			                        if((secondDouble=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
 			                    }
-					            *second=*first;
-					            *first=real;
+					            *secondDouble=*firstDouble;
+					            *firstDouble=real;
 					            assignment->second[i]=assignment->first[i];
 			                    assignment->first[i]=medoids->m[j];
 			                }
 			                else
 			                {
-			            	    if(second==NULL)
+			            	    if(secondDouble==NULL)
 			                    {
-			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
+			                        if((secondDouble=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
-			                        *second=real;
+			                        *secondDouble=real;
 				                    assignment->second[i]=medoids->m[j];
 			                    }
 			                    else
 			                    {
-			                        if(real<*second)
+			                        if(real<*secondDouble)
 					                {
-						                *second=real;
+						                *secondDouble=real;
 						                assignment->second[i]=medoids->m[j];
 			                        }
 			                    }
 			                }
 			            }
 		            }
+		            free(firstDouble);
+		            free(secondDouble);
+		            firstDouble=NULL;
+		            secondDouble=NULL;
 		        }
 		        if(fReal==0.0)
 		        {
@@ -295,56 +302,60 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				    for(j=0;j<=medoids->k-1;j++)
 		            {
 		        	    real=user_cosineDistance(i+1,medoids->m[j]);
-			            if(first==NULL)
+			            if(firstDouble==NULL)
 			            {
-						    if(((double*)first=realloc(NULL,sizeof(double)))==NULL)
+						    if((firstDouble=realloc(NULL,sizeof(double)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
 			                }
-				            *first=real;
+				            *firstDouble=real;
 				            assignment->first[i]=medoids->m[j];
 			            }
 			            else
 			            {
-				            if(real<*first)
+				            if(real<*firstDouble)
 				            {
-				        	    if(second==NULL)
+				        	    if(secondDouble==NULL)
 			                    {
-			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
+			                        if((secondDouble=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
 			                    }
-					            *second=*first;
-					            *first=real;
+					            *secondDouble=*firstDouble;
+					            *firstDouble=real;
 					            assignment->second[i]=assignment->first[i];
 			                    assignment->first[i]=medoids->m[j];
 			                }
 			                else
 			                {
-			            	    if(second==NULL)
+			            	    if(secondDouble==NULL)
 			                    {
-			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
+			                        if((secondDouble=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
 			                        }
-			                        *second=real;
+			                        *secondDouble=real;
 				                    assignment->second[i]=medoids->m[j];
 			                    }
 			                    else
 			                    {
-			                        if(real<*second)
+			                        if(real<*secondDouble)
 					                {
-						                *second=real;
+						                *secondDouble=real;
 						                assignment->second[i]=medoids->m[j];
 			                        }
 			                    }
 			                }
 			            }
 		            }
+		            free(firstDouble);
+		            free(secondDouble);
+		            firstDouble=NULL;
+		            secondDouble=NULL;
 		        }
 		        if(fReal==0.0)
 		        {
@@ -466,14 +477,14 @@ double silhouette(char metric,unsigned int n,Assignment *assignment)
 			        {
 				        if(assignment->first[i]==assignment->first[j])
 				        {
-				        	a[i]+=user_hammingDistance(i+1,j+1);
+				        	a[i]+=(double)user_hammingDistance(i+1,j+1);
 				        	aCounter[i]++;
 				        }
 				        else
 				        {
 				        	if(assignment->second[i]==assignment->first[j])
 				            {
-				        	    b[i]+=user_hammingDistance(i+1,j+1);
+				        	    b[i]+=(double)user_hammingDistance(i+1,j+1);
 				        	    bCounter[i]++;
 				            }
 				        }
