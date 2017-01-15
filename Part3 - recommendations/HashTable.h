@@ -19,4 +19,9 @@ int hashTable_insert(HashTable ht,void* data);
 void* hashTable_getNext(HashTable ht,void* q);
 /*Returns next element from bucket corresponding to element q.
   Returns null when there is no next element.*/
+
+void* hashTable_getAll(HashTable ht);
+/*Returns one by one all the elements inside the hash table.
+  First call returns the first item, second call the second item etc.
+  Returns null when there are no more items left.*/
 #endif

@@ -9,6 +9,8 @@
 static unsigned int n; /*number of users*/
 static unsigned int m; /*number of items*/
 
+static User* users;
+
 /*user should free the returned pointer after use*/
 char* readLine(FILE* file){
 	static char* buffer = NULL;
@@ -357,11 +359,9 @@ User getNextUser(Ratings ratingData){
 	return ratingData->userRatings[currentUser-1];
 }
 
-static User* users;
-
 unsigned int user_hammingDistance(unsigned int uid1,unsigned int uid2){
-	User user1 = users[uid1];
-	User user2 = users[uid2];
+	User user1 = users[uid1-1];
+	User user2 = users[uid2-1];
 	
 	unsigned int distance = 0;
 	
@@ -374,8 +374,8 @@ unsigned int user_hammingDistance(unsigned int uid1,unsigned int uid2){
 }
 
 double user_euclideanDistance(unsigned int uid1,unsigned int uid2){
-	User user1 = users[uid1];
-	User user2 = users[uid2];
+	User user1 = users[uid1-1];
+	User user2 = users[uid2-1];
 
 	unsigned int i;
 	double sum=0.0;
@@ -390,8 +390,8 @@ double user_euclideanDistance(unsigned int uid1,unsigned int uid2){
 }
 
 double user_cosineDistance(unsigned int uid1,unsigned int uid2){
-	User user1 = users[uid1];
-	User user2 = users[uid2];
+	User user1 = users[uid1-1];
+	User user2 = users[uid2-1];
 
 	unsigned int i;
 	double xy=0.0,xx=0.0,yy=0.0;
@@ -423,77 +423,22 @@ unsigned short ratings_getNumberOfNeighbors(Ratings ratings){
 	return ratings->P;
 }
 
-/*------------------HAMMING DATA-------------------*/
-struct HammingData{
-	int8_t* data;
-	unsigned int size;
-};
-
-HammingData user_createHammingData(User user){
-	HammingData retVal = malloc(sizeof(struct HammingData));
-	if(retVal == NULL){
-		perror("Failed to allocate memory for temporary data");
-		return NULL;
-	}
-
-	retVal->data = user->ratings;
-	retVal->size = m;
-
-	return retVal;
+unsigned int ratings_calculateHammingDim(Ratings ratings){
+	return ratings->m;
 }
 
-void hammingData_destroy(HammingData data){
-	free(data);
+unsigned int ratings_calculateEuclideanDim(Ratings ratings){
+	return ratings->m;
 }
 
-/*-----------------EUCLIDEAN DATA------------------*/
-struct EuclideanData{
-	int8_t* data;
-	unsigned int sigId;
-	unsigned int size;
-	int sigId_flag;
-};
-
-EuclideanData user_createEuclideanData(User user){
-	EuclideanData retVal = malloc(sizeof(struct EuclideanData));
-	if(retVal == NULL){
-		perror("Failed to allocate memory for temporary data");
-		return NULL;
-	}
-
-	retVal->data = user->ratings;
-	retVal->size = m;
-	retVal->sigId_flag = 0;
-
-	return retVal;
+int8_t* user_getRatingsVector(User user){
+	return user->ratings;
 }
 
-int euclideanData_isSet(EuclideanData data){
-	return data->sigId_flag;
+User ratings_getUser(Ratings ratings,unsigned int uid){
+	return ratings->users[uid-1];
 }
 
-unsigned int euclideanData_getSigId(EuclideanData data){
-	return data->sigId;
-}
-
-void euclideanData_setSigId(EuclideanData data){
-	data->sigId
-}
-
-void euclideanData_destroy(EuclideanData data){
-	free(data);
-}
-
-/*------------------COSINE DATA--------------------*/
-struct HammingData{
-	int8_t* data;
-	unsigned int size;
-};
-
-HammingData user_createHammingData(User user){
-
-}
-
-void hammingData_destroy(HammingData data){
-
+unsigned short ratings_getNeighborsNum(Ratings ratings){
+	return ratings->P;
 }

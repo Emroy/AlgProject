@@ -58,6 +58,7 @@ void hashTable_destroy(HashTable ht){
 	}
 
 	free(ht->table);
+	hash_destroy(ht->hash);
 	free(ht);
 }
 
@@ -103,4 +104,21 @@ void* hashTable_getNext(HashTable ht,void* q){
 
 	if(current ==  NULL) return NULL;
 	else return current->data;
+}
+
+void* hashTable_getAll(HashTable ht){
+	static ChainNode* current = NULL;
+	static unsigned int index_count = 0;
+
+	while(current == NULL){
+		if(index_count == ht->size)
+			return NULL;
+		current = &ht->table[index_count];
+		index_count++;
+	}
+
+	void* retVal = current->data;
+	current = current->next;
+
+	return retVal;
 }

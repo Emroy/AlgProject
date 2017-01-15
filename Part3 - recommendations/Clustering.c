@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "HashTable.h"
+#include "Clustering.h"
+#include "data.h"
 #define LSH_L 5
 #define LSH_K 4
 
@@ -12,64 +14,116 @@ unsigned int two_pow(unsigned int num){
 	return retVal;
 }
 
-static unsigned short range;
-
-struct NearestNeighbors{
-	User* users;
-};
+static unsigned short neighborsNum;
 
 /*NN-LSH*/
+static HashTable* lsh_tables = NULL;
+static char m; //metric
 
 void lsh_init(Ratings ratings,char metric)
 {
-	int i,j;
-	int8_t mask;
-	User currentUser;
+	if(lsh_tables) lsh_terminate();
+	lsh_tables = malloc(LSH_L*sizeof(HashTable));
+	if(lsh_tables == NULL){
+		perror("Failed to allocate memory for lsh tables array");
+		return;
+	}
 
-	switch(metric)
-	{
-		case 'h':
-			while(currentUser = getNextUser(ratings))
-			{
-				int8_t* vector = getUserVector(currentUser);
-				int8_t* hammingData;
-				unsigned int numOfItems = getNumberOfItems(ratings);
-				unsigned int hammingDataSize = numOfItems/8;
-				if(numOfItems % 8) hammingDataSize++;
-				hammingData = malloc(sizeof(int8_t)*hammingDataSize);
-				if(hammingData == NULL)
-				{
-					perror("Failed to allocate memory for hammingData");
-					exit(-2);
-				}
-				for(i=0;i<=hammingDataSize-1;i++)
-				{
-					hammingData[i]=0;
-				}
-				j=0;
-				mask=1;
-				for(i=0;i<=numOfItems-1;i++)
-				{
-				    if(vector[i])
-				    {
-				    	hammingData[j]|=mask;
-				    }
-				    if(!(mask<<=1))
-				    {
-				    	mask=1;
-				    	j++;
-				    }
-				}
+	normalizeRatings(ratings,metric);
+
+	if(metric == 'h'){
+		unsigned int d = ratings_calculateHammingDim(ratings);
+		unsigned int i;
+		for(i=0;i<LSH_L;i++){
+			HashDescriptor g = hamming_hash_create(d,LSH_K);
+			lsh_tables[i] = hashTable_create(two_pow(LSH_K),g);
+		}
+
+		User currentUser;
+		while(currentUser = getNextUser(ratings)){
+			Data data = hammingData_create(currentUser);
+			if(data == NULL){
+				fprintf(stderr,"lsh initialization cannot continue\n");
+				exit(-1);
 			}
-			
+
+			for(i=0;i<LSH_L;i++)
+				hashTable_insert(lsh_tables[i],data);
+		}
+	}
+	else if(metric == 'e'){
+		unsigned int d = ratings_calculateEuclideanDim(ratings);
+		unsigned int n = ratings_getNumberOfUsers(ratings);
+		unsigned int i;
+		for(i=0;i<LSH_L;i++){
+			HashDescriptor g = euclidean_hash_create(d,LSH_K,n);
+			lsh_tables[i] = hashTable_create(n/2,g);
+		}
+
+		User currentUser;
+		while(currentUser = getNextUser(ratings)){
+			Data data = euclideanData_create(currentUser);
+			if(data == NULL){
+				fprintf(stderr,"lsh initialization connot continue\n");
+				exit(-1);
+			}
+
+			for(i=0;i<LSH_L;i++)
+				hashTable_insert(lsh_tables[i],data);
+		}
+	}
+	else if(metric == 'c'){
+		//euclidean and cosine dims are the same
+		unsigned int d = ratings_calculateEuclideanDim(ratings);
+		unsigned int i;
+		for(i=0;i<LSH_L;i++){
+			HashDescriptor g = cosine_hash_create(d,LSH_K);
+			lsh_tables[i] = hashTable_create(two_pow(LSH_K),g);
+		}
+
+		User currentUser;
+		while(currentUser = getNextUser(ratings)){
+			Data data = cosineData_create(currentUser);
+			if(data == NULL){
+				fprintf(stderr,"lsh initialization connot continue\n");
+				exit(-1);
+			}
+
+			for(i=0;i<LSH_L;i++)
+				hashTable_insert(lsh_tables[i],data);
+		}
+	}
+	else{
+		fprintf(stderr,"Metric %c is not supported\n",metric);
+		exit(-1);
+	}
+
+	neighborsNum = ratings_getNeighborsNum(ratings);
+	m = metric;
 }
 
 Neighbors lsh_getNeighbors(User user){
+	Neighbors retVal;
 
+	Data current;
+	if(m == 'h')
+		current = hammingData_create(user);
+	else if(m == 'e')
+		current = euclideanData_create(user);
+	else if(m == 'c')
+		current =
 }
 
 void lsh_terminate(){
-
+	unsigned int i;
+	Data data;
+	for(i=0;i<LSH_L;i++){
+		while(data = hashTable_getAll(lsh_tables[i])){
+			data_destroy(data);
+		}
+		hashTable_destroy(lsh_tables[i]);
+	}
+	free(lsh_tables);
 }
 
 void clustering_init(Ratings ratings,char metric)
