@@ -13,7 +13,7 @@ void lsh_terminate();
 /*Clustering*/
 void clustering_init(Ratings ratings,char metric);
 
-Neighbors clustering_getNeighbors(User user);
+unsigned int* clustering_getRecommendedItems(User user);
 
 void clustering_terminate();
 

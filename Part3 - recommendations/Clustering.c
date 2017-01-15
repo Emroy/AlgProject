@@ -102,8 +102,8 @@ void lsh_init(Ratings ratings,char metric)
 	m = metric;
 }
 
-Neighbors lsh_getNeighbors(User user){
-	Neighbors retVal;
+unsigned int* lsh_getRecommendedItems(User user){
+	unsigned int* retVal;
 
 	Data current;
 	if(m == 'h')
@@ -234,7 +234,7 @@ void clustering_init(Ratings ratings,char metric)
 	while(start<=end+1);
 }
 
-Neighbors clustering_getNeighbors(User user){
+unsigned int* clustering_getRecommendedItems(User user){
 
 }
 
