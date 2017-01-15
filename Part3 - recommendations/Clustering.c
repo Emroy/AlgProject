@@ -450,6 +450,5 @@ int clustering(Ratings ratings,char metric,char *outputPath)
 	fprintf(output,"Execution Time: %f milliseconds.\n",1000*(double)(t_2-t_1)/CLOCKS_PER_SEC);
 	deletion('M',medoids[0]);
 	deletion('A',assignment[0]);
-	fclose(output);
 	return 0;
 }

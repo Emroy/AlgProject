@@ -129,5 +129,6 @@ int main(int argc,char* argv[]){
 	clustering(ratings,'h',outputFilePath);
 	clustering(ratings,'e',outputFilePath);
     clustering(ratings,'c',outputFilePath);
+    fclose(outputFile);
 	return 0;
 }
