@@ -103,7 +103,11 @@ void lsh_init(Ratings ratings,char metric)
 }
 
 unsigned int* lsh_getRecommendedItems(User user){
-	unsigned int* retVal;
+	unsigned int* retVal = malloc(sizeof(unsigned int)*5);
+	if(retVal == NULL){
+		perror("Failed to allocate memory for top 5 ratings");
+		return NULL;
+	}
 
 	Data current;
 	if(m == 'h')
@@ -111,7 +115,9 @@ unsigned int* lsh_getRecommendedItems(User user){
 	else if(m == 'e')
 		current = euclideanData_create(user);
 	else if(m == 'c')
-		current =
+		current = cosineData_create(user);
+
+	
 }
 
 void lsh_terminate(){

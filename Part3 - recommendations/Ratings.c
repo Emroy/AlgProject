@@ -442,3 +442,7 @@ User ratings_getUser(Ratings ratings,unsigned int uid){
 unsigned short ratings_getNeighborsNum(Ratings ratings){
 	return ratings->P;
 }
+
+int8_t* user_getRatingFlags(User user){
+	return user->flags;
+}

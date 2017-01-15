@@ -36,4 +36,6 @@ double user_euclideanDistance(unsigned int uid1,unsigned int uid2);
 double user_cosineDistance(unsigned int uid1,unsigned int uid2);
 
 int8_t* user_getRatingsVector(User user);
+
+int8_t* user_getRatingFlags(User user);
 #endif
