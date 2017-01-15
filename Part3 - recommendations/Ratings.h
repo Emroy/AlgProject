@@ -7,7 +7,13 @@ typedef struct RateData* Ratings;
 typedef struct UserStruct* User;
 
 /*--------------RATINGS-------------------*/
-Ratings readRatings(char* inputFilePath);
+void readRatings(char* inputFilePath);
+
+Ratings getRatingTrainSet();
+
+Ratings getRatingTestSet();
+
+double validateResults(Ratings train,Ratings test);
 
 void normalizeRatings(Ratings ratingData,char metric);
 
@@ -23,7 +29,7 @@ unsigned int ratings_calculateEuclideanDim(Ratings ratings);
 
 User ratings_getUser(Ratings ratings,unsigned int uid);
 
-unsigned short ratings_getNeighborsNum(Ratings ratings);
+unsigned int ratings_getNumberOfItems(Ratings ratings);
 
 /*---------------USER---------------------*/
 User getNextUser(Ratings ratingData);
@@ -35,7 +41,15 @@ double user_euclideanDistance(unsigned int uid1,unsigned int uid2);
 
 double user_cosineDistance(unsigned int uid1,unsigned int uid2);
 
+unsigned int user_hammingDistance2(User user1,User user2);
+
+double user_euclideanDistance2(User user1,User user2);
+
+double user_cosineDistance2(User user1,User user2);
+
 int8_t* user_getRatingsVector(User user);
 
 int8_t* user_getRatingFlags(User user);
+
+unsigned int user_getUserID(User user);
 #endif

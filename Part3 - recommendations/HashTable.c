@@ -113,7 +113,7 @@ void* hashTable_getAll(HashTable ht){
 	while(current == NULL){
 		if(index_count == ht->size)
 			return NULL;
-		current = &ht->table[index_count];
+		current = ht->table[index_count].start;
 		index_count++;
 	}
 

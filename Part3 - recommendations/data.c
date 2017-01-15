@@ -134,3 +134,43 @@ void euclidean_data_set_sigID(Data d,unsigned int sigID){
 	d->ed->sig = sigID;
 	d->ed->is_set_sig = 1;
 }
+
+unsigned int data_hammingDistance(Data a,Data b){
+	if(a->hd == NULL) return 0; /*this should never happen*/
+	if(b->hd == NULL) return 0; /*this should never happen*/
+
+	return user_hammingDistance2(a->hd->user,b->hd->user);
+}
+
+double data_euclideanDistance(Data a,Data b){
+	if(a->ed == NULL) return 0.0; /*this should never happen*/
+	if(b->ed == NULL) return 0.0; /*this should never happen*/
+
+	return user_euclideanDistance2(a->ed->user,b->ed->user);
+}
+
+double data_cosineDistance(Data a,Data b){
+	User user1;
+	User user2;
+
+	if(a->hd) user1 = a->hd->user;
+	else if(a->ed) user1 = a->ed->user;
+	else if(a->cd) user1 = a->cd->user;
+	if(a->hd) user2 = b->hd->user;
+	else if(b->ed) user2 = b->ed->user;
+	else if(b->cd) user2 = b->cd->user;
+
+	return user_cosineDistance2(user1,user2);
+}
+
+unsigned int data_getUserID(Data d){
+	if(d->hd) return user_getUserID(d->hd->user);
+	if(d->ed) return user_getUserID(d->ed->user);
+	if(d->cd) return user_getUserID(d->cd->user);
+}
+
+User data_getUser(Data d){
+	if(d->hd) return d->hd->user;
+	if(d->ed) return d->ed->user;
+	if(d->cd) return d->cd->user;
+}

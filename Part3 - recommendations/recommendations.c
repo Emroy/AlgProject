@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Ratings.h"
 #include "Clustering.h"
 
@@ -11,7 +12,7 @@ int main(int argc,char* argv[]){
 
 	while(i < argc){
 		if(!strcmp(argv[i],"-d")){
-			ratings = readRatings(argv[i+1]);
+			readRatings(argv[i+1]);
 			i+=2;
 		}
 		else if(!strcmp(argv[i],"-o")){

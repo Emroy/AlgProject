@@ -20,4 +20,14 @@ int euclidean_data_is_set(Data d);
 unsigned int euclidean_data_get_sigID(Data d);
 
 void euclidean_data_set_sigID(Data d,unsigned int sigID);
+
+unsigned int data_getUserID(Data d);
+
+User data_getUser(Data d);
+
+/*DISTANCES*/
+
+unsigned int data_hammingDistance(Data a,Data b);
+double data_euclideanDistance(Data a,Data b);
+double data_cosineDistance(Data a,Data b);
 #endif

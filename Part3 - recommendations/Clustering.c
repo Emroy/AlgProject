@@ -3,6 +3,7 @@
 #include "HashTable.h"
 #include "Clustering.h"
 #include "data.h"
+#include "List.h"
 #define LSH_L 5
 #define LSH_K 4
 
@@ -98,7 +99,7 @@ void lsh_init(Ratings ratings,char metric)
 		exit(-1);
 	}
 
-	neighborsNum = ratings_getNeighborsNum(ratings);
+	neighborsNum = ratings_getNumberOfNeighbors(ratings);
 	m = metric;
 }
 
@@ -109,15 +110,116 @@ unsigned int* lsh_getRecommendedItems(User user){
 		return NULL;
 	}
 
-	Data current;
-	if(m == 'h')
-		current = hammingData_create(user);
-	else if(m == 'e')
-		current = euclideanData_create(user);
-	else if(m == 'c')
-		current = cosineData_create(user);
+	unsigned int i;
+	for(i=0;i<5;i++)
+		retVal[i] = 0;
 
-	
+	Data current;
+	double range_low;
+	double range_high;
+	if(m == 'h'){
+		current = hammingData_create(user);
+		range_high = (double)(user_hammingDistance(1,2));
+	}
+	else if(m == 'e'){
+		current = euclideanData_create(user);
+		range_high = user_euclideanDistance(1,2);
+	}
+	else if(m == 'c'){
+		current = cosineData_create(user);
+		range_high = user_cosineDistance(1,2);
+	}
+	else{
+		fprintf(stderr,"invalid distance on lsh_getRecommendedItems\n");
+		return NULL; /*this should never happen*/
+	}
+	range_low = -1*range_high;
+
+	unsigned int userCount = 0;
+	List l;
+	while(userCount != neighborsNum){
+		l = list_create();
+		for(i=0;i<LSH_L;i++){
+			Data iter;
+			while(iter = hashTable_getNext(lsh_tables[i],current)){
+				double dist;
+				if(m == 'h'){
+					dist = (double)(data_hammingDistance(current,iter));
+				}
+				else if(m == 'e'){
+					dist = data_euclideanDistance(current,iter);
+				}
+				else if(m == 'c'){
+					dist = data_cosineDistance(current,iter);
+				}
+				if(dist == 0.0) continue; /*don't count the user itself*/
+				if(dist >= range_low && dist <= range_high){
+					list_pushEnd(l,iter);
+					userCount++;
+				}
+			}
+		}
+		if(userCount > neighborsNum){
+			range_high -= range_high/2;
+			range_low -= range_low/2;
+		}else{
+			range_high += range_high/2;
+			range_low += range_high/2;
+		}
+		if(userCount != neighborsNum){
+			list_destroy(l);
+		}
+	}
+
+	User currentUser = data_getUser(current);
+	unsigned int uid1 = user_getUserID(currentUser);
+	double simSum = 0.0;
+	double z = 0.0;
+	while(!list_isEmpty(l)){
+		User iterUser = data_getUser(list_pop(l));
+		unsigned int uid2 = user_getUserID(iterUser);
+
+		double temp = user_cosineDistance(uid1,uid2);
+		simSum += temp;
+		if(temp >= 0) z += temp;
+		else z -= temp;
+	}
+
+	int8_t* ratingVector = user_getRatingsVector(currentUser);
+	int8_t* ratingFlags = user_getRatingFlags(currentUser);
+
+	int8_t* maxRatings = malloc(sizeof(int8_t)*5);
+	if(maxRatings == NULL){
+		perror("Failed to allocate memory for max ratings");
+		return NULL;
+	}
+	for(i=0;i<5;i++)
+		maxRatings[i] = RATINGS_END;
+	i=0;
+	while(ratingVector[i] != RATINGS_END){
+		if(!ratingFlags[i]){
+			ratingVector[i] = z*simSum*ratingVector[i];
+
+			unsigned int j;
+			int8_t tempRating = ratingVector[i];
+			unsigned int tempID = i;
+			for(j=0;j<5;j++){
+				if(tempRating > maxRatings[j]){
+					int8_t tempRating2 = maxRatings[j];
+					unsigned int tempID2 = retVal[j];
+					maxRatings[j] = tempRating;
+					retVal[j] = tempID;
+					tempRating = tempRating2;
+					tempID = tempID2;
+				}
+			}
+		}
+		i++;
+	}
+
+	free(maxRatings);
+
+	return retVal;
 }
 
 void lsh_terminate(){
