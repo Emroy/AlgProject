@@ -8,6 +8,30 @@ typedef struct Assignment
 	unsigned int n,*first,*second,*swap;
 }Assignment;
 
+void deletion(char token,void *structure)
+{
+	Medoids *medoids;
+	Assignment *assignment;
+	
+	switch(structure)
+	{
+		case 'M':
+			medoids=(Medoids*)structure;
+			free(medoids->m);
+			free(medoids);
+			break;
+		case 'A':
+			assignment=(Assignment*)structure;
+			free(assignment->first);
+			free(assignment->second);
+			free(assignment->swap);
+			free(assignment);
+			break;
+		default:
+			printf("Error: Unknown structure.\n");
+	}
+}
+
 Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 {
 	void *first=NULL,*second=NULL;
