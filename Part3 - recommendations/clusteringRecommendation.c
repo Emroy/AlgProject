@@ -477,14 +477,14 @@ double silhouette(char metric,unsigned int n,Assignment *assignment)
 			        {
 				        if(assignment->first[i]==assignment->first[j])
 				        {
-				        	a[i]+=user_hammingDistance(i+1,j+1);
+				        	a[i]+=(double)user_hammingDistance(i+1,j+1);
 				        	aCounter[i]++;
 				        }
 				        else
 				        {
 				        	if(assignment->second[i]==assignment->first[j])
 				            {
-				        	    b[i]+=user_hammingDistance(i+1,j+1);
+				        	    b[i]+=(double)user_hammingDistance(i+1,j+1);
 				        	    bCounter[i]++;
 				            }
 				        }
