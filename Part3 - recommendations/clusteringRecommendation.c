@@ -67,7 +67,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 		        	    natural=user_hammingDistance(i+1,medoids->m[j]);
 			            if(first==NULL)
 			            {
-						    if((first=realloc(NULL,sizeof(unsigned int)))==NULL)
+						    if(((unsigned int*)first=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
@@ -81,7 +81,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				            {
 				        	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        if(((unsigned int*)second=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
@@ -96,7 +96,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 			                {
 			            	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(unsigned int)))==NULL)
+			                        if(((unsigned int*)second=realloc(NULL,sizeof(unsigned int)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
@@ -182,7 +182,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 		        	    real=user_euclideanDistance(i+1,medoids->m[j]);
 			            if(first==NULL)
 			            {
-						    if((first=realloc(NULL,sizeof(double)))==NULL)
+						    if(((double*)first=realloc(NULL,sizeof(double)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
@@ -196,7 +196,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				            {
 				        	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(double)))==NULL)
+			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
@@ -211,7 +211,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 			                {
 			            	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(double)))==NULL)
+			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
@@ -297,7 +297,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 		        	    real=user_cosineDistance(i+1,medoids->m[j]);
 			            if(first==NULL)
 			            {
-						    if((first=realloc(NULL,sizeof(double)))==NULL)
+						    if(((double*)first=realloc(NULL,sizeof(double)))==NULL)
 			                {
 			                    printf("Error: System failure.\n");
 			                    exit(1);
@@ -311,7 +311,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 				            {
 				        	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(double)))==NULL)
+			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
@@ -326,7 +326,7 @@ Assignment* PAM(Medoids *medoids,unsigned int n,char metric)
 			                {
 			            	    if(second==NULL)
 			                    {
-			                        if((second=realloc(NULL,sizeof(double)))==NULL)
+			                        if(((double*)second=realloc(NULL,sizeof(double)))==NULL)
 			                        {
 			                            printf("Error: System failure.\n");
 			                            exit(1);
