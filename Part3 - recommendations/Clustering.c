@@ -261,7 +261,7 @@ int f(const void *x_1,const void *x_2)
 	}
 }
 
-int clustering_init(Ratings ratings,char metric)
+int clustering(Ratings ratings,char metric,char *outputPath)
 {
 	unsigned int n,m,i,j,start=2,end=n/2,counter;
 	unsigned short k[2],token=0;
@@ -374,7 +374,7 @@ int clustering_init(Ratings ratings,char metric)
 	    }
 	}
 	while(start<=end+1);
-	if((output=fopen("clustering.txt","w"))==NULL)
+	if((output=fopen(outputPath,"a"))==NULL)
 	{
 		printf("Error: Failed to create the file \"clustering.txt\".\n");
 		return 1;
@@ -452,9 +452,4 @@ int clustering_init(Ratings ratings,char metric)
 	deletion('A',assignment[0]);
 	fclose(output);
 	return 0;
-}
-
-void clustering_terminate(void)
-{
-	return;
 }

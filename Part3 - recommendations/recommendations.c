@@ -57,7 +57,7 @@ int main(int argc,char* argv[]){
 		unsigned int j;
 		clock_t timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train,j+1);
+			User currentUser = ratings_getUser(train);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -68,17 +68,17 @@ int main(int argc,char* argv[]){
 
 		hammingLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
 
 		lsh_init(train,'e');
 
 		fprintf(outputFile,"Euclidean LSH fold number %d\n",i);
 
-		numOfUsers = ratings_getNumberOfUsers(train);
-		j;
-		timeElapsed = clock();
+		unsigned int numOfUsers = ratings_getNumberOfUsers(train);
+		unsigned int j;
+		clock_t timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train,j+1);
+			User currentUser = ratings_getUser(train);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -89,17 +89,17 @@ int main(int argc,char* argv[]){
 
 		euclideanLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
 
 		lsh_init(train,'c');
 
 		fprintf(outputFile,"Cosine LSH fold number %d\n",i);
 
-		numOfUsers = ratings_getNumberOfUsers(train);
-		j;
-		timeElapsed = clock();
+		unsigned int numOfUsers = ratings_getNumberOfUsers(train);
+		unsigned int j;
+		clock_t timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train,j+1);
+			User currentUser = ratings_getUser(train);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -110,7 +110,7 @@ int main(int argc,char* argv[]){
 
 		cosineLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
 	}
 
 	if(validate){
@@ -126,6 +126,8 @@ int main(int argc,char* argv[]){
 
 		fclose(outputFile);
 	}
-
+	clustering(ratings,'h',outputFilePath);
+	clustering(ratings,'e',outputFilePath);
+    clustering(ratings,'c',outputFilePath);
 	return 0;
 }
