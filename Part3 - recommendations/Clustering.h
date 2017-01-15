@@ -11,10 +11,8 @@ unsigned int* lsh_getRecommendedItems(User user);
 void lsh_terminate();
 
 /*Clustering*/
-void clustering_init(Ratings ratings,char metric);
+int clustering_init(Ratings ratings,char metric);
 
-unsigned int* clustering_getRecommendedItems(User user);
-
-void clustering_terminate();
+void clustering_terminate(void);
 
 #endif
