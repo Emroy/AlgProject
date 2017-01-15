@@ -439,7 +439,7 @@ int clustering_init(Ratings ratings,char metric)
 		}
 		qsort(unit,counter,sizeof(Unit),f);
 		fprintf(output,"%u",i+1);
-		for(j=counter-1;j>=counter-4;j--)
+		for(j=counter-1;j>=counter-5;j--)
 		{
 			fprintf(output,"	%u",unit[j].index);
 		}
