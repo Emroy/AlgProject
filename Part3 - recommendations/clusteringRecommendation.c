@@ -1,19 +1,14 @@
-typedef struct Medoids
-{
-	unsigned int k,*m;
-}Medoids;
-
-typedef struct Assignment
-{
-	unsigned int n,*first,*second,*swap;
-}Assignment;
+#include "clusteringRecommendation.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "Ratings.h"
 
 void deletion(char token,void *structure)
 {
 	Medoids *medoids;
 	Assignment *assignment;
 	
-	switch(structure)
+	switch(token)
 	{
 		case 'M':
 			medoids=(Medoids*)structure;

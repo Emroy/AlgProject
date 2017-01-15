@@ -4,6 +4,9 @@
 #include "Clustering.h"
 #include "data.h"
 #include "List.h"
+#include "clusteringRecommendation.h"
+#include "time.h"
+#include "RNG.h"
 #define LSH_L 5
 #define LSH_K 4
 
