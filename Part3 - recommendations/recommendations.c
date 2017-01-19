@@ -7,7 +7,6 @@
 
 int main(int argc,char* argv[]){
 	int i = 1;
-	Ratings ratings;
 	char* outputFilePath;
 	short validate = 0;
 
@@ -107,6 +106,9 @@ int main(int argc,char* argv[]){
 		timeElapsed -= clock();
 
 		cosineLSH_error += validateResults(train,test);
+		clustering(train,'h',outputFilePath);
+	    clustering(train,'e',outputFilePath);
+        clustering(train,'c',outputFilePath);
 		lsh_terminate();
 		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
 	}
@@ -121,12 +123,7 @@ int main(int argc,char* argv[]){
 		fprintf(outputFile,"Hamming LSH MAE: %lf\n",hammingLSH_error/NUM_OF_FOLDS);
 		fprintf(outputFile,"Euclidean LSH MAE: %lf\n",euclideanLSH_error/NUM_OF_FOLDS);
 		fprintf(outputFile,"Cosine LSH MAE: %lf\n",cosineLSH_error/NUM_OF_FOLDS);
-
-		fclose(outputFile);
 	}
-	clustering(ratings,'h',outputFilePath);
-	clustering(ratings,'e',outputFilePath);
-    clustering(ratings,'c',outputFilePath);
     fclose(outputFile);
 	return 0;
 }

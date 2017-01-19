@@ -395,11 +395,6 @@ int clustering(Ratings ratings,char metric,char *outputPath)
 	    }
 	}
 	while(start<=end+1);
-	if((output=fopen(outputPath,"a"))==NULL)
-	{
-		printf("Error: Failed to create the file \"clustering.txt\".\n");
-		return 1;
-	}
 	switch(metric)
 	{
 		case 'h':
