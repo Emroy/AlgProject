@@ -6,7 +6,7 @@
 #include <time.h>
 
 int main(int argc,char* argv[]){
-	int i = 0;
+	int i = 1;
 	Ratings ratings;
 	char* outputFilePath;
 	short validate = 0;
@@ -51,13 +51,13 @@ int main(int argc,char* argv[]){
 			perror("Failed to open outputFile");
 		}
 
-		fprintf(outputFile,"Hamming LSH fold number %d\n",i);
+		fprintf(outputFile,"Hamming LSH fold number %d\n",i+1);
 
 		unsigned int numOfUsers = ratings_getNumberOfUsers(train);
 		unsigned int j;
 		clock_t timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train);
+			User currentUser = ratings_getUser(train,j+1);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -68,17 +68,16 @@ int main(int argc,char* argv[]){
 
 		hammingLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
 
 		lsh_init(train,'e');
 
-		fprintf(outputFile,"Euclidean LSH fold number %d\n",i);
+		fprintf(outputFile,"Euclidean LSH fold number %d\n",i+1);
 
-		unsigned int numOfUsers = ratings_getNumberOfUsers(train);
-		unsigned int j;
-		clock_t timeElapsed = clock();
+		numOfUsers = ratings_getNumberOfUsers(train);
+		timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train);
+			User currentUser = ratings_getUser(train,j+1);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -89,17 +88,16 @@ int main(int argc,char* argv[]){
 
 		euclideanLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
 
 		lsh_init(train,'c');
 
-		fprintf(outputFile,"Cosine LSH fold number %d\n",i);
+		fprintf(outputFile,"Cosine LSH fold number %d\n",i+1);
 
-		unsigned int numOfUsers = ratings_getNumberOfUsers(train);
-		unsigned int j;
-		clock_t timeElapsed = clock();
+		numOfUsers = ratings_getNumberOfUsers(train);
+		timeElapsed = clock();
 		for(j=0;j<numOfUsers;j++){
-			User currentUser = ratings_getUser(train);
+			User currentUser = ratings_getUser(train,j+1);
 			unsigned int* recommendedItems = lsh_getRecommendedItems(currentUser);
 			fprintf(outputFile,"%u",user_getUserID(currentUser));
 			unsigned int k;
@@ -110,7 +108,7 @@ int main(int argc,char* argv[]){
 
 		cosineLSH_error += validateResults(train,test);
 		lsh_terminate();
-		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)t)/CLOCKS_PER_SEC));
+		fprintf(outputFile,"Execution Time: %f\n",1000*(((float)timeElapsed)/CLOCKS_PER_SEC));
 	}
 
 	if(validate){

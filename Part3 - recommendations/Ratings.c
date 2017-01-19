@@ -117,6 +117,7 @@ Ratings getRatingTestSet(){
 	}
 
 	unsigned int i;
+	unsigned int j;
 	for(i=0;i<retVal->n;i++) retVal->userRatings[i] = NULL;
 
 	unsigned int testRangeLow = foldCount*(allRatings->numberOfRatings/NUM_OF_FOLDS);
@@ -127,26 +128,28 @@ Ratings getRatingTestSet(){
 			User currentUser = retVal->userRatings[currentRating->userID-1];
 
 			/*if user doesn't exist create one*/
-			if(currentUser == NULL){
-				currentUser = malloc(sizeof(struct UserStruct));
-				if(currentUser == NULL){
+			if(retVal->userRatings[currentRating->userID-1] == NULL){
+				retVal->userRatings[currentRating->userID-1] = malloc(sizeof(struct UserStruct));
+				if(retVal->userRatings[currentRating->userID-1] == NULL){
 					perror("Failed to allocate memory for new user");
-					for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-						free(retVal->userRatings[i]->ratings);
-						free(retVal->userRatings[i]);
+					for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+						free(retVal->userRatings[j]->ratings);
+						free(retVal->userRatings[j]);
 					}
 					free(retVal->userRatings);
 					free(retVal);
 					return NULL;
 				}
 
+				currentUser = retVal->userRatings[currentRating->userID-1];
+
 				currentUser->ratings = malloc(sizeof(int8_t)*retVal->m+1);
 				if(currentUser->ratings == NULL){
 					perror("Failed to allocate memory for new user ratings");
-					for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-						free(retVal->userRatings[i]->ratings);
-						free(retVal->userRatings[i]->flags);
-						free(retVal->userRatings[i]);
+					for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+						free(retVal->userRatings[j]->ratings);
+						free(retVal->userRatings[j]->flags);
+						free(retVal->userRatings[j]);
 					}
 					free(currentUser);
 					free(retVal->userRatings);
@@ -157,10 +160,10 @@ Ratings getRatingTestSet(){
 				currentUser->flags = malloc(sizeof(int8_t)*retVal->m);
 				if(currentUser->flags == NULL){
 					perror("Failed to allocate memory for new user ratings");
-					for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-						free(retVal->userRatings[i]->ratings);
-						free(retVal->userRatings[i]->flags);
-						free(retVal->userRatings[i]);
+					for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+						free(retVal->userRatings[j]->ratings);
+						free(retVal->userRatings[j]->flags);
+						free(retVal->userRatings[j]);
 					}
 					free(currentUser->ratings);
 					free(currentUser);
@@ -169,7 +172,7 @@ Ratings getRatingTestSet(){
 					return NULL;
 				}
 
-				for(i=0;i<retVal->m;i++) currentUser->flags[i] = 0;
+				for(j=0;j<retVal->m;j++) currentUser->flags[j] = 0;
 			}
 
 			currentUser->ratings[currentRating->itemID-1] = currentRating->rating;
@@ -177,9 +180,56 @@ Ratings getRatingTestSet(){
 		}
 	}
 
-	for(i=0;i<retVal->n;i++) retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+	for(i=0;i<retVal->n;i++){
+		if(retVal->userRatings[i]) retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+		else{
+			retVal->userRatings[i] = malloc(sizeof(struct UserStruct));
+			if(retVal->userRatings[i] == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
 
-	users = retVal->userRatings;
+			retVal->userRatings[i]->ratings = malloc(sizeof(int8_t)*(retVal->m+1));
+			if(retVal->userRatings[i]->ratings == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
+
+			retVal->userRatings[i]->flags = malloc(sizeof(int8_t)*(retVal->m));
+			if(retVal->userRatings[i]->flags == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
+
+			for(j=0;j<retVal->m;j++){
+				retVal->userRatings[i]->flags[j] = 0;
+			}
+
+			retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+		}
+		retVal->userRatings[i]->id = i+1;
+	}
 
 	foldCount++;
 
@@ -204,6 +254,7 @@ Ratings getRatingTrainSet(){
 	}
 
 	unsigned int i;
+	unsigned int j;
 	for(i=0;i<retVal->n;i++) retVal->userRatings[i] = NULL;
 
 	unsigned int testRangeLow = foldCount*(allRatings->numberOfRatings/NUM_OF_FOLDS);
@@ -215,26 +266,28 @@ Ratings getRatingTrainSet(){
 		User currentUser = retVal->userRatings[currentRating->userID-1];
 
 		/*if user doesn't exist create one*/
-		if(currentUser == NULL){
-			currentUser = malloc(sizeof(struct UserStruct));
-			if(currentUser == NULL){
+		if(retVal->userRatings[currentRating->userID-1] == NULL){
+			retVal->userRatings[currentRating->userID-1] = malloc(sizeof(struct UserStruct));
+			if(retVal->userRatings[currentRating->userID-1] == NULL){
 				perror("Failed to allocate memory for new user");
-				for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-					free(retVal->userRatings[i]->ratings);
-					free(retVal->userRatings[i]);
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]);
 				}
 				free(retVal->userRatings);
 				free(retVal);
 				return NULL;
 			}
 
-			currentUser->ratings = malloc(sizeof(int8_t)*retVal->m+1);
+			currentUser = retVal->userRatings[currentRating->userID-1];
+
+			currentUser->ratings = malloc(sizeof(int8_t)*(retVal->m+1));
 			if(currentUser->ratings == NULL){
 				perror("Failed to allocate memory for new user ratings");
-				for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-					free(retVal->userRatings[i]->ratings);
-					free(retVal->userRatings[i]->flags);
-					free(retVal->userRatings[i]);
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
 				}
 				free(currentUser);
 				free(retVal->userRatings);
@@ -245,10 +298,10 @@ Ratings getRatingTrainSet(){
 			currentUser->flags = malloc(sizeof(int8_t)*retVal->m);
 			if(currentUser->flags == NULL){
 				perror("Failed to allocate memory for new user ratings");
-				for(i=0;i<retVal->n;i++) if(retVal->userRatings[i] != NULL){
-					free(retVal->userRatings[i]->ratings);
-					free(retVal->userRatings[i]->flags);
-					free(retVal->userRatings[i]);
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
 				}
 				free(currentUser->ratings);
 				free(currentUser);
@@ -257,14 +310,64 @@ Ratings getRatingTrainSet(){
 				return NULL;
 			}
 
-			for(i=0;i<retVal->m;i++) currentUser->flags[i] = 0;
+			for(j=0;j<retVal->m;j++) currentUser->flags[j] = 0;
 		}
 
 		currentUser->ratings[currentRating->itemID-1] = currentRating->rating;
 		currentUser->flags[currentRating->itemID-1] = 1;
 	}
 
-	for(i=0;i<retVal->n;i++) retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+	for(i=0;i<retVal->n;i++){
+		if(retVal->userRatings[i]) retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+		else{
+			retVal->userRatings[i] = malloc(sizeof(struct UserStruct));
+			if(retVal->userRatings[i] == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
+
+			retVal->userRatings[i]->ratings = malloc(sizeof(int8_t)*(retVal->m+1));
+			if(retVal->userRatings[i]->ratings == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
+
+			retVal->userRatings[i]->flags = malloc(sizeof(int8_t)*(retVal->m));
+			if(retVal->userRatings[i]->flags == NULL){
+				perror("Failed to create user ratings on set creation");
+				for(j=0;j<retVal->n;j++) if(retVal->userRatings[j] != NULL){
+					free(retVal->userRatings[j]->ratings);
+					free(retVal->userRatings[j]->flags);
+					free(retVal->userRatings[j]);
+				}
+				free(retVal->userRatings);
+				free(retVal);
+				return NULL;
+			}
+
+			for(j=0;j<retVal->m;j++){
+				retVal->userRatings[i]->flags[j] = 0;
+			}
+
+			retVal->userRatings[i]->ratings[retVal->m] = RATINGS_END;
+		}
+
+		retVal->userRatings[i]->id = i+1;
+	}
 
 	users = retVal->userRatings;
 
@@ -369,8 +472,15 @@ void readRatings(char* inputFilePath){
 		list_pushEnd(l,newRating);
 
 	}
+
+	allRatings->numberOfRatings = 0;
 		
 	while(line = readLine(inputFile)){
+		token = strtok(line," \t\n");
+		if(token == NULL){
+			break;
+		}
+
 		Rating newRating = malloc(sizeof(struct RatingStruct));
 		if(newRating == NULL){
 			perror("Failed to allocate memory for new User");
@@ -383,19 +493,6 @@ void readRatings(char* inputFilePath){
 			return;
 		}
 
-		token = strtok(line," \t\n");
-		if(token == NULL){
-			fprintf(stderr,"Unexpected input encountered on input file line %d\n",n+1);
-			readLine(NULL);
-			fclose(inputFile);
-			free(allRatings);
-			allRatings = NULL;
-			while(!list_isEmpty(l)) free(list_pop(l));
-			list_destroy(l);
-			free(newRating);
-			return;
-		}
-
 		newRating->userID = atoi(token);
 		if(prevUser != newRating->userID){
 			n++;
@@ -404,7 +501,7 @@ void readRatings(char* inputFilePath){
 
 		token = strtok(NULL," \t\n");
 		if(token == NULL){
-			fprintf(stderr,"Unexpected input encountered on input file line %d\n",n+1);
+			fprintf(stderr,"Unexpected input encountered on input file line %d\n",allRatings->numberOfRatings+2);
 			readLine(NULL);
 			fclose(inputFile);
 			free(allRatings);
@@ -420,7 +517,7 @@ void readRatings(char* inputFilePath){
 
 		token = strtok(NULL," \t\n");
 		if(token == NULL){
-			fprintf(stderr,"Unexpected input encountered on input file line %d\n",n+1);
+			fprintf(stderr,"Unexpected input encountered on input file line %d\n",allRatings->numberOfRatings+2);
 			readLine(NULL);
 			fclose(inputFile);
 			free(allRatings);
@@ -433,12 +530,12 @@ void readRatings(char* inputFilePath){
 
 		newRating->rating = atoi(token);
 		list_pushEnd(l,newRating);
+		allRatings->numberOfRatings++;
 	}
 
 	readLine(NULL);
 	fclose(inputFile);
 
-	allRatings->numberOfRatings = list_length(l);
 	allRatings->ratings = malloc(sizeof(Rating)*allRatings->numberOfRatings);
 	if(allRatings == NULL){
 		perror("Failed to allocate memory for ratings placeholder (read)");
@@ -589,7 +686,7 @@ unsigned int ratings_getNumberOfUsers(Ratings ratings){
 }
 
 unsigned short ratings_getNumberOfNeighbors(Ratings ratings){
-	return ratings->P;
+	return P;
 }
 
 unsigned int ratings_calculateHammingDim(Ratings ratings){

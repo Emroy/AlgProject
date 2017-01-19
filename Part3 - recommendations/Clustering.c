@@ -23,6 +23,7 @@ static unsigned short neighborsNum;
 /*NN-LSH*/
 static HashTable* lsh_tables = NULL;
 static char m; //metric
+static unsigned int numOfUsers = 0;
 
 void lsh_init(Ratings ratings,char metric)
 {
@@ -104,6 +105,7 @@ void lsh_init(Ratings ratings,char metric)
 
 	neighborsNum = ratings_getNumberOfNeighbors(ratings);
 	m = metric;
+	numOfUsers = ratings_getNumberOfUsers(ratings);
 }
 
 unsigned int* lsh_getRecommendedItems(User user){
@@ -114,29 +116,43 @@ unsigned int* lsh_getRecommendedItems(User user){
 	}
 
 	unsigned int i;
+	unsigned int j;
 	for(i=0;i<5;i++)
 		retVal[i] = 0;
 
 	Data current;
-	double range_low;
-	double range_high;
+	double range_high = 0.0;
 	if(m == 'h'){
 		current = hammingData_create(user);
-		range_high = (double)(user_hammingDistance(1,2));
+		for(i=0;i<numOfUsers;i++)
+			for(j=0;j<numOfUsers;j++){
+				range_high = user_hammingDistance(i+1,j+1);
+				if(range_high != 0.0) break;
+			}
 	}
 	else if(m == 'e'){
 		current = euclideanData_create(user);
 		range_high = user_euclideanDistance(1,2);
+		for(i=0;i<numOfUsers;i++)
+			for(j=0;j<numOfUsers;j++){
+				range_high = user_euclideanDistance(i+1,j+1);
+				if(range_high != 0.0) break;
+			}
 	}
 	else if(m == 'c'){
 		current = cosineData_create(user);
 		range_high = user_cosineDistance(1,2);
+		for(i=0;i<numOfUsers;i++)
+			for(j=0;j<numOfUsers;j++){
+				range_high = user_cosineDistance(i+1,j+1);
+				if(range_high != 0.0) break;
+			}
 	}
 	else{
 		fprintf(stderr,"invalid distance on lsh_getRecommendedItems\n");
 		return NULL; /*this should never happen*/
 	}
-	range_low = -1*range_high;
+	if(range_high < 0.0) range_high = -1*range_high;
 
 	unsigned int userCount = 0;
 	List l;
@@ -156,18 +172,21 @@ unsigned int* lsh_getRecommendedItems(User user){
 					dist = data_cosineDistance(current,iter);
 				}
 				if(dist == 0.0) continue; /*don't count the user itself*/
-				if(dist >= range_low && dist <= range_high){
+				if(dist <= range_high){
 					list_pushEnd(l,iter);
 					userCount++;
 				}
 			}
 		}
+		if(range_high>=1.0 && range_high < 2.0 && m == 'h'){
+			break;
+		}
 		if(userCount > neighborsNum){
 			range_high -= range_high/2;
-			range_low -= range_low/2;
+			userCount = 0;
 		}else{
 			range_high += range_high/2;
-			range_low += range_high/2;
+			userCount = 0;
 		}
 		if(userCount != neighborsNum){
 			list_destroy(l);
@@ -178,7 +197,7 @@ unsigned int* lsh_getRecommendedItems(User user){
 	unsigned int uid1 = user_getUserID(currentUser);
 	double simSum = 0.0;
 	double z = 0.0;
-	while(!list_isEmpty(l)){
+	for(i=0;i<neighborsNum;i++){
 		User iterUser = data_getUser(list_pop(l));
 		unsigned int uid2 = user_getUserID(iterUser);
 
@@ -187,6 +206,8 @@ unsigned int* lsh_getRecommendedItems(User user){
 		if(temp >= 0) z += temp;
 		else z -= temp;
 	}
+
+	list_destroy(l);
 
 	int8_t* ratingVector = user_getRatingsVector(currentUser);
 	int8_t* ratingFlags = user_getRatingFlags(currentUser);
